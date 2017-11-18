@@ -107,6 +107,11 @@ doesn't like.  If/when that causes a problem I'll have to go figure...
 (define (ignore . whatever)
   (display ""))
 
+(define (iter func list)
+       (if (not (null? list))
+           (begin
+           (func (car list))
+           (iter func (cdr list)))))
 
 (#%provide (all-defined))
 
