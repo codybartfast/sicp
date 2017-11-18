@@ -103,7 +103,8 @@
   (print-queue q)
   (if (empty-dequeue? q)      
       (prn "->|<-" "")
-      (prn (str (front-dequeue q) " <- front | rear -> " (rear-dequeue q)) "")
+      (prn
+       (str (front-dequeue q) " <- front | rear -> " (rear-dequeue q)) "")
       ))
   
 
