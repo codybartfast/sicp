@@ -383,18 +383,8 @@ b.  (My guess...) It's O(n), proportional to the number of elements. Because
               ((> key record-key) (lookup key get-key (left-branch tree)))
               ((< key record-key) (lookup key get-key (right-branch tree)))))))
 
-;; so let test... 
-(define (adjoin-set x set)
-  (cond ((null? set) (make-tree x '() '()))
-        ((= x (entry set)) set)
-        ((< x (entry set))
-         (make-tree (entry set) 
-                    (adjoin-set x (left-branch set))
-                    (right-branch set)))
-        ((> x (entry set))
-         (make-tree (entry set)
-                    (left-branch set)
-                    (adjoin-set x (right-branch set))))))
+
+;; so lets test...
 
 (let ((pete '(1 "Peter Puds" 23 "Manchester"))
       (jane '(2 "Jane Jigs" 45 "Brimingham"))
