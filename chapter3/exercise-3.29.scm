@@ -17,7 +17,21 @@
 
 (-start- "3.29")
 
+(prn "(A and B) equivalent to (not ((not A) and (not B))):
 
+(define (or-gate a1 a2 output)
+  (define not-a1 (make-wire))
+  (define not-a2 (make-wire))
+  (define and-out (make-wire))
+
+  (define inv1 (inverter a1 not-a1))
+  (define inv2 (inverter a2 not-a2))
+  (define and (and-gate not-a1 not-a2 and-out))
+  (define not-and (inverter and-out outpout))
+
+  'ok)
+
+")
 
 (--end-- "3.29")
 
