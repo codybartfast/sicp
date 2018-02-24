@@ -1,0 +1,6 @@
+lec 5b 52:00
+============
+
+"... inadvertent sharing, unanticipated interactions between objects, is the 
+source of most of the bugs in complicated programs."
+(objects have muliple alias.  person, boss.direct_reports, worker.manager)
