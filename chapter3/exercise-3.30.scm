@@ -44,7 +44,30 @@
 ;   ------------------------------------------------------------------------
 
 (-start- "3.30")
+(prn "Non running code:
 
+(define (ripple-adder A-list B-list S-List C)
+  (define (iter A-list B-list S-list c-in c-out)
+    (if (not (null? A-list))
+        (let ((a (car A-list))
+              (b (car B-list))
+              (s (car S-list))
+              (c-out (make-wire))
+              (full (full-addr a b c-in c-out s)))
+          (iter (cdr A-list) (cdr B-list) (cdr S-list) (make-wire) c-in))))
+  (iter A-list B-list S-list (make-wire) C))
+
+
+Delay for n-bit Ripple Adder
+    = n.full-adder-delay
+    = n.(or-delay + 2.half-adder-delay)
+    = n.(or-delay + 2.(and-delay + max(or-delay, (and-delay + inverter-delay)))
+    = max(
+           2n.and-delay + 3n.or-delay,
+           n.or-delay + 4n.and-dlay + 2n.inverter-delay
+         )
+
+")
 
 
 (--end-- "3.30")
