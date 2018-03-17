@@ -22,7 +22,21 @@
 
 (-start- "3.31")
 
+(prn "The shorter version of accept-action-procedure! would work if we could
+assume that all wires have a value of zero when all the inputs are zero. If
+that were the case the call to procedure might be redundent becaue (by
+assumption) calling procedure wouldn't change any values from the
+default value of zero.  However, this is not the case. E.g. without a call
+to procedure the output from Inverter (in the half-adder) would start with a
+wrong value of zero.  Further, even after input-1 is changed, 'sum' would be
+wrong (zero) because the output from the inverter will still be zero because
+the input to the inverter has not changed and so the procedure is not called
+on the inverter and so its output is not 'corrected'.
 
+(This differs from most people's answer to this question, hmm. (Actually
+it's not that different, most answer point out that with the shorter version
+'it doesn't run' (isn't evaluated) initially.  Whereas I'm saying why it
+matters that it doesn't run.).)")
 
 (--end-- "3.31")
 
