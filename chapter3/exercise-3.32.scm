@@ -21,7 +21,13 @@
 
 (-start- "3.32")
 
-
+(prn
+"The output value tha is calculated before adding the action to the agenda.
+So, when the first input to 'and' changes to '1' the intermediate output
+value of '1' is stored in the action.  If actions were performed LIFO then
+this would be the final value of the output, but would be wrong.  The value
+calculated after changing the second (last) input is the one we need
+assigned las to the output value.")
 
 (--end-- "3.32")
 
