@@ -22,7 +22,12 @@
 
 (-start- "3.34")
 
-
+(prn "I think this will work to square numbers.  E.g., if a is set ot 3,
+then b will become 9.  But it will not work in the reverse direction.  We
+cannot set b to 16 and expect a to become 4. Practically, the multiplier
+only acts when two inputs are set (generally n-1?)so it will never 'act'
+when only b is set.  Fundamentally, though a simple division (used by
+multiplier) can't be used to calculate a square root.")
 
 (--end-- "3.34")
 
