@@ -40,7 +40,15 @@
 
 (-start- "3.41")
 
+(prn "The only situation this is helpful is the system is vulnerable to
+partial writes.  If set! is not atomic and during the call the stored value
+could be corrupt becaus it is only partially written, then this wouldprotect
+against reading that partially written, potentially corrupt value.
 
+If we don't need to worry about partial writes then it is unnecessary and
+reduces performance.  it guarantees we read balance before or after a set!,
+but reading during a set! doesn't add any other potential values.
+")
 
 (--end-- "3.41")
 
