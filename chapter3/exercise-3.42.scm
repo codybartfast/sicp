@@ -43,7 +43,22 @@
 
 (-start- "3.42")
 
+(prn "I think the new design prevents a withdrawal happening at the same
+time as a depost.  The question is whether it prevents two deposit
+operations, or two withdrawl operations, happining at the same time.  The
+orignal design creates a new protected method with *every* call to deposit
+or withdrawl so no two can interleave.  The new design only has two
+protected functions, if there are two calls to withdrawl they are using the
+same protected function.
 
+'Make-serializer' prevents two different protected funcions from running
+concurrently.  Does it pevent two instances of the same protected function
+from running concurrently?
+
+If yes, then the change is safe, otherwise the change is unsafe.
+
+My guess is many implementions would make this unssafe.
+")
 
 (--end-- "3.42")
 
