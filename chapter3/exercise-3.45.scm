@@ -47,7 +47,15 @@
 
 (-start- "3.45")
 
+(prn "
+We will get a deadlock.
 
+When the protected exchange function is called it ultimately make a call to
+a protected withdrawl method which will wait until for the exchange function
+to complete - so the withdrawl can't happen until the exchange is complete
+AND exchange can't complete until withdrawl is complete.
+
+")
 
 (--end-- "3.45")
 

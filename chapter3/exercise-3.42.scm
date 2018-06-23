@@ -57,7 +57,12 @@ from running concurrently?
 
 If yes, then the change is safe, otherwise the change is unsafe.
 
-My guess is many implementions would make this unssafe.
+My guess is many implementions would make this unsafe.
+
+Update: this proably is safe.  If the implemtation is done with a mutex as
+implied later in the chapter then access to the mutex would not be
+'compromised' just because it's the same function that's trying ot access
+it. (Ex 3.45 also implies it's safe).
 ")
 
 (--end-- "3.42")
