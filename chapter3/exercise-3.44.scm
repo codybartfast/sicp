@@ -30,7 +30,20 @@
 
 (-start- "3.44")
 
+(prn "
+Surpising I think Louis is wrong.
 
+This is similar to the second part of the previous question.  The 'danger'
+came from the potential for the values to change between reading, deciding
+the amount to change, and then setting.
 
+In this case we don't 'care' what the existing balance is, the amount to
+transfer is independent of the existing value[*] so we don't mind if they
+change before, between or after the two operations.
+
+[* the exception to 'not caring' would be if there was an insufficient
+balance, then the withdrawl would not happen but the deposit would.]
+
+")
 (--end-- "3.44")
 
