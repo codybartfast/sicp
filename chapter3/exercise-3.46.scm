@@ -19,6 +19,21 @@
 
 (-start- "3.46")
 
+(prn "Both calls could read 'false' from the cell and continue to return
+'false' to the calling method resulting in methods running cuncurrently
+
+(test-and-set! cell)   cell   (test-and-set! cell)
+====================          ====================
+
+(if(car cell))        false
+                      false   (if (car cell))
+
+(begin...
+false                 true
+                              (begin ...
+                      true    false        
+")
+
 
 
 (--end-- "3.46")
