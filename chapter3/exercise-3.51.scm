@@ -27,8 +27,41 @@
 ;   ------------------------------------------------------------------------
 
 (-start- "3.51")
+(prn "What is displayed will depend on whether there is memoization.  If
+there is no memoization then I'd expect:
 
+(stream-ref x 5)
+0
+1
+2
+3
+4
+5
 
+(stream-ref x 7)
+0
+1
+2
+3
+4
+5
+6
+7
+
+With memoization:
+
+(stream-ref x 5)
+0
+1
+2
+3
+4
+5
+
+(stream-ref x 7)
+6
+7
+")
 
 (--end-- "3.51")
 
