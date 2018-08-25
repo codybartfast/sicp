@@ -55,15 +55,54 @@ sum = 136
 (display-stream z)
 sum = 210  (346 without memoization)
 
-The valus of sequences are
 
-interal:  1 2 3 4  5  6  7  8  9  10 11 12 13 14  15  16
-seq:      1 3 6 10 15 21 28 36 45 55 66 78 91 105 120 136
-y (even):     6 10       28 36       66 78        120 136
+First use of Seq for 'even':
+============================
 
-Yes it would differ without memoization.  The final sum would be 346 (136 +
-210) becaue when z is evaluated seq would be re-evaulated from the beginning
-and 1 to 16 would be aggregated twice.")
+sum = 0
+
+interval: 1 2 3  4  5  6  7  8  9 10 11 12 13  14  15  16 | 
+seq:      1 3 6 10 15 21 28 36 45 55 66 78 91 105 120 136 |
+
+y (even): - - 6 10  -  - 28 36  -  - 66 78  -   - 120 136 |
+ref:      - - 0  1  -  -  2  3  -  -  4  5  -   -   6   7 | (end)
+
+sum = 136
+
+
+Second use with mem-proc:
+=========================
+
+sum = 136
+
+interval:                                                 |  17  18  19  20
+mem-proc: 1 2 3  4  5  6  7  8  9 10 11 12 13  14  15  16 |  
+seq:      1 3 6 10 15 21 28 36 45 55 66 78 91 105 120 136 | 153 171 190 210
+z (%5=0): - - - 10 15  -  -  - 45 55  -  -  - 105 120   - |   -   - 190 210
+
+sum = 210
+
+Second use without mem-proc:
+============================
+
+sum = 136
+
+interval:   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
+seq:      137 139 142 146 151 157 164 172 181 191 202 214 227 241 256 272
+
+          ...  17  18  19  20
+          ... 289 307 326 346
+
+z (%5=0):   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+                -   -   -   -
+
+sum = 346
+
+Yes it would differ without memoization.  Infact I believe it returns
+different results, so it doesn't just affect performance.  The final sum
+would be 346 (136 + 210) becaue when z is evaluated seq would be
+re-evaulated from the beginning and 1 to 16 would be accumulated twice.")
 
 (--end-- "3.52")
 
