@@ -21,7 +21,14 @@
 
 (-start- "3.57")
 
+(prn "I think fib-gen would make n-2 calls to addition.
 
+Without 'delay' the method would be analagous to the recursive
+implementation of fibonachi in chapter 1.
+
+If S(n) is the number of steps to calculate the nth member then it can be
+rewritten as S(n-1) + S(n-2) + 1.  I.e., with each extra member then number
+of steps approximately doubles.")
 
 (--end-- "3.57")
 
