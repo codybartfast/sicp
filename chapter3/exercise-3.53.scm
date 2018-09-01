@@ -17,7 +17,11 @@
 
 (-start- "3.53")
 
+(prn "At first guess  would expect:
+  1, 2, 4, 8, 16
+I.e, n -> 2^n
 
+Thank you Hal and Gerald for not asking for the working.")
 
 (--end-- "3.53")
 
