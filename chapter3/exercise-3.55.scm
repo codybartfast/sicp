@@ -17,7 +17,14 @@
 
 (-start- "3.55")
 
-
+(prn "
+(define (partial-sums S)
+  (cons-stream
+   (stream-car S)
+   (stream (add-streams
+            (stream-cdr S)
+            (partial-sums S)))))
+")
 
 (--end-- "3.55")
 
