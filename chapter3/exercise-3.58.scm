@@ -24,7 +24,20 @@
 
 (-start- "3.58")
 
+(prn
+"This function appears to return the 'decimal' or base expansion (less the
+decimal point) of a fraction in the base of the radix.  E.g., I would expect
+(expand 1 7 10) to be the decimal expansion of 1/7, i.e.,
 
+  *         *
+  1 4 2 8 5 7 ...
+
+and (expand 3 8 10) to be:
+
+        *
+  3 7 5 0 ...
+
+(where * indicates the digit sequence that is repeated.)")
 
 (--end-- "3.58")
 
