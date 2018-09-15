@@ -17,9 +17,9 @@
 ;   cos x = 1 - ── + ───── - ···,
 ;               2    4·3·2
 ;   
-;               r²      r⁴
-;   cos x = 1 - ──  + ───── - ···,
-;               2     4·3·2
+;                r³       r⁵
+;   sin x = r - ───  + ─────── - ···,
+;               3.2    5.4·3·2
 ;   
 ;   represented as infinite streams. We will represent the series a₀ + a₁ x
 ;   + a₂ x² + a₃ x³ + ··· as the stream whose elements are the coefficients
@@ -41,8 +41,8 @@
 ;   
 ;   b. The function x → e^x is its own derivative.  This implies that e^x
 ;   and the integral of e^x are the same series, except for the constant
-;   term, which is e<sup>0</sup> = 1. Accordingly, we can generate the
-;   series for e^x as
+;   term, which is e⁰ = 1. Accordingly, we can generate the series for e^x
+;   as
 ;   
 ;   (define exp-series
 ;     (cons-stream 1 (integrate-series exp-series)))
@@ -63,6 +63,64 @@
 ;   ------------------------------------------------------------------------
 
 (-start- "3.59")
+(define (stream-car stream)
+  (car stream))
+
+(define (stream-cdr stream)
+  (force (cdr stream)))
+
+(define (stream-map proc s)
+  (if (stream-null? s)
+      the-empty-stream
+      (cons-stream (proc (stream-car s))
+                   (stream-map proc (stream-cdr s)))))
+
+(define (integers-starting-from n)
+  (cons-stream n (integers-starting-from (+ n 1))))
+
+(define integers (integers-starting-from 1))
+
+(define (integrate-series S)
+  (stream-map *
+              (stream-map (lambda (n) (/ 1 n)) integers)
+              S))
+
+
+(prn "Part a
+======
+Ok, I'll be honest I didn't use stream-map on my first attempt (doh!), but
+checking other folks answers clearly I should be using stream-map!
+
+Initial attempt:
+
+(define (integrate-series S)
+  (define (integrate S power)
+    (if (stream-null? S)
+        the-empty-stream
+        (cons-stream
+         (* (/ 1 (+ power 1)) (stream-car S))
+         (integrate (stream-cdr S) (+ power 1)))))
+  (integrate S 0))
+
+So, using stream-map:
+
+(define (integrate-series S)
+  (stream-map *
+              (stream-map (lambda (n) (/ 1 n)) integers)
+              S))
+
+Part b
+======
+(define cosine-series
+  (cons-stream 1 (integrate-series sine-series)))
+
+(define sine-series
+  (cons-stream
+   0
+   (stream-map
+    (lambda (n) (- n))
+    (integrate-series cosine-series))))
+")
 
 
 
