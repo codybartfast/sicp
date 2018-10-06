@@ -67,7 +67,11 @@ doesn't like.  If/when that causes a problem I'll have to go figure...
 (define (--end-- _)
   (display "\n\n"))
 
+(define (stream-car stream)
+  (car stream))
 
+(define (stream-cdr stream)
+  (force (cdr stream)))
 
 ;(define (present-one function inputs)
 ;  (list

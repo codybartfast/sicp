@@ -63,11 +63,6 @@
 ;   ------------------------------------------------------------------------
 
 (-start- "3.59")
-(define (stream-car stream)
-  (car stream))
-
-(define (stream-cdr stream)
-  (force (cdr stream)))
 
 (define (stream-map proc s)
   (if (stream-null? s)
