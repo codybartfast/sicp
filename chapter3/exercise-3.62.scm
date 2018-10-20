@@ -22,6 +22,12 @@
 ;   ------------------------------------------------------------------------
 
 (-start- "3.62")
+;; =========
+;; From 3.54
+;; =========
+
+(define (mul-streams s1 s2)
+  (stream-map * s1 s2)) 
 
 ;; =========
 ;; From 3.60
@@ -65,6 +71,15 @@
     (lambda (n) (- n))
     (integrate-series sine-series))))
 
+(define (take S n)
+  (define (iter S n list)
+    (if (or
+         (= n 0)
+         (stream-null? S))
+        list
+        (iter (stream-cdr S) (- n 1) (cons (stream-car S) list))))
+  (reverse (iter S n nil)))
+
 ;; =========
 ;; From 3.61
 ;; =========
@@ -100,20 +115,20 @@
 ;; Let's Test
 ;; ==========
 
+(define (powers-of x)
+  (define (powers-stream start)
+    (cons-stream
+     start
+     (powers-stream (* start x))))
+  (powers-stream 1))
 
-; DEFINE EXPONENTS AS SERIES THEN MUL-SERIES!
+(define (poly coefficients x)
+  (mul-streams
+   coefficients
+   (powers-of x)))
+
 (define (eval-power-series series terms x)
-  (define (iter S exp x-exp acc)
-    (if (>= exp terms)
-        acc
-        (iter (stream-cdr S)
-              (+ exp 1)
-              (* x-exp x)
-              (+ acc (* (stream-car S) x-exp)))))
-  (iter (stream-cdr series)
-        1
-        x
-        (stream-car series)))
+  (apply + (take (poly series x) terms)))
 
 (define (tan x)
   (eval-power-series tan-series 150 x))
