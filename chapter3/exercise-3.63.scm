@@ -28,7 +28,23 @@
 
 (-start- "3.63")
 
+(prn
+ "In the original implemenation the stream-map is always being applied to
+the same structure, guesses, there is just one stream.
 
+In Louis's implementation a new stream is created with each new guess.  This
+is evidenced by the fact is that (cons-stream 1.0 ...) is called multiple
+times.
+
+At a naive level the n-th term of of the n-th stream is calculated from the
+(n-1)-th item from the (n-1)-th stream so it looks like only n computations
+are required. However before calculating that term we first have to
+enumerate the (n-1)-th term of the n-th stream.  That requires n-1
+computational steps but that result never used.  I.e. (n^2)/2 computational
+steps are made in total.
+
+Without memoization I think they would be equivalent. Each call to
+stream-map would cause guesses to be re-evaluated.")
 
 (--end-- "3.63")
 
