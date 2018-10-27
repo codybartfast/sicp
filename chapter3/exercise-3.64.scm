@@ -21,6 +21,45 @@
 
 (-start- "3.64")
 
+(define (stream-limit S tolerance)
+  (let ((a (stream-car S))
+        (b (stream-car (stream-cdr S))))
+    (if (< (abs (- a b)) tolerance)
+        b
+        (stream-limit (stream-cdr S) tolerance))))
+    
+        
+
+
+
+(define (stream-map proc . argstreams)
+  (if (stream-null? (car argstreams))
+      the-empty-stream
+      (cons-stream
+       (apply proc (map stream-car argstreams))
+       (apply stream-map
+              (cons proc (map stream-cdr argstreams))))))
+
+(define (average a b)
+  (/ (+ a b) 2))
+
+(define (sqrt-improve guess x)
+  (average guess (/ x guess)))
+
+(define (sqrt-stream x)
+  (define guesses
+    (cons-stream 1.0
+                 (stream-map (lambda (guess)
+                               (sqrt-improve guess x))
+                             guesses)))
+  guesses)
+
+(define (sqrt x tolerance)
+  (stream-limit (sqrt-stream x) tolerance))
+
+(prn
+ "Expect: 1.41421356237"
+ (str "got:    " (sqrt 2 0.000000001)))
 
 
 (--end-- "3.64")
