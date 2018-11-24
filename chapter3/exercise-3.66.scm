@@ -19,7 +19,29 @@
 
 (-start- "3.66")
 
+(prn
+ "My Theory:
+==========
+Generally, if to get to item (r c) we will need to enumerate 1 + (c - r)
+items in row r.  In enumerating items in that row we will enumerate the same
+number of items in lower rows (2 * (1 + c - r) items so far).  But to get
+these items we will have had to enumerate as many items in the row above and
+twice as many in the one above that, also for each new row we need to
+enumerate the 'corner'.  So total is:
+    (2 ^ r)(2 * (1 + c + r)) + r = (2 ^ (r + 1))(1 + c + r) + r
+In which case
+    (1, 100) => r = 1, c = 100
+    (2^1)(1+100-1)+1
+    201 (200 preceeding)
 
+    (99, 100) => r = 99, c = 100
+    (2^99)(2)+99
+    (2^100)+98 preceeding
+
+    (100, 100) => r = 100, c = 100
+    (2^100)(1)+100
+    (2^100)+99 preceeding
+")
 
 (--end-- "3.66")
 
