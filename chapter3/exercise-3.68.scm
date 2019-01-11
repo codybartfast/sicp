@@ -26,7 +26,19 @@
 
 (-start- "3.68")
 
+(prn "My Hypothesis:
+==============
+I feel I'm walking into a trap by saying I think Louis's code would work
+'after a fashion'.  I think every pair of i, j would be produced eventually
+but the order would quite 'asymetric.  E.g. (4,4) would not be generated
+until after (1,32).  So (ignoring trivial cases) you can't stop the sequence
+at some point where have all pairs i<=j and only pairs i<=j.  Because by the
+the time you get i=j you will also have (1, j+1) etc...
 
+Looking at other folks' answers (e.g., Kana) this is (of course) only the
+lesser evil.  The bigger problem is the absence of 'cons-stream' so that
+Louis's code has no delayed evaluation and so, with an infinite streams it
+would just recurse indefinitely.")
 
 (--end-- "3.68")
 
