@@ -4,3 +4,13 @@ lec 5b 52:00
 "... inadvertent sharing, unanticipated interactions between objects, is the 
 source of most of the bugs in complicated programs."
 (objects have muliple alias.  person, boss.direct_reports, worker.manager)
+
+
+lec 6a 6:00
+===========
+([throws chalk across room] - got to wonder how many are uncomfortable at the chalk (apparently) remaining on the floor)
+
+
+lec 6b, 2nd half
+================
+Second half feels like a 'foundation' for ideas like monands?
