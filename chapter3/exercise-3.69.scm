@@ -20,6 +20,14 @@
 
 ;; functions to help verify
 
+(define (display-line x)
+  (display "    ")
+  (display x)
+  (newline))
+
+(define (display-list l)
+  (for-each display-line l))
+
 (define (integers-starting-from n)
   (cons-stream n (integers-starting-from (+ n 1))))
 
@@ -88,7 +96,8 @@
   (stream-filter pythagorean?
                  (triples integers integers integers)))
 
-(take 5 pythagoreans)
+(prn "Pythagorean triples")
+(display-list (take 5 pythagoreans))
 
 (--end-- "3.69")
 
