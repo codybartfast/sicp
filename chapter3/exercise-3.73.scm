@@ -59,7 +59,39 @@
 
 (-start- "3.73")
 
+;; dependencies
 
+(define (stream-map proc s)
+  (if (stream-null? s)
+      the-empty-stream
+      (cons-stream (proc (stream-car s))
+                   (stream-map proc (stream-cdr s)))))
+
+(define (add-streams s1 s2)
+  (stream-map + s1 s2))
+
+(define (scale-stream stream factor)
+  (stream-map (lambda (x) (* x factor)) stream))
+
+(define (integral integrand initial-value dt)
+  (define int
+    (cons-stream initial-value
+                 (add-streams (scale-stream integrand dt)
+                              int)))
+  int)
+
+;; RC1
+
+(define (RC R C dt)
+  (lambda (i-stream v0)
+    (add-streams
+     (scale-stream (integral i-stream v0 dt) (/ 1 C))
+     (scale-stream i-stream R))))
+      
+(define RC1 (RC 5 1 0.5))
+
+(prn "Apart from having the scaling by 1/C outside the integral this seems
+similar to other answers - no test data here!"
 
 (--end-- "3.73")
 
