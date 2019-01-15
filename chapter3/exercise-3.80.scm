@@ -132,6 +132,74 @@
 
 (-start- "3.80")
 
+;; to help verify
+
+(define (display-line x)
+  (display "    ")
+  (display x)
+  (newline))
+
+(define (display-list l)
+  (for-each display-line l))
+
+(define (take n S)
+  (define (iter S n list)
+    (if (or
+         (= n 0)
+         (stream-null? S))
+        list
+        (iter (stream-cdr S) (- n 1) (cons (stream-car S) list))))
+  (reverse (iter S n nil)))
+
+;; dependencies
+
+(define (stream-map proc . argstreams)
+  (if (stream-null? (car argstreams))
+      the-empty-stream
+      (cons-stream
+       (apply proc (map stream-car argstreams))
+       (apply stream-map
+              (cons proc (map stream-cdr argstreams))))))
+
+(define (scale-stream stream factor)
+  (stream-map (lambda (x) (* x factor)) stream))
+
+(define (add-streams s1 s2)
+  (stream-map + s1 s2))
+
+(define (integral delayed-integrand initial-value dt)
+  (define int
+    (cons-stream initial-value
+                 (let ((integrand (force delayed-integrand)))
+                   (add-streams (scale-stream integrand dt)
+                                int))))
+  int)
+
+;; RLC
+
+(define (RLC R C L dt)
+  (define (rlc vC0 iL0)
+    (define vC (integral (delay (scale-stream iL (/ -1 C))) vC0 dt))
+    (define iL (integral (delay (add-streams 
+                          (scale-stream vC (/ 1 L))
+                          (scale-stream iL (/ (- R) L))))
+                         iL0 dt))
+    (cons vC iL))
+  rlc)
+                          
+;; verify
+
+(define rlc (RLC 1 0.2 1 0.1))
+
+(define pair (rlc 10 0))
+(define vC (car pair))
+(define iL (cdr pair))
+
+(prn "vC:")
+(display-list (take 7 vC))
+
+(prn "" "iL:")
+(display-list (take 7 iL))
 
 
 (--end-- "3.80")
