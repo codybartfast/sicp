@@ -56,7 +56,31 @@
 
 (-start- "3.78")
 
+(prn
+ "
+We're given:
 
+   d²y     dy
+   ─── - a ── - by = 0
+   dt²     dt
 
+This can be rearranged to tell us:
+  ddy = b.y + a.dy
+
+Also, by definition of differentials and integrals we know:
+   y = (integral of dy) + (y initial)
+  dy = (integral of ddy) + (dy initial)
+
+Putting these circular definitions together:
+
+(define (solve-2nd a b dt y0 dy0)
+  (define y (integral (delay dy) y0 dt))
+  (define dy (integral (delay ddy) dy0 dt))
+  (define ddy
+    (stream-add
+     (stream-scale y b)
+     (stream-scale dy a)))
+  y)
+")
 (--end-- "3.78")
 
