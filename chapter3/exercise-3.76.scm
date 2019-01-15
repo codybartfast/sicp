@@ -23,7 +23,79 @@
 
 (-start- "3.76")
 
+;; to help verify
 
+(define (display-line x)
+  (display "    ")
+  (display x)
+  (newline))
+
+(define (display-list l)
+  (for-each display-line l))
+
+(define (integers-starting-from n)
+  (cons-stream n (integers-starting-from (+ n 1))))
+
+(define integers (integers-starting-from 1))
+
+(define (take n S)
+  (define (iter S n list)
+    (if (or
+         (= n 0)
+         (stream-null? S))
+        list
+        (iter (stream-cdr S) (- n 1) (cons (stream-car S) list))))
+  (reverse (iter S n nil)))
+
+;; dependencies
+
+(define (stream-map proc . argstreams)
+  (if (stream-null? (car argstreams))
+      the-empty-stream
+      (cons-stream
+       (apply proc (map stream-car argstreams))
+       (apply stream-map
+              (cons proc (map stream-cdr argstreams))))))
+
+;; smooth
+
+(define (smooth1 stream last-value)
+  (define (avg a b) (/ (+ a b) 2))
+  (define (iter s prev)
+    (cons-stream
+     (avg (stream-car s) prev)
+     (iter (stream-cdr s) (stream-car s))))
+  (iter stream last-value))
+
+;; or better using the 3.50's stream-map:
+
+(define (smooth stream last-value)
+  (stream-map
+   (lambda (a b) (/ (+ a b) 2)) 
+   (cons-stream last-value stream)
+   stream))
+
+;; verify smooth
+
+(prn "Check smooth:")
+(display-list (take 10 (smooth integers 0)))
+
+(prn "
+
+The cross deteection with smoothing can be achieved based on
+funntion composition:
+
+    (make-zero-crossing (smooth stream) last-value)
+
+or it it could be passed in as a parameter:
+
+(define (make-zero-crossings input-filter input-stream last-value)
+  (let ((stream (input-filter input-stream last-value)))
+    (cons-stream
+     (sign-change-detector (stream-car stream) last-value)
+     (make-zero-crossings (stream-cdr stream)
+                          (stream-car stream)))))
+")
 
 (--end-- "3.76")
 
