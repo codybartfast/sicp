@@ -34,7 +34,17 @@
 
 (-start- "3.75")
 
+(prn "
+Need both the last average value (for sign change detection) and last value
+(to calculate the average of last two points).
 
+(define (make-zero-crossings input-stream last-value last-avpt)
+  (let ((avpt (/ (+ (stream-car input-stream) last-value) 2)))
+    (cons-stream (sign-change-detector avpt last-avpt)
+                 (make-zero-crossings (stream-cdr input-stream)
+                                      (stream-car input-stream)
+                                      avpt))))
+")
 
 (--end-- "3.75")
 
