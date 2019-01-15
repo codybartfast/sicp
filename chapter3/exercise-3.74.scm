@@ -50,6 +50,10 @@
 
 (-start- "3.74")
 
+(prn "
+(define zero-crossings
+  (stream-map sign-change-detector sense-data (stream-cons 0 sense-data)))
+") 
 
 
 (--end-- "3.74")

@@ -85,13 +85,13 @@
 (define (RC R C dt)
   (lambda (i-stream v0)
     (add-streams
-     (scale-stream (integral i-stream v0 dt) (/ 1 C))
+     (scale-stream (integral i-stream (* C v0) dt) (/ 1 C))
      (scale-stream i-stream R))))
       
 (define RC1 (RC 5 1 0.5))
 
 (prn "Apart from having the scaling by 1/C outside the integral this seems
-similar to other answers - no test data here!"
+similar to other answers - no test data here!")
 
 (--end-- "3.73")
 
