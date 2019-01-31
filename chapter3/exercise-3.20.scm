@@ -38,6 +38,8 @@ identifiers because they exist in different contexts/environments.
             para: x                                        para: z
             para: y              para: z      para: z      para: new-value
           (define (set-x!...    (z 'car)     (z 'cdr)     ((z 'set-car!)...
+                ^                  ^            ^               ^
+                │                  │            │               │
                 @ @ ─┐             @ @ ─┐       @ @ ─┐          @ @ ─┐
                  ^   │              ^   │        ^   │           ^   │
 global env ──┐   │   │              │   │        │   │           │   │
