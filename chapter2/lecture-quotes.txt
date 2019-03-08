@@ -10,7 +10,8 @@ give a name to to the decsion of how we're going to do it.
 ... Computer Science is lot like magic, there's a bad part that's a lot like
 religion.
 
-... people who really believe that you design everything before you
+
+... in general people who really believe that you design everything before you
 implement, basically, are people who haven't designed very many things.
 The real power is that you can pretend you've made the decision.
 
@@ -27,9 +28,9 @@ nicely embedded in Lisp.
 
 1:02:50
 
-What List is great at, - see, Lisp is a lousy language for any particular
+What List is great at, - see, Lisp is a lousy language for doing any particular
 problem, what it's good for is figuring out the right language that you want
-and embedding that in Lisp...
+and embedding that in Lisp, that's the real power ...
 
 1:07:49
 
