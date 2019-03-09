@@ -13,8 +13,9 @@
   (println dash-line))
 
 (define (--end-- ex-number)
-   (println))
+   (println dash-line))
 
 (#%provide
+ println
  -start-
  --end--)

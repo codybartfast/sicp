@@ -25,7 +25,34 @@
 
 (-start- "4.1")
 
+;(define (list-of-values exps env)
+;  (if (no-operands? exps)
+;      '()
+;      (cons (eval (first-operand exps) env)
+;            (list-of-values (rest-operands exps) env))))
 
+(println "
+To evaluate from Left to Right:
+
+(define (list-of-values exps env)
+  (if (no-operands? exps)
+      '()
+      ((lambda (operand)
+         (cons operand
+               (list-of-values (rest-operands exps) env)))
+       (eval (first-operand exps) env))))
+
+
+To evaluate from Right to Left:
+
+(define (list-of-values exps env)
+  (if (no-operands? exps)
+      '()
+      ((lambda (rest)
+         (cons (eval (first-operand exps) env)
+               rest))
+       (list-of-values (rest-operands exps) env))))
+")
 
 (--end-- "4.1")
 
