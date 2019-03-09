@@ -30,8 +30,27 @@
 ;   ------------------------------------------------------------------------
 
 (-start- "4.2")
+(println "
+A. What's wrong with Louis's Plan?
+==================================
 
+I'm probably missing something because the problem seems obvious even by
+Louis's standards.  If define, set!, if or begin could simply be applied
+then they wouldn't need special forms. All of these would therefore break
+in fact they would never be called as their 'cond' clauses are unreachable
+and they don't exist as regular named variable procedures.
 
+B. Explicit Call
+================
+
+(define (application? exp)
+        (if (tagged-list? exp 'call)
+            (if (pair? (cdr exp))
+                true
+                (error \"CALL doesn't have operator\"))))
+(define (operator exp) (cadr exp))
+(define (operands exp) (cddr exp))
+")
 
 (--end-- "4.2")
 
