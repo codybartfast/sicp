@@ -19,7 +19,31 @@
 
 (-start- "4.3")
 
+(println "
 
+Since the question says we may use the car of compound expressions that
+implies (to me at least) that we should be assuming we have a tag for
+application expressions like the 'call tag used in the previous question.
+In that case I think _think_ eval could be as simple as the following.
+
+Comparing it to Ex 2.73 I'm primarily struck by the similarity. Simple cases
+are handled specifically and then more complicated cases are handled in a
+standard way which allows the data directed approach.  With 2.73 the data /
+operands is a well defined list of values, here though the data / exp can
+have any structure so long as it makes sense to the specific evaluator (and
+it has the type tag).
+
+(define expression-type car)
+(define expression-body cdr)
+
+(define (eval exp env)
+  (cond
+    ((self-evaluating? exp) exp)
+    ((variable? exp) (lookup-variable-value exp env))
+    ((quoted? exp) (text-of-quotation exp))
+    ((get 'eval (expression-type exp)) (expression-body exp)
+                                       env)))
+")
 
 (--end-- "4.3")
 
