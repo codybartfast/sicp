@@ -3,7 +3,7 @@
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
-        ((quoated? exp) (text-of-quotation exp))
+        ((quoted? exp) (text-of-quotation exp))
         ((assignment? exp) (eval-assignment exp env))
         ((definition? exp) (eval-definition exp env))
         ((if? exp) (eval-if exp env))
@@ -13,7 +13,7 @@
                          env))
         ((begin? exp)
          (eval-sequence (begin-actions exp) env))
-        ((cond? exp) (eval (cond-if exp) env))
+        ((cond? exp) (eval (cond->if exp) env))
         ((application? exp)
          (apply (eval (operator exp) env)
                 (list-of-values (operands exp) env)))
@@ -50,7 +50,7 @@
   (cond ((last-exp? exps) (eval (first-exp exps) env))
         (eval-sequence (rest-exps exps) env)))
 
-(define (eval-assignement exp env)
+(define (eval-assignment exp env)
   (set-variable-value! (assignment-variable exp)
                        (eval (assignment-value exp) env)
                        env)
@@ -70,6 +70,8 @@
 
 (define (quoted? exp)
   (tagged-list? exp 'quote))
+
+(define (text-of-quotation exp) (cadr exp))
 
 (define (tex-of-quotation exp) (cadr exp))
 
@@ -228,6 +230,16 @@
             (else (scan (cdr vars) (cdr vals)))))
     (scan (frame-variables frame)
           (frame-values frame))))
+
+(define (setup-environment)
+  (let ((initial-env
+         (extend-environment (primitive-procedure-names)
+                             (primitive-procedure-objects)
+                             the-empty-environment)))
+    (define-variable! 'true true initial-env)
+    (define-variable! 'false false initial-env)
+    initial-env))
+(define the-global-environment (setup-environment))
 
 
              
