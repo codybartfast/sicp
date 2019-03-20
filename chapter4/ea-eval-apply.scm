@@ -38,7 +38,7 @@
           "Unknown procedure type -- APPLY" procedure))))
 
 (define (list-of-values exps env)
-  (if (no-operands? exprs)
+  (if (no-operands? exps)
       '()
       (cons (eval (first-operand exps) env)
             (list-of-values (rest-operands exps) env))))
@@ -59,7 +59,7 @@
   'ok)
 
 (define (eval-definition exp env)
-  (devine-variable! (definition-variable exp)
+  (define-variable! (definition-variable exp)
                     (eval (definition-value exp) env)
                     env))
 
@@ -83,7 +83,7 @@
       false))
 
 (define (assignment? exp)
-  (tagged-list exp 'set!))
+  (tagged-list? exp 'set!))
 (define (assignment-variable exp) (cadr exp))
 (define (assignment-value exp) (caddr exp))
 
@@ -121,7 +121,7 @@
 (define (begin-actions exp) (cdr exp))
 (define (last-exp? seq) (null? (cdr seq)))
 (define (first-exp seq) (car seq))
-(define (rest-exp seq) (cdr seq))
+(define (rest-exps seq) (cdr seq))
 
 (define (sequence->exp seq)
   (cond ((null? seq) seq)
@@ -132,7 +132,7 @@
 (define (application? exp) (pair? exp))
 (define (operator exp) (car exp))
 (define (operands exp) (cdr exp))
-(define (no-operands expr) (null? ops))
+(define (no-operands? ops) (null? ops))
 (define (first-operand ops) (car ops))
 (define (rest-operands ops) (cdr ops))
 
@@ -152,7 +152,7 @@
             (rest (cdr clauses)))
         (if (cond-else-clause? first)
             (if (null? rest)
-                (sequence-exp (cond-actions first))
+                (sequence->exp (cond-actions first))
                 (error "ELSE clause isn't last -- COND-IF"
                        clauses))
             (make-if (cond-predicate first)
@@ -166,9 +166,9 @@
 
 (define (make-procedure parameters body env)
   (list 'procedure parameters body env))
-(define (compound-procedure p)
+(define (compound-procedure? p)
   (tagged-list? p 'procedure))
-(define (procedure-paramters p) (cadr  p))
+(define (procedure-parameters p) (cadr  p))
 (define (procedure-body p) (caddr p))
 (define (procedure-environment p) (cadddr p))
 
@@ -176,9 +176,9 @@
 (define (first-frame env) (car env))
 (define the-empty-environment '())
 
-(define (make-frame variable values)
+(define (make-frame variables values)
   (cons variables values))
-(define (frame-variable frame) (car frame))
+(define (frame-variables frame) (car frame))
 (define (frame-values frame) (cdr frame))
 (define (add-binding-to-frame! var val frame)
   (set-car! frame (cons var (car frame)))
@@ -194,7 +194,7 @@
 (define (lookup-variable-value var env)
   (define (env-loop env)
     (define (scan vars vals)
-      (cond ((null vars)
+      (cond ((null? vars)
              (env-loop (enclosing-environment env)))
             ((eq? var (car vars))
              (car vals))
@@ -203,7 +203,7 @@
         (error "Unbound variable" var)
         (let ((frame (first-frame env)))
           (scan (frame-variables frame)
-                (frame-values freme)))))
+                (frame-values frame)))))
   (env-loop env))
 
 
@@ -211,7 +211,7 @@
    (define (env-loop env)
      (define (scan vars vals)
        (cond ((null? vars)
-              (env-loop (enclosing-environmet env)))
+              (env-loop (enclosing-environment env)))
              ((eq? var (car vars))
               (set-car! vals var))
              (else (scan (cdr vars) (cdr vals)))))
@@ -243,3 +243,22 @@
     initial-env))
 (define the-global-environment (setup-environment))
 
+;;list of primitives directly mapped to underlying apply
+(define underlying-primitives (list car cdr cons null?))
+
+(define (underlying-primitive? proc)
+  (define (iter underlying)
+    (if (null? underlying)
+        false
+        (if (eq? (car underlying) proc)
+            true
+            false)))
+  (iter underlying-primitives))
+
+(define (primitive-procedure? proc)
+  (underlying-primitive proc))
+
+(define (apply-primitive-procedure proc args)
+  (if (underlying-primitive? proc)
+      (underlying-apply proc args)
+      (error "APPLY PRIMITIVE - unknown procedure" proc)))
