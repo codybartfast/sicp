@@ -1,5 +1,7 @@
 #lang sicp
 
+(#%require "ea-underlying-apply.scm")
+
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
@@ -241,6 +243,3 @@
     initial-env))
 (define the-global-environment (setup-environment))
 
-
-             
-        
