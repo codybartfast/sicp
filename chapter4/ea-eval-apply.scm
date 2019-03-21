@@ -244,7 +244,7 @@
 (define the-global-environment (setup-environment))
 
 ;;list of primitives directly mapped to underlying apply
-(define underlying-primitives (list car cdr cons null?))
+(define underlying-primitives (list 'car 'cdr 'cons 'null?))
 
 (define (underlying-primitive? proc)
   (define (iter underlying)
