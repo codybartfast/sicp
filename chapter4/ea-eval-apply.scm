@@ -3,6 +3,7 @@
 (#%require "ea-underlying-apply.scm")
 
 (define (eval exp env)
+  ;(println "Evaling: " exp)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         ((quoted? exp) (text-of-quotation exp))
@@ -233,6 +234,35 @@
     (scan (frame-variables frame)
           (frame-values frame))))
 
+;;list of primitives directly mapped to underlying apply
+(define underlying-primitives
+  (list
+   (cons '* *)
+   (cons '+ +)
+   (cons 'car car)
+   (cons 'cdr cdr)
+   (cons 'cons cons)
+   (cons 'null? null?)))
+
+(define underlying-primitives-names
+  (map car underlying-primitives))
+
+(define underlying-primitives-objects
+  (map cdr underlying-primitives))
+
+(define (underlying-primitive? proc)
+  (define (iter underlying)
+    (if (null? underlying)
+        false
+        (if (eq? (car underlying) proc)
+            true
+            false)))
+  (iter underlying-primitives-objects))
+
+(define (primitive-procedure-names) underlying-primitives-names)
+
+(define (primitive-procedure-objects) underlying-primitives-objects)
+
 (define (setup-environment)
   (let ((initial-env
          (extend-environment (primitive-procedure-names)
@@ -243,22 +273,12 @@
     initial-env))
 (define the-global-environment (setup-environment))
 
-;;list of primitives directly mapped to underlying apply
-(define underlying-primitives (list 'car 'cdr 'cons 'null?))
-
-(define (underlying-primitive? proc)
-  (define (iter underlying)
-    (if (null? underlying)
-        false
-        (if (eq? (car underlying) proc)
-            true
-            false)))
-  (iter underlying-primitives))
-
 (define (primitive-procedure? proc)
-  (underlying-primitive proc))
+  (underlying-primitive? proc))
 
 (define (apply-primitive-procedure proc args)
   (if (underlying-primitive? proc)
       (underlying-apply proc args)
       (error "APPLY PRIMITIVE - unknown procedure" proc)))
+
+(eval '(* 2 3)  the-global-environment)
