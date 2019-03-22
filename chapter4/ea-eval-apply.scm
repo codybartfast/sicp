@@ -207,7 +207,6 @@
                 (frame-values frame)))))
   (env-loop env))
 
-
  (define (set-variable-value! var val env)
    (define (env-loop env)
      (define (scan vars vals)
@@ -259,9 +258,35 @@
             (iter (cdr underlying)))))
   (iter underlying-primitives-objects))
 
-(define (primitive-procedure-names) underlying-primitives-names)
+(define custom-primitives
+  (list
+   (cons 'square (lambda (x) (* x x)))
+   ))
 
-(define (primitive-procedure-objects) underlying-primitives-objects)
+(define custom-primitives-names
+  (map car custom-primitives))
+
+(define custom-primitives-objects
+  (map cdr custom-primitives))
+
+(define (custom-primitive? proc)
+  (define (iter procs)
+    (if (null? procs)
+        false
+        (if (eq? (car procs) proc)
+            true
+            (iter (cdr procs)))))
+  (iter custom-primitives-objects))
+
+
+
+(define (primitive-procedure-names)
+  (append underlying-primitives-names
+          custom-primitives-names))
+
+(define (primitive-procedure-objects)
+  (append underlying-primitives-objects
+          custom-primitives-objects))
 
 (define (setup-environment)
   (let ((initial-env
@@ -274,11 +299,12 @@
 (define the-global-environment (setup-environment))
 
 (define (primitive-procedure? proc)
-  (underlying-primitive? proc))
+  (or (underlying-primitive? proc)
+      (custom-primitive? proc)))
 
 (define (apply-primitive-procedure proc args)
-  (if (underlying-primitive? proc)
+  (if (primitive-procedure? proc)
       (underlying-apply proc args)
       (error "APPLY PRIMITIVE - unknown procedure" proc)))
 
-(eval '(cdr (cons 'a 'b))  the-global-environment)
+(eval '(car (cons (* (square 3) (+ 5 6))'b))  the-global-environment)
