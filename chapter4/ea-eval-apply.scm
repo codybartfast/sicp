@@ -234,77 +234,46 @@
           (frame-values frame))))
 
 ;;list of primitives directly mapped to underlying apply
-(define underlying-primitives
+(define primitive-procedures
   (list
    (cons '* *)
    (cons '+ +)
    (cons 'car car)
    (cons 'cdr cdr)
    (cons 'cons cons)
-   (cons 'null? null?)))
-
-(define underlying-primitives-names
-  (map car underlying-primitives))
-
-(define underlying-primitives-objects
-  (map cdr underlying-primitives))
-
-(define (underlying-primitive? proc)
-  (define (iter underlying)
-    (if (null? underlying)
-        false
-        (if (eq? (car underlying) proc)
-            true
-            (iter (cdr underlying)))))
-  (iter underlying-primitives-objects))
-
-(define custom-primitives
-  (list
+   (cons 'null? null?)
    (cons 'square (lambda (x) (* x x)))
    ))
 
-(define custom-primitives-names
-  (map car custom-primitives))
+(define primitive-procedure-names
+  (map car primitive-procedures))
 
-(define custom-primitives-objects
-  (map cdr custom-primitives))
+(define primitive-procedure-objects
+  (map cdr primitive-procedures))
 
-(define (custom-primitive? proc)
+(define (primitive-procedure? proc)
   (define (iter procs)
     (if (null? procs)
         false
         (if (eq? (car procs) proc)
             true
             (iter (cdr procs)))))
-  (iter custom-primitives-objects))
+  (iter primitive-procedure-objects))
 
-
-
-(define (primitive-procedure-names)
-  (append underlying-primitives-names
-          custom-primitives-names))
-
-(define (primitive-procedure-objects)
-  (append underlying-primitives-objects
-          custom-primitives-objects))
 
 (define (setup-environment)
   (let ((initial-env
-         (extend-environment (primitive-procedure-names)
-                             (primitive-procedure-objects)
+         (extend-environment primitive-procedure-names
+                             primitive-procedure-objects
                              the-empty-environment)))
     (define-variable! 'true true initial-env)
     (define-variable! 'false false initial-env)
     initial-env))
 (define the-global-environment (setup-environment))
 
-(define (primitive-procedure? proc)
-  (or (underlying-primitive? proc)
-      (custom-primitive? proc)))
-
 (define (apply-primitive-procedure proc args)
   (if (primitive-procedure? proc)
       (underlying-apply proc args)
       (error "APPLY PRIMITIVE - unknown procedure" proc)))
 
-(eval '(car (cons (* (square 3) (+ 5 6))'b))  the-global-environment)
+(eval '(car (cons (* (square 3) (+ 5 6))'b)) the-global-environment)
