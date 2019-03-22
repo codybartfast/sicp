@@ -256,7 +256,7 @@
         false
         (if (eq? (car underlying) proc)
             true
-            false)))
+            (iter (cdr underlying)))))
   (iter underlying-primitives-objects))
 
 (define (primitive-procedure-names) underlying-primitives-names)
@@ -281,4 +281,4 @@
       (underlying-apply proc args)
       (error "APPLY PRIMITIVE - unknown procedure" proc)))
 
-(eval '(* 2 3)  the-global-environment)
+(eval '(cdr (cons 'a 'b))  the-global-environment)
