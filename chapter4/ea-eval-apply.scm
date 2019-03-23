@@ -29,7 +29,6 @@
         ((compound-procedure? procedure)
          (eval-sequence
           (procedure-body procedure)
-          arguments
           (extend-environment
            (procedure-parameters procedure)
            arguments
@@ -51,7 +50,8 @@
 
 (define (eval-sequence exps env)
   (cond ((last-exp? exps) (eval (first-exp exps) env))
-        (eval-sequence (rest-exps exps) env)))
+        (else (eval (first-exp exps) env)
+              (eval-sequence (rest-exps exps) env))))
 
 (define (eval-assignment exp env)
   (set-variable-value! (assignment-variable exp)
@@ -118,7 +118,7 @@
 (define (make-if predicate consequent alternative)
   (list 'if predicate consequent alternative))
 
-(define (begin? exp) (tagged-list? exp 'begine))
+(define (begin? exp) (tagged-list? exp 'begin))
 (define (begin-actions exp) (cdr exp))
 (define (last-exp? seq) (null? (cdr seq)))
 (define (first-exp seq) (car seq))
@@ -276,4 +276,6 @@
       (underlying-apply proc args)
       (error "APPLY PRIMITIVE - unknown procedure" proc)))
 
-(eval '(car (cons (* (square 3) (+ 5 6))'b)) the-global-environment)
+
+(define xpr '(begin (define (add2 x) (+ x 2)) (add2 8)))
+(eval xpr the-global-environment)
