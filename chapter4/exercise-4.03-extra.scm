@@ -1,6 +1,7 @@
 #lang sicp
 
 (#%require "common.scm")
+(#%require "ea-eval-apply.scm")
 
 ;   Exercise 4.3
 ;   ============
@@ -51,12 +52,7 @@
              '("'getting cherry'" "'getting apple'")
              (cadr results))))
 
-;(println "wow")
-
-(define (println x) 2)
-
-(println "wow")
-
+(eval (pick-fruit-exp) the-global-environment)
 
 (--end-- "4.3")
 

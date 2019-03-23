@@ -3,7 +3,7 @@
 (#%require "ea-underlying-apply.scm")
 
 (define (eval exp env)
-  ;(println "Evaling: " exp)
+  (display "Evaling: ")(display exp)(newline)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         ((quoted? exp) (text-of-quotation exp))
@@ -65,6 +65,7 @@
                     env))
 
 (define (self-evaluating? exp)
+  (display (string? exp))(display " ")(display exp)(newline)
   (cond ((number? exp) true)
         ((string? exp) true)
         (else false)))
@@ -276,6 +277,10 @@
       (underlying-apply proc args)
       (error "APPLY PRIMITIVE - unknown procedure" proc)))
 
+(#%provide
+ eval
+ the-global-environment)
 
-(define xpr '(begin (define (add2 x) (+ x 2)) (add2 8)))
-(eval xpr the-global-environment)
+;(define xpr '(begin (define (add2 x) (+ x 2)) (add2 8)))
+;(eval xpr the-global-environment)
+;(self-evaluating? "apple")
