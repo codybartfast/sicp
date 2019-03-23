@@ -3,7 +3,7 @@
 (#%require "ea-underlying-apply.scm")
 
 (define (eval exp env)
-  (display "Evaling: ")(display exp)(newline)
+  ;(display "Evaling: ")(display exp)(newline)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         ((quoted? exp) (text-of-quotation exp))
@@ -65,7 +65,7 @@
                     env))
 
 (define (self-evaluating? exp)
-  (display (string? exp))(display " ")(display exp)(newline)
+  ;(display (string? exp))(display " ")(display exp)(newline)
   (cond ((number? exp) true)
         ((string? exp) true)
         (else false)))

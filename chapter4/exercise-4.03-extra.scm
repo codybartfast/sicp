@@ -20,39 +20,46 @@
 
 (-start- "4.3")
 
-(define pick-fruit-exp
+(define pick-fruit
   (lambda ()
-     (define trace '())
+    (define trace '())
 
-     (define (get-apple)
-       (set! trace (cons "'getting apple'" trace))
-       "apple")
+    (define (get-apple)
+      (set! trace (cons "'getting apple'" trace))
+      "apple")
 
-     (define (get-cherry)
-       (set! trace (cons "'getting cherry'" trace))
-       "cherry")
+    (define (get-cherry)
+      (set! trace (cons "'getting cherry'" trace))
+      "cherry")
 
-     (define (first-or-second first second which)
-       (cond ((equal? which 'first) (first))
-             (else (second))))
+    (define (first-or-second first second which)
+      (cond ((equal? which 'first) (first))
+            (else (second))))
 
-     (list
-       (list (first-or-second get-apple get-cherry 'first)
-             (first-or-second get-apple get-cherry 'not-first))
-       trace)))
+    (define (result)
+      (list
+       (first-or-second get-apple get-cherry 'first)
+       (first-or-second get-apple get-cherry 'not-first)
+       trace))
+    
+    (list 'quote (result))))
 
-(define (got-expected-results results)
+(define (check-fruit result)
   (println "Got expected fruit: "
-           (equal?
-            '("apple" "cherry")
-            (car results)))
-
+           (and 
+            (equal? "apple" (car result))
+            (equal? "cherry" (cadr result))))
   (println "Got expected trace: "
             (equal?
              '("'getting cherry'" "'getting apple'")
-             (cadr results))))
+             (caddr result))))
 
-(eval (pick-fruit-exp) the-global-environment)
+(define fruit
+  (eval (pick-fruit)
+        the-global-environment))
+
+(check-fruit fruit)
+
 
 (--end-- "4.3")
 
