@@ -1,7 +1,6 @@
 #lang sicp
 
 (#%require "common.scm")
-(#%require "ea-eval-apply.scm")
 
 ;   Exercise 4.3
 ;   ============
@@ -18,41 +17,10 @@
 ;   4.1.2 Representing Expressions - p374
 ;   ------------------------------------------------------------------------
 
-(-start- "4.3")
+(-start- "4.3-extra")
 
-(define pick-fruit
-  (lambda ()
-    (define trace '())
-
-    (define (get-apple)
-      (set! trace (cons "'getting apple'" trace))
-      "apple")
-
-    (define (get-cherry)
-      (set! trace (cons "'getting cherry'" trace))
-      "cherry")
-
-    (define (first-or-second first second which)
-      (cond ((equal? which 'first) (first))
-            (else (second))))
-
-    (define (result)
-      (list
-       (first-or-second get-apple get-cherry 'first)
-       (first-or-second get-apple get-cherry 'not-first)
-       trace))
-    
-    (list 'quote (result))))
-
-(define (check-fruit result)
-  (println "Got expected fruit: "
-           (and 
-            (equal? "apple" (car result))
-            (equal? "cherry" (cadr result))))
-  (println "Got expected trace: "
-            (equal?
-             '("'getting cherry'" "'getting apple'")
-             (caddr result))))
+(#%require "ea-eval-apply.scm")
+(#%require "ea-pick-fruit-expression.scm")
 
 (define fruit
   (eval (pick-fruit)
@@ -61,5 +29,5 @@
 (check-fruit fruit)
 
 
-(--end-- "4.3")
+(--end-- "4.3-extra")
 
