@@ -2,7 +2,7 @@
 
 
 (define pick-fruit
-  (lambda ()
+  '(lambda ()
     (define trace '())
 
     (define (get-apple)
@@ -17,13 +17,12 @@
       (cond ((equal? which 'first) (first))
             (else (second))))
 
-    (define (result)
+    ;(define (result)
       (list
        (first-or-second get-apple get-cherry 'first)
        (first-or-second get-apple get-cherry 'not-first)
-       trace))
-    
-    (list 'quote (result))))
+       trace)))
+   
 
 (define (check-fruit result)
   (display "Got expected fruit: ")

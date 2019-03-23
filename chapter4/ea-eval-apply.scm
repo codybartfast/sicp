@@ -202,7 +202,7 @@
              (car vals))
             (else (scan (cdr vars) (cdr vals)))))
     (if (eq? env the-empty-environment)
-        (error "Unbound variable" var)
+        (error "Unbound variable:" var)
         (let ((frame (first-frame env)))
           (scan (frame-variables frame)
                 (frame-values frame)))))
@@ -217,7 +217,7 @@
               (set-car! vals var))
              (else (scan (cdr vars) (cdr vals)))))
      (if (eq? env the-empty-environment)
-         (error "Unbound variable -- SET!" var)
+         (error "Unbound variable -- SET!:" var)
          (let ((frame (first-frame env)))
            (scan (frame-variables frame)
                  (frame-values frame)))))
@@ -242,6 +242,8 @@
    (cons 'car car)
    (cons 'cdr cdr)
    (cons 'cons cons)
+   (cons 'equal? equal?)
+   (cons 'list list)
    (cons 'null? null?)
    (cons 'square (lambda (x) (* x x)))
    ))
@@ -277,9 +279,7 @@
       (underlying-apply proc args)
       (error "APPLY PRIMITIVE - unknown procedure" proc)))
 
-(#%provide
- eval
- the-global-environment)
+(#%provide (all-defined))
 
 ;(define xpr '(begin (define (add2 x) (+ x 2)) (add2 8)))
 ;(eval xpr the-global-environment)
