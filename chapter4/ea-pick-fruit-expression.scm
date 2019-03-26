@@ -25,12 +25,12 @@
    
 
 (define (check-fruit result)
-  (display "Got expected fruit: ")
+  (display "  Got expected fruit: ")
   (display (and 
             (equal? "apple" (car result))
             (equal? "cherry" (cadr result))))
   (newline)
-  (display "Got expected trace: ")
+  (display "  Got expected trace: ")
   (display (equal?
             '("'getting cherry'" "'getting apple'")
             (caddr result)))

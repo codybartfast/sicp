@@ -279,6 +279,8 @@
       (underlying-apply proc args)
       (error "APPLY PRIMITIVE - unknown procedure" proc)))
 
+(define ea-eval eval)
+
 (#%provide (all-defined))
 
 ;(define xpr '(begin (define (add2 x) (+ x 2)) (add2 8)))

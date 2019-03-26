@@ -22,6 +22,15 @@
 (#%require "ea-eval-apply.scm")
 (#%require "ea-pick-fruit-expression.scm")
 
+(println
+ "Checking with orignal eval:")
+(check-fruit
+ (apply (ea-eval
+         pick-fruit
+         the-global-environment)
+        '()))
+(println "")
+
 ;(define (eval exp env)
 ;  (cond
 ;    ((self-evaluating? exp) exp)
@@ -30,33 +39,34 @@
 ;    ((get 'eval (expression-type exp)) (expression-body exp)
 ;                                       env)))
 
-;(define (eval exp env)
-;  ;(display "Evaling: ")(display exp)(newline)
-;  (cond ((self-evaluating? exp) exp)
-;        ((variable? exp) (lookup-variable-value exp env))
-;        ((quoted? exp) (text-of-quotation exp))
-;        ((assignment? exp) (eval-assignment exp env))
-;        ((definition? exp) (eval-definition exp env))
-;        ((if? exp) (eval-if exp env))
-;        ((lambda? exp)
-;         (make-procedure (lambda-parameters exp)
-;                         (lambda-body exp)
-;                         env))
-;        ((begin? exp)
-;         (eval-sequence (begin-actions exp) env))
-;        ((cond? exp) (eval (cond->if exp) env))
-;        ((application? exp)
-;         (apply (eval (operator exp) env)
-;                (list-of-values (operands exp) env)))
-;        (else
-;         (error "Unknown expression type -- EVAL" exp))))
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp) (text-of-quotation exp))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((if? exp) (eval-if exp env))
+        ((lambda? exp)
+         (make-procedure (lambda-parameters exp)
+                         (lambda-body exp)
+                         env))
+        ((begin? exp)
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond->if exp) env))
+        ((application? exp)
+         (apply (eval (operator exp) env)
+                (list-of-values (operands exp) env)))
+        (else
+         (error "Unknown expression type -- EVAL" exp))))
 
-;(check-fruit
-; (eval
-;  pick-fruit
-;  the-global-environment))
+(println
+ "Checking with local eval:")
+(check-fruit
+ (apply (eval
+         pick-fruit
+         the-global-environment)
+        '()))
+(println "")
 
-(display (apply (eval pick-fruit the-global-environment) '()))
-(newline)
 (--end-- "4.3-extra")
 
