@@ -57,5 +57,6 @@
 ;  the-global-environment))
 
 (display (apply (eval pick-fruit the-global-environment) '()))
+(newline)
 (--end-- "4.3-extra")
 
