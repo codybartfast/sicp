@@ -32,6 +32,26 @@
         '()))
 (println "")
 
+(define (populate-evaluators)
+  (define (eval-lambda exp env)
+    (make-procedure (lambda-parameters exp)
+                    (lambda-body exp)
+                    env))
+  (define (eval-begin exp env)
+    (eval-sequence (begin-actions exp) env))
+  (define (eval-cond exp env)
+    (eval (cond->if exp) env))
+  (define (eval-application exp env)
+    apply (eval (operator exp) env)
+                (list-of-values (operands exp) env))    
+  (put 'eval 'assignment eval-assignment)
+  (put 'eval 'definition eval-definition)
+  (put 'eval 'if eval-if)
+  (put 'eval 'lambda eval-lambda)
+  (put 'eval 'begin eval-begin)
+  (put 'eval 'cond eval-cond)
+  (put 'eval 'call eval-application))
+(populate-evaluators)
 
 (define (expression-type exp)
   (cond
@@ -44,6 +64,7 @@
     ((pair? exp) 'call)))
 
 (define (eval exp env)
+  (display "evaluating:") (display exp)(newline)
   (cond
     ((self-evaluating? exp) exp)
     ((variable? exp) (lookup-variable-value exp env))
