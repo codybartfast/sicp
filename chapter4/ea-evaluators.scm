@@ -4,6 +4,7 @@
   (if #f 'unreachable))
 
 (define (get op exp-type)
-  (lambda (x) x))
+  ;(display "get failed!")(newline)
+  #f)
 
 (#%provide put get)

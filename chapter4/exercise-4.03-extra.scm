@@ -32,19 +32,24 @@
         '()))
 (println "")
 
-(define (expression-type exp)
-  (error "Unable to determine expression type: " exp))
 
-(define (expression-body exp)
-  (error "not implemented"))
+(define (expression-type exp)
+  (cond
+    ((assignment? exp) 'assignment)
+    ((definition? exp) 'definition)
+    ((if? exp) 'if)
+    ((lambda? exp) 'lambda)
+    ((begin? exp) 'begin)
+    ((cond? exp) 'cond)
+    ((pair? exp) 'call)))
 
 (define (eval exp env)
   (cond
     ((self-evaluating? exp) exp)
     ((variable? exp) (lookup-variable-value exp env))
     ((quoted? exp) (text-of-quotation exp))
-    ((get 'eval (expression-type exp)) (expression-body exp)
-                                       env)))
+    ((get 'eval (expression-type exp)) exp env)
+    (else (error "Unknown expression type -- EVAL" exp))))
 
 (println
  "Checking with local eval:")
