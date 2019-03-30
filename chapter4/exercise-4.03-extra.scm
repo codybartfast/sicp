@@ -20,6 +20,7 @@
 (-start- "4.3-extra")
 
 (#%require "ea-eval-apply.scm")
+(#%require "ea-evaluators.scm")
 (#%require "ea-pick-fruit-expression.scm")
 
 (println
@@ -31,33 +32,19 @@
         '()))
 (println "")
 
-;(define (eval exp env)
-;  (cond
-;    ((self-evaluating? exp) exp)
-;    ((variable? exp) (lookup-variable-value exp env))
-;    ((quoted? exp) (text-of-quotation exp))
-;    ((get 'eval (expression-type exp)) (expression-body exp)
-;                                       env)))
+(define (expression-type exp)
+  (error "Unable to determine expression type: " exp))
+
+(define (expression-body exp)
+  (error "not implemented"))
 
 (define (eval exp env)
-  (cond ((self-evaluating? exp) exp)
-        ((variable? exp) (lookup-variable-value exp env))
-        ((quoted? exp) (text-of-quotation exp))
-        ((assignment? exp) (eval-assignment exp env))
-        ((definition? exp) (eval-definition exp env))
-        ((if? exp) (eval-if exp env))
-        ((lambda? exp)
-         (make-procedure (lambda-parameters exp)
-                         (lambda-body exp)
-                         env))
-        ((begin? exp)
-         (eval-sequence (begin-actions exp) env))
-        ((cond? exp) (eval (cond->if exp) env))
-        ((application? exp)
-         (apply (eval (operator exp) env)
-                (list-of-values (operands exp) env)))
-        (else
-         (error "Unknown expression type -- EVAL" exp))))
+  (cond
+    ((self-evaluating? exp) exp)
+    ((variable? exp) (lookup-variable-value exp env))
+    ((quoted? exp) (text-of-quotation exp))
+    ((get 'eval (expression-type exp)) (expression-body exp)
+                                       env)))
 
 (println
  "Checking with local eval:")
