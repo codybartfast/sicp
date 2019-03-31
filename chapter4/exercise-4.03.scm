@@ -35,7 +35,7 @@ In that case I think _think_ eval could be as simple as the following.
     ((variable? exp) (lookup-variable-value exp env))
     ((quoted? exp) (text-of-quotation exp))
     ((get 'eval (expression-type exp))
-     => (lambda (evaluator) (evaluator exp env)))
+     ((get 'eval (expression-type exp)) exp env))
     (else (error \"Unknown expression type -- EVAL\" exp))))
 
 Comparing it to Ex 2.73 I'm primarily struck by the similarity. Simple cases

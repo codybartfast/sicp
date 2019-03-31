@@ -19,11 +19,11 @@
 
 (-start- "4.3-extra")
 
-(println
- "This appears to show that the original short data directed eval working
-(subject to a few syntactic tweaks).  It was necessary to copy the content
-from ea-eval-apply.scm instead of just 'requiring' it ensure the eval
-defined here is the same eval used by all the supporting functions:
+(println "
+This appears to show that the original short data-directed eval works! :-)
+(Subject to a few syntactic tweaks.) It was necessary to copy the content
+from ea-eval-apply instead of just 'requiring' it to ensure the eval
+defined here is the same eval used by all the supporting functions.
 ")
 
 (#%require "ea-underlying-apply.scm")
@@ -49,7 +49,7 @@ defined here is the same eval used by all the supporting functions:
     ((variable? exp) (lookup-variable-value exp env))
     ((quoted? exp) (text-of-quotation exp))
     ((get 'eval (expression-type exp))
-     => (lambda (evaluator) (evaluator exp env)))
+     ((get 'eval (expression-type exp)) exp env))
     (else (error "Unknown expression type -- EVAL" exp))))
 
 ;; Unchanged from text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -338,14 +338,13 @@ defined here is the same eval used by all the supporting functions:
 ;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (println
- "Checking expression with local eval:")
+ "Checking expression with data-directed eval:")
 (check-fruit
  (apply (eval
          pick-fruit
          the-global-environment)
         '()))
 (println "")
-
 
 (--end-- "4.3-extra")
 

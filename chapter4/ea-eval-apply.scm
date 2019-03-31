@@ -1,5 +1,11 @@
 #lang sicp
 
+;; Essentially this is the eval apply code from the book, there's a little
+;; code to implement primitive functions using the underlying apply.
+
+;; ea-pick-fruit-expression contains a test expression to check that eval
+;; works at least a little bit.
+
 (#%require "ea-underlying-apply.scm")
 
 (define (eval exp env)
@@ -283,7 +289,3 @@
 (define ea-eval eval)
 
 (#%provide (all-defined))
-
-;(define xpr '(begin (define (add2 x) (+ x 2)) (add2 8)))
-;(eval xpr the-global-environment)
-;(self-evaluating? "apple")

@@ -1,5 +1,9 @@
 #lang sicp
 
+;; Provides 'put' and 'get' for a data-directed eval.  It uses a single key
+;; table (for simplicity) but presents a double key interface (in case it is
+;; needed).  Initial key has to be 'eval.
+
 (define (lookup key table)
   (let ((record (assoc key (cdr table))))
     (if record

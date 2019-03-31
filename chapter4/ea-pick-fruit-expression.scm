@@ -1,5 +1,11 @@
 #lang sicp
 
+;; basic expression for testing an evaluator.  Once derived expressions are
+;; expanded it's the I think all special forms are covered.
+
+;; The 'trace' is used to check that applicative evaluation is used by the
+;; 'if' expressions.
+
 (#%require "ea-eval-apply.scm")
 
 (define pick-fruit
