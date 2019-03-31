@@ -34,9 +34,7 @@
   (if #f 'unreachable))
 
 (define (get op exp-type)
-  (display "getting evaluator for: ")(display exp-type)(newline)
   (check-op op)
-  (display "got evaluator: ")(display (lookup exp-type evaluators))(newline)
   (lookup exp-type evaluators))
 
 (#%provide put get)

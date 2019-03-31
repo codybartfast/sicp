@@ -19,6 +19,13 @@
 
 (-start- "4.3-extra")
 
+(println
+ "This appears to show that the original short data directed eval working
+(subject to a few syntactic tweaks).  It was necessary to copy the content
+from ea-eval-apply.scm instead of just 'requiring' it ensure the eval
+defined here is the same eval used by all the supporting functions:
+")
+
 (#%require "ea-underlying-apply.scm")
 (#%require "ea-evaluators.scm")
 (#%require "ea-pick-fruit-expression.scm")
@@ -26,20 +33,17 @@
 ;; Data directed eval stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (expression-type exp)
-  (let ((type
-        (cond
+  (cond
           ((assignment? exp) 'assignment)
           ((definition? exp) 'definition)
           ((if? exp) 'if)
           ((lambda? exp) 'lambda)
           ((begin? exp) 'begin)
           ((cond? exp) 'cond)
-          ((pair? exp) 'call))))
-    (display "got type: ")(display type)(newline)
-    type))
+          ((pair? exp) 'call)))
 
 (define (eval exp env)
-  (display "evaluating:") (display exp)(newline)
+  ;(display "evaluating:") (display exp)(newline)
   (cond
     ((self-evaluating? exp) exp)
     ((variable? exp) (lookup-variable-value exp env))
@@ -194,7 +198,7 @@
   (eq? x false))
 
 (define (make-procedure parameters body env)
-  (display (list 'procedure parameters body env))(newline)
+  ;(display (list 'procedure parameters body env))(newline)
   (list 'procedure parameters body env))
 (define (compound-procedure? p)
   (tagged-list? p 'procedure))
@@ -307,11 +311,11 @@
       (underlying-apply proc args)
       (error "APPLY PRIMITIVE - unknown procedure" proc)))
 
-;; More stuff for data directed approach ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; More data directed stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (populate-evaluators)
   (define (eval-lambda exp env)
-  (display "evaling lambda")(newline)
+  ;(display "evaling lambda")(newline)
   (make-procedure (lambda-parameters exp)
                   (lambda-body exp)
                   env))
@@ -334,7 +338,7 @@
 ;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (println
- "Checking with local eval:")
+ "Checking expression with local eval:")
 (check-fruit
  (apply (eval
          pick-fruit
@@ -342,7 +346,6 @@
         '()))
 (println "")
 
-;(apply (eval pick-fruit the-global-environment) '())
 
 (--end-- "4.3-extra")
 
