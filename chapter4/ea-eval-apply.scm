@@ -3,7 +3,7 @@
 (#%require "ea-underlying-apply.scm")
 
 (define (eval exp env)
-  ;(display "Evaling: ")(display exp)(newline)
+  (display "Evaling: ")(display exp)(newline)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         ((quoted? exp) (text-of-quotation exp))
@@ -167,6 +167,7 @@
   (eq? x false))
 
 (define (make-procedure parameters body env)
+  (display (list 'procedure parameters body env))(newline)
   (list 'procedure parameters body env))
 (define (compound-procedure? p)
   (tagged-list? p 'procedure))

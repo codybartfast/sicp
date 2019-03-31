@@ -23,27 +23,29 @@
 (#%require "ea-evaluators.scm")
 (#%require "ea-pick-fruit-expression.scm")
 
-(println
- "Checking with orignal eval:")
-(check-fruit
- (apply (ea-eval
-         pick-fruit
-         the-global-environment)
-        '()))
-(println "")
+;(println
+; "Checking with orignal eval:")
+;(check-fruit
+; (apply (ea-eval
+;         pick-fruit
+;         the-global-environment)
+;        '()))
+;(println "")
+
+(define (eval-lambda exp env)
+  (display "evaling lambda")(newline)
+  (make-procedure (lambda-parameters exp)
+                  (lambda-body exp)
+                  env))
 
 (define (populate-evaluators)
-  (define (eval-lambda exp env)
-    (make-procedure (lambda-parameters exp)
-                    (lambda-body exp)
-                    env))
   (define (eval-begin exp env)
     (eval-sequence (begin-actions exp) env))
   (define (eval-cond exp env)
     (eval (cond->if exp) env))
   (define (eval-application exp env)
-    apply (eval (operator exp) env)
-                (list-of-values (operands exp) env))    
+    (apply (eval (operator exp) env)
+           (list-of-values (operands exp) env)))    
   (put 'eval 'assignment eval-assignment)
   (put 'eval 'definition eval-definition)
   (put 'eval 'if eval-if)
@@ -54,14 +56,17 @@
 (populate-evaluators)
 
 (define (expression-type exp)
-  (cond
-    ((assignment? exp) 'assignment)
-    ((definition? exp) 'definition)
-    ((if? exp) 'if)
-    ((lambda? exp) 'lambda)
-    ((begin? exp) 'begin)
-    ((cond? exp) 'cond)
-    ((pair? exp) 'call)))
+  (let ((type
+        (cond
+          ((assignment? exp) 'assignment)
+          ((definition? exp) 'definition)
+          ((if? exp) 'if)
+          ((lambda? exp) 'lambda)
+          ((begin? exp) 'begin)
+          ((cond? exp) 'cond)
+          ((pair? exp) 'call))))
+    (display "got type: ")(display type)(newline)
+    type))
 
 (define (eval exp env)
   (display "evaluating:") (display exp)(newline)
@@ -69,7 +74,8 @@
     ((self-evaluating? exp) exp)
     ((variable? exp) (lookup-variable-value exp env))
     ((quoted? exp) (text-of-quotation exp))
-    ((get 'eval (expression-type exp)) exp env)
+    ((get 'eval (expression-type exp))
+     ((get 'eval (expression-type exp)) exp env))
     (else (error "Unknown expression type -- EVAL" exp))))
 
 (println
@@ -80,6 +86,8 @@
          the-global-environment)
         '()))
 (println "")
+
+;(apply (eval pick-fruit the-global-environment) '())
 
 (--end-- "4.3-extra")
 
