@@ -20,10 +20,13 @@
 (-start- "4.3-extra")
 
 (println "
-This appears to show that the original short data-directed eval works! :-)
-(Subject to a few syntactic tweaks.) It was necessary to copy the content
-from ea-eval-apply instead of just 'requiring' it to ensure the eval
-defined here is the same eval used by all the supporting functions.
+This a full implementation of eval/apply based on the books text but with a
+data-directed eval required by the question.  
+
+(It was necessary to copy the content from ea-eval-apply instead of just
+'requiring' it to ensure the eval defined here is the same eval used by all
+the supporting functions.)
+
 ")
 
 (#%require "ea-underlying-apply.scm")
@@ -34,13 +37,13 @@ defined here is the same eval used by all the supporting functions.
 
 (define (expression-type exp)
   (cond
-          ((assignment? exp) 'assignment)
-          ((definition? exp) 'definition)
-          ((if? exp) 'if)
-          ((lambda? exp) 'lambda)
-          ((begin? exp) 'begin)
-          ((cond? exp) 'cond)
-          ((pair? exp) 'call)))
+    ((assignment? exp) 'assignment)
+    ((definition? exp) 'definition)
+    ((if? exp) 'if)
+    ((lambda? exp) 'lambda)
+    ((begin? exp) 'begin)
+    ((cond? exp) 'cond)
+    ((application? exp) 'call)))
 
 (define (eval exp env)
   ;(display "evaluating:") (display exp)(newline)

@@ -4,7 +4,7 @@
 ;; expanded it's the I think all special forms are covered.
 
 ;; The 'trace' is used to check that applicative evaluation is used by the
-;; 'if' expressions.
+;; 'if' expressions (created by expanding the 'cond' expression).
 
 (#%require "ea-eval-apply.scm")
 
@@ -21,21 +21,25 @@
        (cond ((equal? which 'first) (first))
              (else (second))))
      (list
-      (first-or-second get-apple get-cherry 'first)
-      (first-or-second get-apple get-cherry 'not-first)
+      (list
+       (first-or-second get-apple get-cherry 'first)
+       (first-or-second get-apple get-cherry 'not-first))
       trace)))
    
-
 (define (check-fruit result)
+  (define fruit (car result))
+  (define trace (cadr result))    
   (display "  Got expected fruit: ")
   (display (and 
-            (equal? "apple" (car result))
-            (equal? "cherry" (cadr result))))
+            (equal? "apple" (car fruit))
+            (equal? "cherry" (cadr fruit))))
+  (display " -- ")(display fruit)
   (newline)
   (display "  Got expected trace: ")
   (display (equal?
             '("'getting cherry'" "'getting apple'")
-            (caddr result)))
+            trace))
+  (display " -- ")(display trace)
   (newline))
 
 (display
