@@ -5,15 +5,17 @@
 
 ;; Data directed eval stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (expression-type exp)
-  (cond
-    ((assignment? exp) 'assignment)
-    ((definition? exp) 'definition)
-    ((if? exp) 'if)
-    ((lambda? exp) 'lambda)
-    ((begin? exp) 'begin)
-    ((cond? exp) 'cond)
-    ((application? exp) 'call)))
+;(define (expression-type exp)
+;  (cond
+;    ((assignment? exp) 'set!)
+;    ((definition? exp) 'define)
+;    ((if? exp) 'if)
+;    ((lambda? exp) 'lambda)
+;    ((begin? exp) 'begin)
+;    ((cond? exp) 'cond)
+;    ((application? exp) 'call)))
+
+(define expression-type car)
 
 (define (eval exp env)
   ;(display "evaluating:") (display exp)(newline)
@@ -21,10 +23,16 @@
     ((self-evaluating? exp) exp)
     ((variable? exp) (lookup-variable-value exp env))
     ((quoted? exp) (text-of-quotation exp))
-    ((get 'eval (expression-type exp))
-     ((get 'eval (expression-type exp)) exp env))
-    (else (error "Unknown expression type -- EVAL" exp))))
-
+    (else
+     (if (pair? exp)
+         (let ((evaluator (get 'eval (expression-type exp))))
+           (if evaluator
+               (evaluator exp env)
+               ((get 'eval 'call) exp env)))
+         ((error "Unknown expression type -- EVAL" exp))))))
+           
+       
+          
 ;; Unchanged from text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (apply procedure arguments)

@@ -29,26 +29,9 @@ the supporting functions.)
 
 ")
 
-;(#%require "ea-underlying-apply.scm")
 (#%require "ea-data-directed.scm")
-;(#%require "ea-evaluators.scm")
 (#%require "ea-pick-fruit-expression.scm")
 
-;; Data directed eval stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;(define (expression-type exp)
-;  (cond
-;    ((assignment? exp) 'assignment)
-;    ((definition? exp) 'definition)
-;    ((if? exp) 'if)
-;    ((lambda? exp) 'lambda)
-;    ((begin? exp) 'begin)
-;    ((cond? exp) 'cond)
-;    ((application? exp) 'call)))
-
-
-
-;; More data directed stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (populate-evaluators)
   (define (eval-lambda exp env)
@@ -63,13 +46,13 @@ the supporting functions.)
   (define (eval-application exp env)
     (apply (eval (operator exp) env)
            (list-of-values (operands exp) env)))    
-  (put 'eval 'assignment eval-assignment)
-  (put 'eval 'definition eval-definition)
+  (put 'eval 'call eval-application)
+  (put 'eval 'set! eval-assignment)
+  (put 'eval 'define eval-definition)
   (put 'eval 'if eval-if)
   (put 'eval 'lambda eval-lambda)
   (put 'eval 'begin eval-begin)
-  (put 'eval 'cond eval-cond)
-  (put 'eval 'call eval-application))
+  (put 'eval 'cond eval-cond))
 (populate-evaluators)
 
 ;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
