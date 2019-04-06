@@ -6,7 +6,7 @@
 ;; The 'trace' is used to check that applicative evaluation is used by the
 ;; 'if' expressions (created by expanding the 'cond' expression).
 
-(#%require "ea-eval-apply.scm")
+(#%require "ea-text.scm")
 
 (define pick-fruit
   '(lambda ()
