@@ -87,6 +87,7 @@
   ;(display (string? exp))(display " ")(display exp)(newline)
   (cond ((number? exp) true)
         ((string? exp) true)
+        ((boolean? exp) true)
         (else false)))
 
 (define (variable? exp) (symbol? exp))
