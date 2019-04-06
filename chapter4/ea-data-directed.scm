@@ -1,19 +1,10 @@
 #lang sicp
 
+;; This is the text's version of eval apply modified to use a data-directed
+;; eval for Exercise 4.03.  
+
 (#%require "ea-underlying-apply.scm")
 (#%require "ea-evaluators.scm")
-
-;; Data directed eval stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;(define (expression-type exp)
-;  (cond
-;    ((assignment? exp) 'set!)
-;    ((definition? exp) 'define)
-;    ((if? exp) 'if)
-;    ((lambda? exp) 'lambda)
-;    ((begin? exp) 'begin)
-;    ((cond? exp) 'cond)
-;    ((application? exp) 'call)))
 
 (define expression-type car)
 
@@ -28,12 +19,28 @@
          (let ((evaluator (get 'eval (expression-type exp))))
            (if evaluator
                (evaluator exp env)
-               ((get 'eval 'call) exp env)))
+               (apply (eval (operator exp) env)
+                      (list-of-values (operands exp) env))))
          ((error "Unknown expression type -- EVAL" exp))))))
-           
-       
-          
-;; Unchanged from text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (populate-evaluators)
+  (define (eval-lambda exp env)
+    (make-procedure (lambda-parameters exp)
+                    (lambda-body exp)
+                    env))
+  (define (eval-begin exp env)
+    (eval-sequence (begin-actions exp) env))
+  (define (eval-cond exp env)
+    (eval (cond->if exp) env))
+
+  (put 'eval 'set! eval-assignment)
+  (put 'eval 'define eval-definition)
+  (put 'eval 'if eval-if)
+  (put 'eval 'lambda eval-lambda)
+  (put 'eval 'begin eval-begin)
+  (put 'eval 'cond eval-cond))
+                 
+;; Unchanged from ea-text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (apply procedure arguments)
   (cond ((primitive-procedure? procedure)
@@ -293,19 +300,6 @@
       (error "APPLY PRIMITIVE - unknown procedure" proc)))
 
 (#%provide (all-defined)
-; begin-actions
-; cond->if
-; eval-assignment
-; eval-definition
-; eval-if
-; eval-sequence
-; lambda-parameters
-; lambda-body
-; list-of-values
-; make-procedure
-; operands
-; operator
-           put
- )
+           put)
 
 

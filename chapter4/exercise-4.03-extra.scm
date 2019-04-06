@@ -20,39 +20,14 @@
 (-start- "4.3-extra")
 
 (println "
-This a full implementation of eval/apply based on the books text but with a
-data-directed eval required by the question.  
-
-(It was necessary to copy the content from ea-eval-apply instead of just
-'requiring' it to ensure the eval defined here is the same eval used by all
-the supporting functions.)
-
+'ea-data-directed' contains a full eval/apply implementaion with a
+data-directed eval.  It's in a separated file so it can be used with other
+exercises.
 ")
 
 (#%require "ea-data-directed.scm")
 (#%require "ea-pick-fruit-expression.scm")
 
-
-(define (populate-evaluators)
-  (define (eval-lambda exp env)
-  ;(display "evaling lambda")(newline)
-  (make-procedure (lambda-parameters exp)
-                  (lambda-body exp)
-                  env))
-  (define (eval-begin exp env)
-    (eval-sequence (begin-actions exp) env))
-  (define (eval-cond exp env)
-    (eval (cond->if exp) env))
-  (define (eval-application exp env)
-    (apply (eval (operator exp) env)
-           (list-of-values (operands exp) env)))    
-  (put 'eval 'call eval-application)
-  (put 'eval 'set! eval-assignment)
-  (put 'eval 'define eval-definition)
-  (put 'eval 'if eval-if)
-  (put 'eval 'lambda eval-lambda)
-  (put 'eval 'begin eval-begin)
-  (put 'eval 'cond eval-cond))
 (populate-evaluators)
 
 ;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
