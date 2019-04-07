@@ -23,7 +23,7 @@
                       (list-of-values (operands exp) env))))
          ((error "Unknown expression type -- EVAL" exp))))))
 
-(define (populate-evaluators)
+(define (put-evaluators)
   (define (eval-lambda exp env)
     (make-procedure (lambda-parameters exp)
                     (lambda-body exp)
