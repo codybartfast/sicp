@@ -27,7 +27,7 @@
 (#%require "ea-data-directed.scm")
 (put-evaluators)
 
-;; Unchange functions
+;; Unchanged functions
 (define (eval-cond exp env)
   (eval (cond->if exp) env))
 

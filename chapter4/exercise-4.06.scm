@@ -29,7 +29,43 @@
 
 (-start- "4.6")
 
+(#%require "ea-data-directed.scm")
+(put-evaluators)
 
+(define make-call cons)
+(define let-pairs cadr)
+(define let-pair-id car)
+(define let-pair-value cadr)
+(define (let-params exp)
+  (map let-pair-id (let-pairs exp)))
+(define (let-values exp)
+  (map let-pair-value (let-pairs exp)))
+(define let-body cddr)
+
+(define (let->lambda exp)
+  (make-call
+   (make-lambda (let-params exp)
+                (let-body exp))
+   (let-values exp)))
+
+(define (eval-let exp env)
+  (eval (let->lambda exp) env))
+
+(put 'eval 'let eval-let)
+
+(define expression '(let ((operand1 3)
+                          (operator +)
+                          (operand2 2))
+                      (operator operand1 operand2)))
+
+(println "
+Evaluating expression:
+    " expression "
+Expect: 5
+Got: "
+      (eval
+       expression
+       the-global-environment))
 
 (--end-- "4.6")
 

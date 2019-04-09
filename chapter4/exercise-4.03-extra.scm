@@ -28,7 +28,7 @@ exercises.
 (#%require "ea-data-directed.scm")
 (#%require "ea-pick-fruit-expression.scm")
 
-(populate-evaluators)
+(put-evaluators)
 
 ;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
