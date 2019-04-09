@@ -42,20 +42,22 @@
   (map let-pair-value (let-pairs exp)))
 (define let-body cddr)
 
-(define (let->lambda exp)
+(define (let->combination exp)
   (make-call
    (make-lambda (let-params exp)
                 (let-body exp))
    (let-values exp)))
 
 (define (eval-let exp env)
-  (eval (let->lambda exp) env))
+  (eval (let->combination exp) env))
 
 (put 'eval 'let eval-let)
 
 (define expression '(let ((operand1 3)
                           (operator +)
                           (operand2 2))
+                      'first-line
+                      (+ 1 1)
                       (operator operand1 operand2)))
 
 (println "
