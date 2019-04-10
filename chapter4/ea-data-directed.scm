@@ -1,7 +1,17 @@
 #lang sicp
 
 ;; This is the text's version of eval apply modified to use a data-directed
-;; eval for Exercise 4.03.  
+;; eval for Exercises 4.03 to 4.10.  
+
+;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define debug false)
+(define (log . parts)
+  (cond (debug
+         (for-each display parts)
+         (newline))))
+
+;; Data-Directed Eval ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (#%require "ea-underlying-apply.scm")
 (#%require "ea-evaluators.scm")
@@ -9,7 +19,7 @@
 (define expression-type car)
 
 (define (eval exp env)
-  ;(display "evaluating:") (display exp)(newline)
+  (log "evaluating: " exp)
   (cond
     ((self-evaluating? exp) exp)
     ((variable? exp) (lookup-variable-value exp env))
@@ -19,8 +29,10 @@
          (let ((evaluator (get 'eval (expression-type exp))))
            (if evaluator
                (evaluator exp env)
-               (apply (eval (operator exp) env)
-                      (list-of-values (operands exp) env))))
+               (begin ;;;;;;;;;;;;;;;;;;;;;;;;;
+                 (log "about to apply: " exp)
+                 (apply (eval (operator exp) env)
+                        (list-of-values (operands exp) env)))))
          ((error "Unknown expression type -- EVAL" exp))))))
 
 (define (put-evaluators)
@@ -84,7 +96,6 @@
                     env))
 
 (define (self-evaluating? exp)
-  ;(display (string? exp))(display " ")(display exp)(newline)
   (cond ((number? exp) true)
         ((string? exp) true)
         ((boolean? exp) true)
@@ -187,7 +198,6 @@
   (eq? x false))
 
 (define (make-procedure parameters body env)
-  ;(display (list 'procedure parameters body env))(newline)
   (list 'procedure parameters body env))
 (define (compound-procedure? p)
   (tagged-list? p 'procedure))

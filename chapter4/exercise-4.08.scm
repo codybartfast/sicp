@@ -35,7 +35,69 @@
 
 (-start- "4.8")
 
+(#%require "ea-data-directed.scm")
+(put-evaluators)
 
+(define make-call cons)
+(define (make-definition name params body)
+  (cons 'define
+        (cons (cons name params)
+              body)))
+
+(define let-name cadr)
+(define (named-let? exp)
+  (symbol? (let-name exp)))
+
+(define (let-body exp)
+  (if (named-let? exp)
+      (cdddr exp)
+      (cddr exp)))
+(define (let-pairs exp)
+  (if (named-let? exp)
+      (caddr exp)
+      (cadr exp)))
+(define let-pair-id car)
+(define let-pair-value cadr)
+(define (let-params exp)
+  (map let-pair-id
+       (let-pairs exp)))
+(define (let-values exp)
+  (map let-pair-value
+       (let-pairs exp)))
+
+(define (let->combination exp )
+  (if (named-let? exp)
+      (make-begin
+       (list
+        (make-definition (let-name exp)
+                         (let-params exp)
+                         (let-body exp))
+        (make-call (let-name exp)
+                   (let-values exp))))
+      (make-call
+       (make-lambda (let-params exp)
+                    (let-body exp))
+       (let-values exp))))
+
+(define (eval-let exp env)
+  (eval (let->combination exp) env))
+
+(put 'eval 'let eval-let)
+
+(define expression
+  '(let this ((x 1))
+     (if (equal? x 16)
+         x
+         (this (* 2 x)))))
+
+(println "
+Evaluating expression:
+    " expression "
+Expect: 16
+Got: "
+      (eval
+       expression
+       the-global-environment))
 
 (--end-- "4.8")
 
