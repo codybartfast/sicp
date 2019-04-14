@@ -29,7 +29,7 @@
          (let ((evaluator (get 'eval (expression-type exp))))
            (if evaluator
                (evaluator exp env)
-               (begin ;;;;;;;;;;;;;;;;;;;;;;;;;
+               (begin
                  (log "about to apply: " exp)
                  (apply (eval (operator exp) env)
                         (list-of-values (operands exp) env)))))
@@ -98,6 +98,7 @@
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
         ((string? exp) true)
+        ((equal? exp 'undefined) true)  ;; extra
         ((boolean? exp) true)
         (else false)))
 
@@ -270,6 +271,8 @@
   (list
    (cons '* *)
    (cons '+ +)
+   (cons '- -) ;;
+   (cons '> >) ;;
    (cons 'car car)
    (cons 'cdr cdr)
    (cons 'cons cons)
@@ -277,6 +280,7 @@
    (cons 'list list)
    (cons 'null? null?)
    (cons 'square (lambda (x) (* x x)))
+   (cons 'println (lambda (msg) (display msg)(newline)))
    ))
 
 (define primitive-procedure-names
