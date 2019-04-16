@@ -90,9 +90,8 @@
                            (make-begin
                             (list
                              (make-call
-                              (make-lambda
-                               '()
-                               (while-body exp))
+                              (make-lambda '()
+                                           (while-body exp))
                               '())
                              (make-call 'loop '())))
                            'undefined)))
@@ -132,10 +131,10 @@
   (make-let (for-pairs exp)
             (list
              (make-while (for-predicate exp)
-                          (list
-                           (make-call (make-lambda '() (for-body exp)) '())
-                           (make-call (make-lambda '() (for-iterate exp))
-                                      '()))))))
+                          (append
+                           (for-body exp)
+                           (for-iterate exp))
+                                      ))))
 
 (define (eval-for exp env)
   (eval (for->combination exp) env))
@@ -145,11 +144,13 @@
 
 ;; helper function
 (define (print-eval exp expected)
+  (define (sink x) "")
+
   (println "
 Evaluating expression:
     " exp "
 Expect: " expected "
-" (eval exp the-global-environment) "
+" (sink (eval exp the-global-environment)) "
 -------------------------------------------
 "))
 
