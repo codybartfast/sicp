@@ -87,13 +87,9 @@
   (make-named-let 'loop
                   '()
                   (make-if (while-predicate exp)
-                           (make-begin
-                            (list
-                             (make-call
-                              (make-lambda '()
-                                           (while-body exp))
-                              '())
-                             (make-call 'loop '())))
+                           (make-begin (append
+                                       (while-body exp)
+                                       '((loop))))
                            'undefined)))
 
 (define (eval-while exp env)
@@ -131,10 +127,9 @@
   (make-let (for-pairs exp)
             (list
              (make-while (for-predicate exp)
-                          (append
-                           (for-body exp)
-                           (for-iterate exp))
-                                      ))))
+                         (append
+                          (for-body exp)
+                          (for-iterate exp))))))
 
 (define (eval-for exp env)
   (eval (for->combination exp) env))
@@ -181,7 +176,7 @@ Check body is called at least once even if predicate always false.
 
 (print-eval
  '(do false
-     (println "Hello! from do-exp1"))
+    (println "Hello! from do-exp1"))
  "One greeting printed above")
 
 (println "
@@ -189,6 +184,7 @@ Using 'do':
 ===========
 Regular 'do' where predicate is true then false.
 ")
+
 (print-eval
  '(begin
     (list
@@ -203,8 +199,9 @@ Regular 'do' where predicate is true then false.
 (println "
 Using 'for':
 ===========
-For loop with seperate 'init', 'predicate', 'iterate' and body.
+For loop with seperate 'init-pairs', 'predicate', 'iterate' and body.
 ")
+
 (print-eval
  '(for
       ((x 0) (y 9))
