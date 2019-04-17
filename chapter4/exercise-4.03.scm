@@ -17,45 +17,26 @@
 ;   4.1.2 Representing Expressions - p374
 ;   ------------------------------------------------------------------------
 
-(-start- "4.3")
+(-start- "4.3-extra")
 
 (println "
 
-    (define (eval exp env)
-      (cond
-        ((self-evaluating? exp) exp)
-        ((variable? exp) (lookup-variable-value exp env))
-        ((quoted? exp) (text-of-quotation exp))
-        ((get 'eval (expression-type exp))
-         ((get 'eval (expression-type exp)) exp env))
-        (else (error \"Unknown expression type -- EVAL\" exp))))
+(define (eval exp env)
+  (cond
+    ((self-evaluating? exp) exp)
+    ((variable? exp) (lookup-variable-value exp env))
+    ((quoted? exp) (text-of-quotation exp))
+    (else
+     (if (pair? exp)
+         (let ((evaluator (get 'eval (expression-type exp))))
+           (if evaluator
+               (evaluator exp env)               
+               (apply (eval (operator exp) env)
+                      (list-of-values (operands exp) env))))
+         ((error \"Unknown expression type -- EVAL\" exp))))))
 
-Where expression-type is:
-
-    (define (expression-type exp)
-      (cond
-        ((assignment? exp) 'assignment)
-        ((definition? exp) 'definition)
-        ((if? exp) 'if)
-        ((lambda? exp) 'lambda)
-        ((begin? exp) 'begin)
-        ((cond? exp) 'cond)
-        ((application? exp) 'call)))
-
-To avoid calling get twice the get condition could be replaced with:
-
-    ((get 'eval (expression-type exp))
-     => (lambda (evaluator) (evaluator exp env)))
-
-but we aren't introduced to that syntax until later in this section.
-
-'exercise-4.03-extra' verifies the above works by implementing it with the
-eval/apply code from the book's text.  This answer has been modified in the
-light of that exercise, but I think the only major difference is that I
-orignally thought if eval were to be this short/simple then we needed a 
-'call tag for application (as in the  previous answer).  But expression-type
-doesn't need the 'call tag to deduce an expression should be a function
-application.
+This is verified below where a data-direct eval apply is used to evaluate a
+test expression.
 
 Comparing it to Ex 2.73 I'm primarily struck by the similarity. Simple cases
 are handled specifically and then more complicated cases are handled in a
@@ -64,5 +45,25 @@ operands is a well defined list of values, here though the data / exp can
 have any structure so long as it makes sense to the specific evaluator.
 ")
 
-(--end-- "4.3")
+
+;; 'ea-data-directed' contains a full eval/apply implementaion with a
+;; data-directed eval.  It's in a separated file so it can be used with
+;; other exercises.
+
+(#%require "ea-data-directed.scm")
+(#%require "ea-pick-fruit-expression.scm")
+
+(put-evaluators)
+
+;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(println "Checking with data-directed eval:")
+(check-fruit
+ (apply (eval
+         pick-fruit
+         the-global-environment)
+        '()))
+(println "")
+
+(--end-- "4.3-extra")
 
