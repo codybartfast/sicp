@@ -27,8 +27,8 @@
 (#%require "ea-data-directed.scm")
 (put-evaluators)
 
-;; Unchanged functions, reproduced here because so refer to the new
-;; expand-clauses.
+;; Unchanged functions, reproduced here because so they will refer to the
+;; new expand-clauses.
 
 (define (eval-cond exp env)
   (eval (cond->if exp) env))
@@ -37,21 +37,22 @@
   (expand-clauses (cond-clauses exp)))
 
 ;; New bits used by the updated expand-clauses.
+(define make-call cons)
 (define (calling-cond? exp)
   (eq? (cadr exp) '=>))
 (define calling-cond-actions cddr)
 
 ;; Here's the nub:
-(define (clause->exp clause)
+(define (clause->exp clause predicate-value)
   (if (calling-cond? clause)
       ;; if it's a calling-cond then 'call' the body of clause ...
-      (list (sequence->exp (calling-cond-actions clause))
-            ;; ... with predicate
-            (cond-predicate clause))
+      (make-call (sequence->exp (calling-cond-actions clause))
+            ;; ... with predicate value
+            (list predicate-value))
       ;; else just do the usual
       (sequence->exp (cond-actions clause))))
 
-;; Modified to call 'clause-exp'
+;; Modified to call 'clause->exp'
 (define (expand-clauses clauses)
   (if (null? clauses)
       'false
@@ -62,14 +63,15 @@
                 (sequence->exp (cond-actions first))
                 (error "ELSE clause isn't last -- COND-IF"
                        clauses))
-            (make-if (cond-predicate first)
-                     (clause->exp first)
-                     (expand-clauses rest))))))
+            (let ((predicate-value (cond-predicate first)))
+              (make-if predicate-value
+                       (clause->exp first predicate-value)
+                       (expand-clauses rest)))))))
 
 (put 'eval 'cond eval-cond)
 
-;; Try
-;; (uses 'square' added as language primitive)
+;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (uses 'square' added as a language primitive)
 
 (define expression
   '(cond
