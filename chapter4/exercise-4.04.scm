@@ -36,22 +36,25 @@
 (put-evaluators)
 
 ;; Eval twice because product of 'derived expression' is an expression.
-(define (evl exp)
+(define (eval-eval exp)
   (eval
    (eval exp the-global-environment)
    the-global-environment))
 
+;; Function to display the truth tables for AND and OR
 (define (display-and-or)
   (println "  AND:")
-  (println "    false AND false: " (evl '(and false false)))
-  (println "    false AND true: " (evl '(and false true)))
-  (println "    true AND false: " (evl '(and true false)))
-  (println "    true AND true: " (evl '(and true true)))
+  (println "    false AND false: " (eval-eval '(and false false)))
+  (println "    false AND true: " (eval-eval '(and false true)))
+  (println "    true AND false: " (eval-eval '(and true false)))
+  (println "    true AND true: " (eval-eval '(and true true)))
   (println "  OR:")
-  (println "    false OR false: " (evl '(or false false)))
-  (println "    false OR true: " (evl '(or false true)))
-  (println "    true OR false: " (evl '(or true false)))
-  (println "    true OR true: " (evl '(or true true))))
+  (println "    false OR false: " (eval-eval '(or false false)))
+  (println "    false OR true: " (eval-eval '(or false true)))
+  (println "    true OR false: " (eval-eval '(or true false)))
+  (println "    true OR true: " (eval-eval '(or true true))))
+
+;; Put and test EVALUATION procedures ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define first-predicate cadr)
 (define second-predicate caddr)
@@ -68,8 +71,10 @@
            true
            (true? (eval (second-predicate exp) env)))))
 
-(println "Using EVALUATOR:")
+(println "Using EVALUATION procedures:")
 (display-and-or)
+
+;; Put and test DERIVED expression procedurs ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (put 'eval 'and
      (lambda (exp env)
@@ -86,7 +91,6 @@
                 (make-if (second-predicate exp)
                          true
                          false))))
-
 
 (println "
 Using DERIVED expressions:")
