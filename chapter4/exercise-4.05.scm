@@ -27,22 +27,28 @@
 (#%require "ea-data-directed.scm")
 (put-evaluators)
 
-;; Unchanged functions
+;; Unchanged functions, reproduced here because so refer to the new
+;; expand-clauses.
+
 (define (eval-cond exp env)
   (eval (cond->if exp) env))
 
 (define (cond->if exp)
   (expand-clauses (cond-clauses exp)))
 
-;; New bits
+;; New bits used by the updated expand-clauses.
 (define (calling-cond? exp)
   (eq? (cadr exp) '=>))
 (define calling-cond-actions cddr)
 
+;; Here's the nub:
 (define (clause->exp clause)
   (if (calling-cond? clause)
+      ;; if it's a calling-cond then 'call' the body of clause ...
       (list (sequence->exp (calling-cond-actions clause))
+            ;; ... with predicate
             (cond-predicate clause))
+      ;; else just do the usual
       (sequence->exp (cond-actions clause))))
 
 ;; Modified to call 'clause-exp'
