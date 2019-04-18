@@ -107,7 +107,6 @@ expression creates a derived lambda expression that is applied.")
         
 (define (eval-let* exp env)
   (eval (let*->nested-lets exp) env))
-
 (put 'eval 'let* eval-let*)
 
 ;; Use it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -23,6 +23,14 @@
 (#%require "ea-data-directed.scm")
 (put-evaluators)
 
+(println "
+I'm assuming that while, do and for are primarily imperative constructs and
+that normally (i.e., in other langauges) they do not have return values and
+are only used for their side effects.  Therefore the return value of these
+procs is undefined.
+")
+
+
 (define make-call cons)
 
 ;; Named let (from ex 4.08) ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -72,7 +80,6 @@
 
 (define (eval-let exp env)
   (eval (let->combination exp) env))
-
 (put 'eval 'let eval-let)
 
 ;; while ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -87,15 +94,15 @@
   (make-named-let 'loop
                   '()
                   (make-if (while-predicate exp)
-                           (make-begin (append
-                                       (while-body exp)
-                                       '((loop))))
+                           (make-begin
+                            (append
+                             (while-body exp)
+                             '((loop))))
                            'undefined)))
 
 (define (eval-while exp env)
   (eval (while->combination exp) env))
 (put 'eval 'while eval-while)
-  
 
 ;; do ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -117,19 +124,18 @@
 (define (make-let pairs body)
   (cons 'let (cons pairs body)))
 
-
 (define for-pairs cadr)
 (define for-predicate caddr)
 (define for-iterate cadddr)
 (define for-body cddddr)
 
 (define (for->combination exp)
-  (make-let (for-pairs exp)
+  (make-let (for-pairs exp) ;; value pairs as in a 'let'
             (list
-             (make-while (for-predicate exp)
+             (make-while (for-predicate exp)     ;; if predicate true
                          (append
-                          (for-body exp)
-                          (for-iterate exp))))))
+                          (for-body exp)         ;; eval body
+                          (for-iterate exp)))))) ;; and call iterate
 
 (define (eval-for exp env)
   (eval (for->combination exp) env))
@@ -137,17 +143,19 @@
                
 ;; Use them ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; As mentioned above these are 'imperative' procs so we can only test by
+;; looking at their side effect - displayed text, and not by their return
+;; values.
+
 ;; helper function
 (define (print-eval exp expected)
   (define (sink x) "")
-
   (println "
 Evaluating expression:
     " exp "
 Expect: " expected "
 " (sink (eval exp the-global-environment)) "
--------------------------------------------
-"))
+-------------------------------------------"))
 
 ;; Use while ;;;;;;
 (println "
@@ -164,7 +172,7 @@ Basic print and decrement.
      (while (> bell-count 0)
             (println "Ding! Dong!" )
             (set! bell-count (- bell-count 1)))))
- "Five bells printed above")
+ "Five bells printed above.")
 
 
 ;; Use 'do' ;;;;;;
@@ -193,7 +201,7 @@ Regular 'do' where predicate is true then false.
      (do (> greeting-count 0)
        (println "Hello! from do-exp2  " )
        (set! greeting-count (- greeting-count 1)))))
- "Three greetings printed above")
+ "Three greetings printed above.")
 
 ;; Use 'for' ;;;;;;
 (println "
@@ -209,7 +217,11 @@ For loop with seperate 'init-pairs', 'predicate', 'iterate' and body.
     ((set! x (+ x 2))
      (set! y (+ y 1)))
     (println (+ x y)))    
- "Multiples of 3 from 9 -> 33 printed above")
+ "Multiples of 3 from 9 -> 33 printed above.")
 
+(println "
+
+If music be the food of love, play on; Give me excess of it ...
+")
 (--end-- "4.9")
 

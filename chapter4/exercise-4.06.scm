@@ -32,15 +32,19 @@
 (#%require "ea-data-directed.scm")
 (put-evaluators)
 
+;; Helper functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define make-call cons)
 (define let-pairs cadr)
 (define let-pair-id car)
 (define let-pair-value cadr)
+
 (define (let-params exp)
   (map let-pair-id (let-pairs exp)))
 (define (let-values exp)
   (map let-pair-value (let-pairs exp)))
 (define let-body cddr)
+
+;; let evaluator ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (let->combination exp)
   (make-call
@@ -52,6 +56,8 @@
   (eval (let->combination exp) env))
 
 (put 'eval 'let eval-let)
+
+;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define expression '(let ((operand1 3)
                           (operator +)

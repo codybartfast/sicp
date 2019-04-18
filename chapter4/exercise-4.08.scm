@@ -38,16 +38,19 @@
 (#%require "ea-data-directed.scm")
 (put-evaluators)
 
+;; Helpers used by named-let evaluators ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; constructors
 (define make-call cons)
 (define (make-definition name params body)
   (cons 'define
         (cons (cons name params)
               body)))
 
+;; 'generic' properties shared between let and named let
 (define let-name cadr)
 (define (named-let? exp)
   (symbol? (let-name exp)))
-
 (define (let-body exp)
   (if (named-let? exp)
       (cdddr exp)
@@ -56,6 +59,8 @@
   (if (named-let? exp)
       (caddr exp)
       (cadr exp)))
+
+;; unchanged pairs info
 (define let-pair-id car)
 (define let-pair-value cadr)
 (define (let-params exp)
@@ -65,15 +70,20 @@
   (map let-pair-value
        (let-pairs exp)))
 
+;; Named let evaluator ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (let->combination exp )
   (if (named-let? exp)
+       ;; If a named let then...
       (make-begin
        (list
+        ;; ...create a proc with the given name
         (make-definition (let-name exp)
                          (let-params exp)
                          (let-body exp))
+        ;; ...and then call it
         (make-call (let-name exp)
                    (let-values exp))))
+      ;; Else do regular let lambda thing
       (make-call
        (make-lambda (let-params exp)
                     (let-body exp))
@@ -81,8 +91,9 @@
 
 (define (eval-let exp env)
   (eval (let->combination exp) env))
-
 (put 'eval 'let eval-let)
+
+;; Use it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define expression
   '(let this ((x 1))
