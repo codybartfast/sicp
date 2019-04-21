@@ -280,8 +280,7 @@
    (cons 'list list)
    (cons 'null? null?)
    (cons 'square (lambda (x) (* x x)))
-   (cons 'println (lambda (msg) (display msg)(newline)))
-   ))
+   (cons 'println (lambda (msg) (display msg)(newline)))))
 
 (define primitive-procedure-names
   (map car primitive-procedures))

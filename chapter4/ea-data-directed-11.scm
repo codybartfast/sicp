@@ -12,12 +12,6 @@
          (newline))))
 
 ;; Data-Directed Eval ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(#%require "common.scm") ;;;;;;;;;;;xxxxxxxxxxxxxxx;;;;;;;;;;
-(define (trace x)
-  (println x)
-  x)
-
-
 
 (#%require "ea-underlying-apply.scm")
 (#%require "ea-evaluators.scm")
@@ -216,28 +210,17 @@
 (define (first-frame env) (car env))
 (define the-empty-environment '())
 
-
-
 (define (make-frame variables values)
-  (define frame (list 'frame ))
+  (define frame (list '*frame*))
   (define (iter vars vals)
-    (if (pair? vars)
-        (begin
-          (set-cdr! frame (cons (cons (car vars) (car vals)) (cdr frame)))
-          (iter (cdr vars)
-                (cdr vals)))
-        frame))
+    (cond ((pair? vars)
+           (add-binding-to-frame! (car vars) (car vals) frame)
+           (iter (cdr vars) (cdr vals)))
+          (else frame)))
   (iter variables values))
 
-
-;(define (frame-first-var frame) (car (car (cdr frame))))
-;(define (frame-first-val frame) (cdr (car (cdr frame))))
-;(define (frame-set-first-val! frame val)
-;  (set-cdr! (cadr frame) val))
 (define (add-binding-to-frame! var val frame)
   (set-cdr! frame (cons (cons var val) (cdr frame))))
-;(define (empty-frame? frame)
-;  (null? (cdr frame))
 
 (define (extend-environment vars vals base-env)
   (if (= (length vars) (length vals))
@@ -275,12 +258,8 @@
    (env-loop env))
 
 (define (define-variable! var val env)
-  (display "ENV: ")(trace env)
   (let ((frame (first-frame env)))
-    (display "frame: ")
-    (trace frame)
     (define (scan frame-pairs)
-      ; (trace frame-pairs)
       (cond ((null? frame-pairs)
              (add-binding-to-frame! var val frame))
             ((eq? var (car (car frame-pairs)))
@@ -302,8 +281,7 @@
    (cons 'list list)
    (cons 'null? null?)
    (cons 'square (lambda (x) (* x x)))
-   (cons 'println (lambda (msg) (display msg)(newline)))
-   ))
+   (cons 'println (lambda (msg) (display msg)(newline)))))
 
 (define primitive-procedure-names
   (map car primitive-procedures))
@@ -339,20 +317,6 @@
 (#%provide (all-defined)
            put)
 
-
-(#%require "ea-pick-fruit-expression.scm")
-
-(put-evaluators)
-
-;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(println "Checking with data-directed eval:")
-(check-fruit
- (apply (eval
-         pick-fruit
-         the-global-environment)
-        '()))
-(println "")
 
 
 
