@@ -12,6 +12,12 @@
          (newline))))
 
 ;; Data-Directed Eval ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(#%require "common.scm") ;;;;;;;;;;;xxxxxxxxxxxxxxx;;;;;;;;;;
+(define (trace x)
+  (println x)
+  x)
+
+
 
 (#%require "ea-underlying-apply.scm")
 (#%require "ea-evaluators.scm")
@@ -213,21 +219,25 @@
 
 
 (define (make-frame variables values)
-  (define (iter vars vals frame)
+  (define frame (list 'frame ))
+  (define (iter vars vals)
     (if (pair? vars)
-        (iter (cdr vars)
-              (cdr vals)
-              (cons (cons (car vars) (car vals))
-                    frame))
+        (begin
+          (set-cdr! frame (cons (cons (car vars) (car vals)) (cdr frame)))
+          (iter (cdr vars)
+                (cdr vals)))
         frame))
-  (iter '() variables values))
+  (iter variables values))
 
 
-;(define (frame-variables frame) (car frame))
-;(define (frame-values frame) (cdr frame))
+;(define (frame-first-var frame) (car (car (cdr frame))))
+;(define (frame-first-val frame) (cdr (car (cdr frame))))
+;(define (frame-set-first-val! frame val)
+;  (set-cdr! (cadr frame) val))
 (define (add-binding-to-frame! var val frame)
-  (set-cdr! frame (cons (car frame) (cdr frame)))
-  (set-car! frame (cons var val)))
+  (set-cdr! frame (cons (cons var val) (cdr frame))))
+;(define (empty-frame? frame)
+;  (null? (cdr frame))
 
 (define (extend-environment vars vals base-env)
   (if (= (length vars) (length vals))
@@ -238,44 +248,45 @@
 
 (define (lookup-variable-value var env)
   (define (env-loop env)
-    (define (scan vars vals)
-      (cond ((null? vars)
+    (define (scan frame-pairs)
+      (cond ((null? frame-pairs)
              (env-loop (enclosing-environment env)))
-            ((eq? var (car vars))
-             (car vals))
-            (else (scan (cdr vars) (cdr vals)))))
+            ((eq? var (car (car frame-pairs)))
+                   (cdr (car frame-pairs)))
+            (else (scan (cdr frame-pairs)))))
     (if (eq? env the-empty-environment)
         (error "Unbound variable:" var)
         (let ((frame (first-frame env)))
-          (scan (frame-variables frame)
-                (frame-values frame)))))
+          (scan (cdr frame)))))
   (env-loop env))
 
  (define (set-variable-value! var val env)
    (define (env-loop env)
-     (define (scan vars vals)
-       (cond ((null? vars)
+     (define (scan frame-pairs)
+       (cond ((null? frame-pairs)
               (env-loop (enclosing-environment env)))
-             ((eq? var (car vars))
-              (set-car! vals val))
-             (else (scan (cdr vars) (cdr vals)))))
+             ((eq? var (car (car frame-pairs)))
+              (set-cdr! (car frame-pairs) val))
+             (else (scan (cdr frame-pairs)))))
      (if (eq? env the-empty-environment)
          (error "Unbound variable -- SET!:" var)
          (let ((frame (first-frame env)))
-           (scan (frame-variables frame)
-                 (frame-values frame)))))
+           (scan (cdr frame)))))
    (env-loop env))
 
 (define (define-variable! var val env)
+  (display "ENV: ")(trace env)
   (let ((frame (first-frame env)))
-    (define (scan vars vals)
-      (cond ((null? vars)
+    (display "frame: ")
+    (trace frame)
+    (define (scan frame-pairs)
+      ; (trace frame-pairs)
+      (cond ((null? frame-pairs)
              (add-binding-to-frame! var val frame))
-            ((eq? var (car vars))
-             (set-car! vals val))
-            (else (scan (cdr vars) (cdr vals)))))
-    (scan (frame-variables frame)
-          (frame-values frame))))
+            ((eq? var (car (car frame-pairs)))
+             (set-cdr! (car frame) val))
+            (else (scan (cdr frame-pairs)))))
+    (scan (cdr frame))))
 
 ;;list of primitives directly mapped to underlying apply
 (define primitive-procedures
@@ -327,5 +338,21 @@
 
 (#%provide (all-defined)
            put)
+
+
+(#%require "ea-pick-fruit-expression.scm")
+
+(put-evaluators)
+
+;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(println "Checking with data-directed eval:")
+(check-fruit
+ (apply (eval
+         pick-fruit
+         the-global-environment)
+        '()))
+(println "")
+
 
 
