@@ -242,7 +242,19 @@
   (scan (frame-variables frame)
         (frame-values frame)))
 
+(define (define-frame-var var val frame)
+  (define (scan vars vals)
+    (cond ((null? vars)
+           (add-binding-to-frame! var val frame))
+          ((eq? var (car vars))
+           (set-car! vals val))
+          (else (scan (cdr vars) (cdr vals)))))
+  (scan (frame-variables frame)
+        (frame-values frame)))
   
+
+
+;; end frame stuff  
   
 
 (define (extend-environment vars vals base-env)
@@ -274,14 +286,7 @@
 
 (define (define-variable! var val env)
   (let ((frame (first-frame env)))
-    (define (scan vars vals)
-      (cond ((null? vars)
-             (add-binding-to-frame! var val frame))
-            ((eq? var (car vars))
-             (set-car! vals val))
-            (else (scan (cdr vars) (cdr vals)))))
-    (scan (frame-variables frame)
-          (frame-values frame))))
+    (define-frame-var var val frame)))
 
 ;;list of primitives directly mapped to underlying apply
 (define primitive-procedures
