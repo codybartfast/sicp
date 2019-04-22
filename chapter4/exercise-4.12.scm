@@ -18,6 +18,18 @@
 
 (-start- "4.12")
 
+(#%require "ea-data-directed-11.scm")
+(#%require "ea-pick-fruit-expression.scm")
+(put-evaluators)
+
+
+(println "Checking with data-directed eval '12a':")
+(check-fruit
+ (apply (eval
+         pick-fruit
+         the-global-environment)
+        '()))
+(println "")
 
 
 (--end-- "4.12")

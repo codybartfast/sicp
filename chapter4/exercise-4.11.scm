@@ -80,14 +80,10 @@ The rewritten operations are:
 This is implemented in 'ea-data-directed-11' that is tested below.
 ")
 
-
-
 (#%require "ea-data-directed-11.scm")
 (#%require "ea-pick-fruit-expression.scm")
-
 (put-evaluators)
 
-;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (println "Checking with data-directed eval '11':")
 (check-fruit
