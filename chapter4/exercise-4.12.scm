@@ -17,13 +17,12 @@
 ;   ------------------------------------------------------------------------
 
 (-start- "4.12")
-
-(#%require "ea-data-directed-12a.scm")
 (#%require "ea-pick-fruit-expression.scm")
+
+(#%require "ea-data-directed-12b.scm")
 (put-evaluators)
 
-
-(println "Checking with data-directed eval '12a':")
+(println "Checking with data-directed eval '12':")
 (check-fruit
  (apply (eval
          pick-fruit

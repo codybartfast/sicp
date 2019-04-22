@@ -210,49 +210,49 @@
 (define the-empty-environment '())
 (define (first-frame env) (car env))
 
-;; Frame stuff
+;; Frame stuff - these should be the only procs with knowledge of the frame
+;; structure
+
 (define (make-frame variables values)
-  (cons variables values))
-(define (frame-variables frame) (car frame))
-(define (frame-values frame) (cdr frame))
+  (define frame (list '*frame*))
+  (define (iter vars vals)
+    (cond ((pair? vars)
+           (add-binding-to-frame! (car vars) (car vals) frame)
+           (iter (cdr vars) (cdr vals)))
+          (else frame)))
+  (iter variables values))
 
 (define (add-binding-to-frame! var val frame)
-  (set-car! frame (cons var (car frame)))
-  (set-cdr! frame (cons val (cdr frame))))
+  (set-cdr! frame (cons (cons var val) (cdr frame))))
 
 (define (get-frame-val var frame)
-  (define (scan vars vals)
-    (cond ((null? vars) #f)
-          ((eq? var (car vars))
-           ;; value put in a list becuase value could
-           ;; be #f (or whatever else we return in the
-           ;; case we don't find the var.
-           (list (car vals)))
-          (else (scan (cdr vars) (cdr vals)))))
-  (scan (frame-variables frame)
-        (frame-values frame)))
+  (define (scan frame-pairs)
+    (cond ((null? frame-pairs) #f)
+          ((eq? var (car (car frame-pairs)))
+           (list (cdr (car frame-pairs))))
+          (else (scan (cdr frame-pairs)))))
+  (scan (cdr frame)))
 
 (define (set-frame-val var val frame)
-  (define (scan vars vals)
-    (cond ((null? vars) #f)
-          ((eq? var (car vars))
-           (set-car! vals val)
+  (define (scan frame-pairs)
+    (cond ((null? frame-pairs) #f)
+          ((eq? var (car (car frame-pairs)))
+           (set-cdr! (car frame-pairs) val)
            #t)
-          (else (scan (cdr vars) (cdr vals)))))
-  (scan (frame-variables frame)
-        (frame-values frame)))
+          (else (scan (cdr frame-pairs)))))
+  (scan (cdr frame)))
 
 (define (define-frame-var var val frame)
-  (define (scan vars vals)
-    (cond ((null? vars)
+  (define (scan frame-pairs)
+    (cond ((null? frame-pairs)
            (add-binding-to-frame! var val frame))
-          ((eq? var (car vars))
-           (set-car! vals val))
-          (else (scan (cdr vars) (cdr vals)))))
-  (scan (frame-variables frame)
-        (frame-values frame)))
-  
+          ((eq? var (car (car frame-pairs)))
+           (set-cdr! (car frame-pairs) val))
+          (else (scan (cdr frame-pairs)))))
+  (scan (cdr frame)))
 ;; end frame stuff
+
+;; convenience method for iterating over the separate frames
 (define (scan-env env f)
   (define (env-loop env)
     (if (eq? env the-empty-environment)
@@ -261,8 +261,6 @@
           (cond ((f frame) => (lambda (val) val))                
                 (else (env-loop (enclosing-environment env)))))))
   (env-loop env))
-;;
-  
 
 (define (extend-environment vars vals base-env)
   (if (= (length vars) (length vals))
@@ -272,32 +270,17 @@
           (error "Too few arguments supplied" vars vals))))
 
 (define (lookup-variable-value var env)
-  (let ((rslt (scan-env env (lambda (frame) (get-frame-val var frame)))))
+  (let ((rslt (scan-env env (lambda (frame)
+                              (get-frame-val var frame)))))
     (if rslt
         (car rslt)
         (error "Unbound variable:" var))))
-    
-;  (define (env-loop env)
-;    (if (eq? env the-empty-environment)
-;        (error "Unbound variable:" var)
-;        (let ((frame (first-frame env)))          
-;          (cond ((get-frame-val var frame)
-;                 => (lambda (val-list) (car val-list)))
-;                (else (env-loop (enclosing-environment env)))))))
-;  (env-loop env))
-
-
-  
-
+ 
 (define (set-variable-value! var val env)
-  (define (env-loop env)
-    (if (eq? env the-empty-environment)
-        (error "Unbound variable -- SET!:" var)
-        (let ((frame (first-frame env)))
-          (if (set-frame-val var val frame)
-              'ok
-              (env-loop (enclosing-environment env))))))
-  (env-loop env))
+  (let ((rslt (scan-env env (lambda (frame)
+                              (set-frame-val var val frame)))))
+    (if (not rslt)
+        (error "Unbound variable -- SET!:" var))))        
 
 (define (define-variable! var val env)
   (let ((frame (first-frame env)))
