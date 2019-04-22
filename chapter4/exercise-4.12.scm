@@ -18,7 +18,7 @@
 
 (-start- "4.12")
 
-(#%require "ea-data-directed-11.scm")
+(#%require "ea-data-directed-12a.scm")
 (#%require "ea-pick-fruit-expression.scm")
 (put-evaluators)
 
