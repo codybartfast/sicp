@@ -252,9 +252,16 @@
   (scan (frame-variables frame)
         (frame-values frame)))
   
-
-
-;; end frame stuff  
+;; end frame stuff
+(define (scan-env env f)
+  (define (env-loop env)
+    (if (eq? env the-empty-environment)
+        #f
+        (let ((frame (first-frame env)))          
+          (cond ((f frame) => (lambda (val) val))                
+                (else (env-loop (enclosing-environment env)))))))
+  (env-loop env))
+;;
   
 
 (define (extend-environment vars vals base-env)
@@ -265,24 +272,32 @@
           (error "Too few arguments supplied" vars vals))))
 
 (define (lookup-variable-value var env)
+  (let ((rslt (scan-env env (lambda (frame) (get-frame-val var frame)))))
+    (if rslt
+        (car rslt)
+        (error "Unbound variable:" var))))
+    
+;  (define (env-loop env)
+;    (if (eq? env the-empty-environment)
+;        (error "Unbound variable:" var)
+;        (let ((frame (first-frame env)))          
+;          (cond ((get-frame-val var frame)
+;                 => (lambda (val-list) (car val-list)))
+;                (else (env-loop (enclosing-environment env)))))))
+;  (env-loop env))
+
+
+  
+
+(define (set-variable-value! var val env)
   (define (env-loop env)
     (if (eq? env the-empty-environment)
-        (error "Unbound variable:" var)
-        (let ((frame (first-frame env)))          
-          (cond ((get-frame-val var frame)
-                 => (lambda (val-list) (car val-list)))
-                (else (env-loop (enclosing-environment env)))))))
+        (error "Unbound variable -- SET!:" var)
+        (let ((frame (first-frame env)))
+          (if (set-frame-val var val frame)
+              'ok
+              (env-loop (enclosing-environment env))))))
   (env-loop env))
-
- (define (set-variable-value! var val env)
-   (define (env-loop env)
-     (if (eq? env the-empty-environment)
-         (error "Unbound variable -- SET!:" var)
-         (let ((frame (first-frame env)))
-           (if (set-frame-val var val frame)
-               'ok
-               (env-loop (enclosing-environment env))))))
-   (env-loop env))
 
 (define (define-variable! var val env)
   (let ((frame (first-frame env)))
