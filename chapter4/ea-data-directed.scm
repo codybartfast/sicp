@@ -5,11 +5,14 @@
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+(define (writeln . parts)
+  (for-each display parts)
+         (newline))
 (define debug false)
 (define (log . parts)
-  (cond (debug
-         (for-each display parts)
-         (newline))))
+  (if debug
+      (underlying-apply writeln parts)))
 
 ;; Data-Directed Eval ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
