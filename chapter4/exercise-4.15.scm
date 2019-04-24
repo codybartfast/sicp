@@ -32,7 +32,17 @@
 
 (-start- "4.15")
 
-
+(println "
+If it were possibe it would result in a good old paradox:
+   halts? must return true or false
+   -> (halts? (try try)) is true or false
+     if it returns true then run-forever is called so try does not halt.
+     if it returns false then try halts returning 'halted.
+   In other words:
+     If (try try) halts then it runs forever
+     If (try try) doesn't halt then it halts
+   Oh dear.
+")
 
 (--end-- "4.15")
 
