@@ -24,9 +24,16 @@ I imagine the problem is that map takes a procedure as an argument.  If it
 is implemented as a primitive then map is called in the context of the
 metacircular evaluator not the interpreted environment.  That would be fine
 except in this case it also means the procedure passed as an agument to map,
-which is defined in the interpreted environment, is evaluated in
-the metacircular evaluator's environment.
+which is defined in the interpreted environment, is evaluated in the
+metacircular evaluator's environment.
 
+So if we define our own map we get:
+
+;;; M-Eval input:
+(define (cube x) (* x x x))
+
+;;; M-Eval value:
+#<void>
 
 ;;; M-Eval input:
 (define (map proc items)
@@ -39,15 +46,38 @@ the metacircular evaluator's environment.
 #<void>
 
 ;;; M-Eval input:
-(map square (list 1 2 3))
+(map cube (list 1 2 3))
 
 ;;; M-Eval value:
-(1 4 9)
+(1 8 27)
+
+However if we use the underlying map (by using ea-data-drive-14 as the
+implementation instead of ea-data-drive-12) then we get an error as 'our'
+cube procedure is not recognized as a procedure by the metacircular
+evaluator's lisp:
 
 ;;; M-Eval input:
-")
+(define (cube x) (* x x x))
+
+;;; M-Eval value:
+#<void>
+
+;;; M-Eval input:
+(map cube (list 1 2 3))
+xxx X application: not a procedure;
+ expected a procedure that can be applied to arguments
+  given: #0=(mcons 'procedure (mcons (mcons 'x '()) (mcons (mcons (mcons '*
+      (mcons 'x (mcons 'x (mcons 'x '())))) '()) (mcons (mcons (mcons
+      '*frame* (mcons (mcons 'cube #0#) (mcons (mcons 'false #f) (mcons
+      (mcons 'true #t) (mcons (mcons 'map #<procedure:mm...
+  arguments...:
+
+>>>>> end quote >>>>>
+
+Now starting driver-loop, have fun! ...")
 
 (#%require "ea-data-directed-12.scm")
+;(#%require "ea-data-directed-14.scm")
 (put-evaluators)
 
 (define input-prompt ";;; M-Eval input:")
