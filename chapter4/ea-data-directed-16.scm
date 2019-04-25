@@ -157,6 +157,28 @@
   (eval (let*->nested-lets exp) env))
 (put 'eval 'let* eval-let*)
 
+;; Unbind! ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (remove-frame-var var frame)
+  (define (scan frame-pairs)
+    (let ((rest (cdr frame-pairs)))
+      (cond ((null? rest)
+             #f)
+            ((eq? var (car (car rest)))
+             (set-cdr! frame-pairs (cddr frame-pairs))
+             #t)
+            (else (scan (cdr frame-pairs))))))
+  (scan frame))
+              
+(define (make-unbound! var env)
+  (let ((frame (first-frame env)))
+    (if (not (remove-frame-var var frame))
+        (error "Unbound variable -- UNBIND!" var))))
+
+(define (eval-unbind! exp env)
+  (make-unbound! (cadr exp) env))
+(put 'eval 'unbind! eval-unbind!)
+
 ;; Mainly unchanged from ea-text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (apply procedure arguments)
