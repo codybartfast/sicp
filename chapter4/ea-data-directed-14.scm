@@ -1,7 +1,8 @@
 #lang sicp
 
-;; This is the text's version of eval apply modified to use a data-directed
-;; eval for Exercises 4.03 to 4.10.  
+;; This is the ex 4.12 eval-apply modified to to add underlying map to the
+;; interpreted language as described in Exercise 4.14.  This is to
+;; demonstrate that it does NOT work.
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

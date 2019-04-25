@@ -1,7 +1,8 @@
 #lang sicp
 
-;; This is the text's version of eval apply modified to use a data-directed
-;; eval for Exercises 4.03 to 4.10.  
+;; This is the data-directed eval apply (ex 4.3 - 4.10) updated with for
+;; exercise 4.11 with environment variables stored in a list of name-value
+;; pairs (instead of a pair of two lists)
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

@@ -1,15 +1,18 @@
 #lang sicp
 
-;; This is the Ex 4.11 evaluator modified with the frame implementation
-;; abstracted via frame specific procedures for exercise 4.12.
+;; This combines changes from a number of previous eval-applys including
+;; frame-pairs, updated 'debug', and various extensions from the exercises
+;; such as and, or, calling-cond, various lets
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define (writeln . parts)
+  (for-each display parts)
+         (newline))
 (define debug false)
 (define (log . parts)
-  (cond (debug
-         (for-each display parts)
-         (newline))))
+  (if debug
+      (underlying-apply writeln parts)))
 
 ;; Data-Directed Eval ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -51,8 +54,44 @@
   (put 'eval 'lambda eval-lambda)
   (put 'eval 'begin eval-begin)
   (put 'eval 'cond eval-cond))
-                 
-;; Unchanged from ea-text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Shared by exercise extensions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define make-call cons)
+
+;; Ex 4.04 and, or ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define first-predicate cadr)
+(define second-predicate caddr)
+
+(put 'eval 'and
+     (lambda (exp env)
+       (if (true? (eval (first-predicate exp) env))
+           (true? (eval (second-predicate exp) env))
+           false)))
+
+(put 'eval 'or
+     (lambda (exp env)
+       (if (true? (eval (first-predicate exp) env))
+           true
+           (true? (eval (second-predicate exp) env)))))
+
+;; Ex 4.05 calling-cond ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (calling-cond? exp)
+  (eq? (cadr exp) '=>))
+(define calling-cond-actions cddr)
+
+(define (clause->exp clause predicate-value)
+  (if (calling-cond? clause)
+      ;; if it's a calling-cond then 'call' the body of clause ...
+      (make-call (sequence->exp (calling-cond-actions clause))
+            ;; ... with predicate value
+            (list predicate-value))
+      ;; else just do the usual
+      (sequence->exp (cond-actions clause))))
+
+;; Mainly unchanged from ea-text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (apply procedure arguments)
   (cond ((primitive-procedure? procedure)
@@ -179,6 +218,7 @@
 (define (cond->if exp)
   (expand-clauses (cond-clauses exp)))
 
+;; Modified for Ex 4.05
 (define (expand-clauses clauses)
   (if (null? clauses)
       'false
@@ -189,9 +229,10 @@
                 (sequence->exp (cond-actions first))
                 (error "ELSE clause isn't last -- COND-IF"
                        clauses))
-            (make-if (cond-predicate first)
-                     (sequence->exp (cond-actions first))
-                     (expand-clauses rest))))))
+            (let ((predicate-value (cond-predicate first)))
+              (make-if predicate-value
+                       (clause->exp first predicate-value)
+                       (expand-clauses rest)))))))
 
 (define (true? x)
   (not (eq? x false)))
@@ -299,7 +340,9 @@
    (cons 'list list)
    (cons 'null? null?)
    (cons 'square (lambda (x) (* x x)))
-   (cons 'println (lambda (msg) (display msg)(newline)))))
+   (cons 'println (lambda (msg) (display msg)(newline)))
+   (cons 'map map)
+   ))
 
 (define primitive-procedure-names
   (map car primitive-procedures))
