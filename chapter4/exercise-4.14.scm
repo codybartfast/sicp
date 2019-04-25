@@ -103,7 +103,6 @@ Now starting driver-loop, have fun! ...")
                      '<procedure-env>))
       (display object)))
 
-(define the-global-environment (setup-environment))
 (driver-loop)
 
 (--end-- "4.14")

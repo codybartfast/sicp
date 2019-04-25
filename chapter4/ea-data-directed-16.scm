@@ -53,7 +53,14 @@
   (put 'eval 'if eval-if)
   (put 'eval 'lambda eval-lambda)
   (put 'eval 'begin eval-begin)
-  (put 'eval 'cond eval-cond))
+  (put 'eval 'cond eval-cond)
+  
+  (put 'eval 'and eval-and)
+  (put 'eval 'or eval-or)
+  (put 'eval 'let eval-let)
+  (put 'eval 'let* eval-let*)
+  (put 'eval 'unbind! eval-unbind!)
+  )
 
 ;; Shared by exercise extensions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -68,17 +75,15 @@
 (define first-predicate cadr)
 (define second-predicate caddr)
 
-(put 'eval 'and
-     (lambda (exp env)
-       (if (true? (eval (first-predicate exp) env))
+(define (eval-and exp env)
+  (if (true? (eval (first-predicate exp) env))
            (true? (eval (second-predicate exp) env))
-           false)))
+           false))
 
-(put 'eval 'or
-     (lambda (exp env)
-       (if (true? (eval (first-predicate exp) env))
+(define (eval-or exp env)
+  (if (true? (eval (first-predicate exp) env))
            true
-           (true? (eval (second-predicate exp) env)))))
+           (true? (eval (second-predicate exp) env))))
 
 ;; Ex 4.05 calling-cond ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -88,11 +93,9 @@
 
 (define (clause->exp clause predicate-value)
   (if (calling-cond? clause)
-      ;; if it's a calling-cond then 'call' the body of clause ...
       (make-call (sequence->exp (calling-cond-actions clause))
                  ;; ... with predicate value
                  (list predicate-value))
-      ;; else just do the usual
       (sequence->exp (cond-actions clause))))
 
 ;; Ex 4.06-4.08 let, let*, named-let ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -136,7 +139,6 @@
 
 (define (eval-let exp env)
   (eval (let->combination exp) env))
-(put 'eval 'let eval-let)
 
 ;; let*
 
@@ -155,7 +157,6 @@
         
 (define (eval-let* exp env)
   (eval (let*->nested-lets exp) env))
-(put 'eval 'let* eval-let*)
 
 ;; Unbind! ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -177,7 +178,6 @@
 
 (define (eval-unbind! exp env)
   (make-unbound! (cadr exp) env))
-(put 'eval 'unbind! eval-unbind!)
 
 ;; Mainly unchanged from ea-text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -358,9 +358,6 @@
   (define (scan frame-pairs)
     (cond ((null? frame-pairs) #f)
           ((eq? var (car (car frame-pairs)))
-           ;; value put in a list becuase value could
-           ;; be #f (or whatever else we return in the
-           ;; case we don't find the var).
            (list (cdr (car frame-pairs))))
           (else (scan (cdr frame-pairs)))))
   (scan (cdr frame)))
