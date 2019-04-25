@@ -8,7 +8,7 @@
 
 (define (writeln . parts)
   (for-each display parts)
-         (newline))
+  (newline))
 (define debug false)
 (define (log . parts)
   (if debug
@@ -58,6 +58,10 @@
 ;; Shared by exercise extensions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define make-call cons)
+(define (make-definition name params body)
+  (cons 'define
+        (cons (cons name params)
+              body)))
 
 ;; Ex 4.04 and, or ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -86,10 +90,72 @@
   (if (calling-cond? clause)
       ;; if it's a calling-cond then 'call' the body of clause ...
       (make-call (sequence->exp (calling-cond-actions clause))
-            ;; ... with predicate value
-            (list predicate-value))
+                 ;; ... with predicate value
+                 (list predicate-value))
       ;; else just do the usual
       (sequence->exp (cond-actions clause))))
+
+;; Ex 4.06-4.08 let, let*, named-let ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; let helpers
+(define let-name cadr)
+(define (named-let? exp)
+  (symbol? (let-name exp)))
+(define (let-body exp)
+  (if (named-let? exp)
+      (cdddr exp)
+      (cddr exp)))
+(define (let-pairs exp)
+  (if (named-let? exp)
+      (caddr exp)
+      (cadr exp)))
+
+(define let-pair-id car)
+(define let-pair-value cadr)
+(define (let-params exp)
+  (map let-pair-id
+       (let-pairs exp)))
+(define (let-values exp)
+  (map let-pair-value
+       (let-pairs exp)))
+
+;; let, named-let
+(define (let->combination exp )
+  (if (named-let? exp)
+      (make-begin
+       (list
+        (make-definition (let-name exp)
+                         (let-params exp)
+                         (let-body exp))
+        (make-call (let-name exp)
+                   (let-values exp))))
+      (make-call
+       (make-lambda (let-params exp)
+                    (let-body exp))
+       (let-values exp))))
+
+(define (eval-let exp env)
+  (eval (let->combination exp) env))
+(put 'eval 'let eval-let)
+
+;; let*
+
+(define (let*->nested-lets exp)
+  (define (make-let pairs body)
+    (cons 'let (cons pairs body)))
+  (define (wrap-lets pairs body)
+    (make-let (list (car pairs))
+              (if (pair? (cdr pairs))
+                  (list (wrap-lets (cdr pairs) body))
+                  body)))
+  (let ((pairs (let-pairs exp)))
+    (if (pair? pairs)
+        (wrap-lets pairs (let-body exp))
+        (make-let pairs (let-body exp)))))
+        
+(define (eval-let* exp env)
+  (eval (let*->nested-lets exp) env))
+(put 'eval 'let* eval-let*)
 
 ;; Mainly unchanged from ea-text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -131,8 +197,8 @@
 
 (define (eval-definition exp env)
   (define-variable! (definition-variable exp)
-                    (eval (definition-value exp) env)
-                    env))
+    (eval (definition-value exp) env)
+    env))
 
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
