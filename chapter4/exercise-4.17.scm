@@ -21,8 +21,61 @@
 ;   ------------------------------------------------------------------------
 
 (-start- "4.17")
+(println"
+With the procedure in the text there is only one frame added to the
+enclosing environment:
+                                       ┌─────────────┐
+                                EnvA ─>│var1: val1   │
+                                       │var2: val2   │
+                                       │   ...       ├─> <enclosing env>
+                                       │u: eval-of e1│
+                                       │v: eval-of e2│
+                                       └─────────────┘
 
+With definitions scanned out there is an additonal frame because the let is
+implemented as a lambda which creates an additional apply and hence an
+additional frame:
 
+           ┌─────────────┐             ┌─────────────┐
+    EnvB ─>│u: eval-of e1│      EnvA ─>│var1: val1   │
+           │v: eval-of e2│             │var2: val2   ├─> <enclosing env>
+           │             ├────────────>│   ...       │
+           └─────────────┘             └─────────────┘
+
+With our evaluator this will make a difference if the same parameter name is
+used in vars and in the definitions (e.g. vars contains a variable named u)
+and that name is used before the define.
+
+With the first model u will have the value from the vars until it is
+overwritten by (define u ...).
+
+With the second model u will have the value *unassigned* until (set! u ...)
+is called.
+
+To see this difference though, you have to do two things that are
+questionable:
+     1) define a variable with the same name as a parameter.
+     2) access a 'defined' variable name before it is defined.
+
+Instead of creating an extra frame in which u and v are intially set to
+*unassigned*, u and v could be added to the vars.
+
+E.g., this:
+
+	((lambda (a)
+	   (define u 2)
+	   (define v 3)
+	   (+ a u v))
+	 1)
+
+could be tranformed to:
+
+	((lambda (a u v)
+	   (set! u 2)
+	   (set! v 3)
+	   (+ a u v))
+	 1 '*unassigned* '*unassigned*)
+")
 
 (--end-- "4.17")
 
