@@ -30,15 +30,69 @@
 (-start- "4.16")
 
 (#%require "ea-data-directed-16.scm")
+(#%require "ea-pick-fruit-expression.scm")
 (put-evaluators)
+
+;; Part b ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;(part a is below because it throws an error)
+
+(println "
+=======
+Part B:
+=======")
+
+(define (scan-out-defines exp)
+  (define (definition? exp)
+    (tagged-list? exp 'define))
+  (define (parse exp new-members vars)
+    (if (null? exp)
+        (cons new-members vars)
+        (let ((member (car exp)))
+          (if (definition? member)
+              (parse (cdr exp)
+                     (cons
+                      (list 'set!
+                            (definition-variable member)
+                            (definition-value member))
+                      new-members)
+                     (cons (definition-variable member) vars))
+              (parse (cdr exp)
+                     (cons member new-members)
+                     vars)))))
+  (let* ((parse-rslt (parse exp '() '()))
+         (new-body (reverse (car parse-rslt)))
+         (vars (reverse (cdr parse-rslt)))
+         (let-pairs (map (lambda (var) (cons var '*unassigned*)) vars)))
+    (make-let let-pairs new-body)))
+
+(define expression-b
+  '((define u <e1>)
+    (define v <e2>)
+    (define (add x y) (+ x y))))
+
+(println "
+Original expression:
+
+    " expression-b "
+
+Scanned out expression:
+
+    " (scan-out-defines expression-b) "
+")
+
+;; Part a ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define expression-a
   '(begin
      (define x '*unassigned-token*)
      (println x)))
 
-(println "Part a:
+(println "
 =======
+Part A:
+=======
+
 Evaluating expression:
     " expression-a "
 Expect:

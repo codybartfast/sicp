@@ -141,10 +141,10 @@
   (eval (let->combination exp) env))
 
 ;; let*
+(define (make-let pairs body)
+  (cons 'let (cons pairs body)))
 
 (define (let*->nested-lets exp)
-  (define (make-let pairs body)
-    (cons 'let (cons pairs body)))
   (define (wrap-lets pairs body)
     (make-let (list (car pairs))
               (if (pair? (cdr pairs))
@@ -400,7 +400,7 @@
           (if (eq? val '*unassigned-token*)
               (error "Unassigned variable:" var)
               val))
-        (error "Unbound variable!:" var))))
+        (error "Unbound variable:" var))))
  
 (define (set-variable-value! var val env)
   (if (not (scan-env env
