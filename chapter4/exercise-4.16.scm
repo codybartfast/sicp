@@ -29,18 +29,22 @@
 
 (-start- "4.16")
 
-(#%require "ea-data-directed.scm")
-(#%require "ea-pick-fruit-expression.scm")
-
+(#%require "ea-data-directed-16.scm")
 (put-evaluators)
 
-(println "Checking with data-directed eval:")
-(check-fruit
- (apply (eval
-         pick-fruit
-         the-global-environment)
-        '()))
-(println "")
+(define expression-a
+  '(begin
+     (define x '*unassigned-token*)
+     (println x)))
+
+(println "Part a:
+=======
+Evaluating expression:
+    " expression-a "
+Expect:
+xxx  X  Unassigned vairable: x")
+
+(eval expression-a the-global-environment)
 
 (--end-- "4.16")
 

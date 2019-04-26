@@ -396,8 +396,11 @@
                         (lambda (frame)
                           (get-frame-val var frame)))))
     (if rslt
-        (car rslt)
-        (error "Unbound variable:" var))))
+        (let ((val (car rslt)))
+          (if (eq? val '*unassigned-token*)
+              (error "Unassigned variable:" var)
+              val))
+        (error "Unbound variable!:" var))))
  
 (define (set-variable-value! var val env)
   (if (not (scan-env env
@@ -426,7 +429,6 @@
    (cons 'null? null?)
    (cons 'square (lambda (x) (* x x)))
    (cons 'println (lambda (msg) (display msg)(newline)))
-   (cons 'map map)
    ))
 
 (define primitive-procedure-names
