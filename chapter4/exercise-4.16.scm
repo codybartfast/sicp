@@ -30,46 +30,23 @@
 (-start- "4.16")
 
 (#%require "ea-data-directed-16.scm")
-(#%require "ea-pick-fruit-expression.scm")
 (put-evaluators)
+(#%require "ea-pick-fruit-expression.scm")
 
-;; Part b ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Part B ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;(part a is below because it throws an error)
+;(Part A is below because it throws an error)
 
 (println "
 =======
 Part B:
 =======")
 
-(define (scan-out-defines exp)
-  (define (definition? exp)
-    (tagged-list? exp 'define))
-  (define (parse exp new-members vars)
-    (if (null? exp)
-        (cons new-members vars)
-        (let ((member (car exp)))
-          (if (definition? member)
-              (parse (cdr exp)
-                     (cons
-                      (list 'set!
-                            (definition-variable member)
-                            (definition-value member))
-                      new-members)
-                     (cons (definition-variable member) vars))
-              (parse (cdr exp)
-                     (cons member new-members)
-                     vars)))))
-  (let* ((parse-rslt (parse exp '() '()))
-         (new-body (reverse (car parse-rslt)))
-         (vars (reverse (cdr parse-rslt)))
-         (let-pairs (map (lambda (var) (cons var '*unassigned*)) vars)))
-    (make-let let-pairs new-body)))
-
 (define expression-b
-  '((define u <e1>)
-    (define v <e2>)
-    (define (add x y) (+ x y))))
+  '((define (add u) (+ u v w))
+    (define v (+ w 2))
+    (define w 1)
+    (display (add 3))))
 
 (println "
 Original expression:
@@ -81,7 +58,28 @@ Scanned out expression:
     " (scan-out-defines expression-b) "
 ")
 
-;; Part a ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Part C ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(println "
+=======
+Part C:
+=======")
+
+(println "
+I've installed it in make-procedure so it should only be called once when
+the procedure is created, whereas if it were installed in procedure-body
+then it would be called each time the procedure is applied.
+
+Validating with pick-fruit expression:
+")
+
+(check-fruit
+ (apply (eval
+         pick-fruit
+         the-global-environment)
+        '()))
+
+;; Part A ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define expression-a
   '(begin
@@ -95,10 +93,12 @@ Part A:
 
 Evaluating expression:
     " expression-a "
-Expect:
-xxx  X  Unassigned vairable: x")
 
+Expect error:
+\"       Unassigned variable: x\"
+")
 (eval expression-a the-global-environment)
+
 
 (--end-- "4.16")
 

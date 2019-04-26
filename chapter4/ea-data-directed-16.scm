@@ -226,6 +226,7 @@
   (cond ((number? exp) true)
         ((string? exp) true)
         ((equal? exp 'undefined) true)  ;; extra
+        ((equal? exp '*unassigned*) true)  ;; extra
         ((boolean? exp) true)
         (else false)))
 
@@ -327,8 +328,34 @@
 (define (false? x)
   (eq? x false))
 
+(define (scan-out-defines exp)
+  (define (definition? exp)
+    (tagged-list? exp 'define))
+  (define (parse exp new-members vars)
+    (if (null? exp)
+        (cons new-members vars)
+        (let ((member (car exp)))
+          (if (definition? member)
+              (parse (cdr exp)
+                     (cons
+                      (list 'set!
+                            (definition-variable member)
+                            (definition-value member))
+                      new-members)
+                     (cons (definition-variable member) vars))
+              (parse (cdr exp)
+                     (cons member new-members)
+                     vars)))))
+  (let* ((parse-rslt (parse exp '() '()))
+         (new-body (reverse (car parse-rslt)))
+         (vars (reverse (cdr parse-rslt)))
+         (let-pairs (map (lambda (var) (list var '*unassigned*)) vars)))
+    (if (null? vars)
+        exp
+        (list (make-let let-pairs new-body)))))
+
 (define (make-procedure parameters body env)
-  (list 'procedure parameters body env))
+  (list 'procedure parameters (scan-out-defines body) env))
 (define (compound-procedure? p)
   (tagged-list? p 'procedure))
 (define (procedure-parameters p) (cadr  p))
