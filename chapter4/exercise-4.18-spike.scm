@@ -64,6 +64,8 @@
 
 (define expression
   '(lambda ()
+     (define (force x) (x))
+     
      (define (stream-car stream) (car stream))
 
      (define (stream-cdr stream) (force (cdr stream)))
@@ -75,10 +77,11 @@
                         (stream-map proc (stream-cdr s)))))
 
      (define (scale-stream stream factor)
-       (stream-map (lambda (x) (* x factor)) stream))
+       (stream-map (lambda (x) (println x)(* x factor)) stream))
 
      (define (add-streams s1 s2)
-       (stream-map + s1 s2))
+       (cons-stream (+ (stream-car s1) (stream-car s2))
+                    (add-streams (stream-cdr s1) (stream-cdr s2))))
 
      (define (integral integrand initial-value dt)
        (define int
@@ -92,11 +95,22 @@
        (define dy (stream-map f y))
        y)
 
-     (solve (lambda (x) x) 0 1)
+     ;(define solution (solve (lambda (x) x) 0 1))
+     (define solution (solve (lambda (x) (+ x 1)) 1 1))
+
+     (define (integers-starting-from n)
+       (cons-stream n (integers-starting-from (+ n 1))))
+
+     (define integers (integers-starting-from 1))
+
+     (define evens (scale-stream integers 2))
+
+     (define fives (add-streams integers
+                                (scale-stream evens 2)))
+
+     (stream-car (stream-cdr (stream-cdr fives)))
+     (stream-car (stream-cdr (stream-cdr solution)))
      ))
-
-;(display (cons-stream->cons '(cons-stream (+ 2 2) (+ 3 3))))
-
 
 
 (apply (eval expression the-global-environment) '())
