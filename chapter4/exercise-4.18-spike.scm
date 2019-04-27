@@ -91,10 +91,20 @@
        int)
 
      (define (solve f y0 dt)
-       (define y (integral (delay dy) y0 dt))
        (define dy (stream-map f y))
+       (define y (integral (delay dy) y0 dt))
        y)
 
+;     (define solve
+;       (lambda (f y0 dt)
+;         (let ((y '*unassigned*)
+;               (dy '*unassigned*))
+;           (let ((a (integral (delay dy) y0 dt))
+;                 (b (stream-map f y)))
+;             (set! u a)
+;             (set! v b)
+;             y)))
+     
      ;(define solution (solve (lambda (x) x) 0 1))
      (define solution (solve (lambda (x) (+ x 2)) 2 1))
 
