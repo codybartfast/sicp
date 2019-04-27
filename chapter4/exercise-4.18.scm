@@ -54,7 +54,7 @@ environment that y and dy are evaluated in.
 But the original scan-out won't work.  There y and dy are evaluated in EnvA
 but u and v are defined in EnvB.
 
-Note: I'm out of sync with most sicp-ers whoc conclude that it wouldn't work
+Note: I'm out of sync with most sicp-ers who conclude that it wouldn't work 
 because dy is unassigned when y is defined.
 
 ")
