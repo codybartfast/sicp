@@ -38,7 +38,26 @@
 
 (-start- "4.18")
 
+(println "
+Yes, I believe this will work.  I think the key factor is that variable y
+and dy exist in the environment in which the expressions (integral ...) and
+(stream-map ...) are evaluated.  (dy and y are not referenced until delay is
+forced or the second element of dy is forced).
 
+With this implementation the enclosing evironment, which just contains u and
+v is explicit.
+
+I think this would also work if we didn't scan-out as (referring to the
+previoius exercise) u and v would be defined in EnvA which is also the
+environment that y and dy are evaluated in.
+
+But the original scan-out won't work.  There y and dy are evaluated in EnvA
+but u and v are defined in EnvB.
+
+Note: I'm out of sync with most sicp-ers whoc conclude that it wouldn't work
+because dy is unassigned when y is defined.
+
+")
 
 (--end-- "4.18")
 
