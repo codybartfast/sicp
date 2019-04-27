@@ -86,7 +86,7 @@
      (define (integral integrand initial-value dt)
        (define int
          (cons-stream initial-value
-                      (add-streams (scale-stream integrand dt)
+                      (add-streams (scale-stream (force integrand) dt)
                                    int)))
        int)
 
@@ -96,19 +96,19 @@
        y)
 
      ;(define solution (solve (lambda (x) x) 0 1))
-     (define solution (solve (lambda (x) (+ x 1)) 1 1))
+     (define solution (solve (lambda (x) (+ x 2)) 2 1))
 
-     (define (integers-starting-from n)
-       (cons-stream n (integers-starting-from (+ n 1))))
+;     (define (integers-starting-from n)
+;       (cons-stream n (integers-starting-from (+ n 1))))
+;
+;     (define integers (integers-starting-from 1))
+;
+;     (define evens (scale-stream integers 2))
+;
+;     (define fives (add-streams integers
+;                                (scale-stream evens 2)))
 
-     (define integers (integers-starting-from 1))
-
-     (define evens (scale-stream integers 2))
-
-     (define fives (add-streams integers
-                                (scale-stream evens 2)))
-
-     (stream-car (stream-cdr (stream-cdr fives)))
+     ;(stream-car (stream-cdr (stream-cdr fives)))
      (stream-car (stream-cdr (stream-cdr solution)))
      ))
 
