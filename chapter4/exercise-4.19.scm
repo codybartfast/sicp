@@ -39,35 +39,77 @@
 
 (-start- "4.19")
 
+(println "
+Alyssa's of course :-)
+
+  - Ben's approach is hamstrung by not supporting mutual recursion.
+
+  - Eva's approach has a purity to it, but the rewrites required to support
+    every kind of definition seems complicated.  One could also argue that
+    mutual recursion of functions is a necessary complication that allows
+    compact and expressive code.  Whereas having simple variables used
+    before they are defined is generally a bad thing and the use of delay is
+    available for the occassions it's necessary.
+
+Implementing Eva's approach:
+============================
+
+Below is an example of how the desired result, 20, is attained by delaying
+the evaluation of all the definition values.
+
+Memoization is also added, not for performance, but but to ensure that the
+values of the variables are constant between lookups.  E.g. we want b to
+always have the same value even if the value of a changes.
+
+Alternatively, the order of definitions could be reorderd. (If that is an
+option then my argument above is the original code should be in that order
+to make it more readable).
+
+But it does seem analysis of code, whether for dependency analysis or for
+rewriting a to (a) is very hard.  If you encounter (funky (a (a + 1)) ...)
+how do you know if funky is a varient of exp, let, set! or 'quote' but with
+funky syntax?
+")
+
+
 (#%require "ea-data-directed-19.scm")
 (put-evaluators)
 
-(define expr1
+(define with-delay
   '(let ((a 1))
-     (define (f x)
-       (define b (+ a x))
-       (define a 5)
-       (+ a b))
-     (f 10)))
-
-(define expr2
-  '(let ((a 1))
-     (define (f x)
-       (let ((b-proc '*unassigned*)
-             (a-proc '*unassigned*))
-         (set! b-proc (lambda () (+ (a-proc) x)))
-         (set! a-proc (lambda () 5))
-         ;(define (b-proc) )
-         (define b (b-proc))
-         ;(define (a-proc) 5)
-         (define a (a-proc))
-         (println (+ a b))))
+       (define (f x)
+         (define b (delay (+ (a) x)))
+         (define a (delay 5))
+         (+ (a) (b)))
        (f 10)))
 
+(define with-memo-delay
+  '(begin
+     (define (memo-proc proc)
+       (let ((already-run? false) (result false))
+         (lambda ()
+           (if already-run?
+               result
+               (begin (set! result (proc))
+                      (set! already-run? true)
+                      result)))))
 
-(eval expr2 the-global-environment)
+     (let ((a 1))
+       (define (f x)
+           (define b (memo-proc (delay (+ (a) x))))
+           (define a (memo-proc (delay 5)))
+           (+ (a) (b)))
+       (f 10))))
 
-;(display (scan-out-defines expr2))
+
+(println
+"Evaluating with delayed eval of definitions: "
+(eval with-delay (setup-environment)))
+
+(println
+"Evaluating with memoized delayed eval of definitions: "
+(eval with-memo-delay (setup-environment)))
+
 
 (--end-- "4.19")
 

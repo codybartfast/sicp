@@ -1,6 +1,6 @@
 #lang sicp
 
-;; Same as previous eval-apply except scan-out is not used in make-procedure
+;; Same as previous eval-apply but includes stream primitives
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -375,15 +375,15 @@
         (let ((member (car exp)))
           (if (definition? member)
               (scan (cdr exp)
-                     (cons
-                      (list 'set!
-                            (definition-variable member)
-                            (definition-value member))
-                      new-members)
-                     (cons (definition-variable member) vars))
+                    (cons
+                     (list 'set!
+                           (definition-variable member)
+                           (definition-value member))
+                     new-members)
+                    (cons (definition-variable member) vars))
               (scan (cdr exp)
-                     (cons member new-members)
-                     vars)))))
+                    (cons member new-members)
+                    vars)))))
   (let* ((scan-rslt (scan exp '() '()))
          (new-body (reverse (car scan-rslt)))
          (vars (reverse (cdr scan-rslt)))
