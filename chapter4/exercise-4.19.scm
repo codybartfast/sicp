@@ -39,7 +39,35 @@
 
 (-start- "4.19")
 
+(#%require "ea-data-directed-19.scm")
+(put-evaluators)
 
+(define expr1
+  '(let ((a 1))
+     (define (f x)
+       (define b (+ a x))
+       (define a 5)
+       (+ a b))
+     (f 10)))
+
+(define expr2
+  '(let ((a 1))
+     (define (f x)
+       (let ((b-proc '*unassigned*)
+             (a-proc '*unassigned*))
+         (set! b-proc (lambda () (+ (a-proc) x)))
+         (set! a-proc (lambda () 5))
+         ;(define (b-proc) )
+         (define b (b-proc))
+         ;(define (a-proc) 5)
+         (define a (a-proc))
+         (println (+ a b))))
+       (f 10)))
+
+
+(eval expr2 the-global-environment)
+
+;(display (scan-out-defines expr2))
 
 (--end-- "4.19")
 
