@@ -48,6 +48,11 @@
   (eval (delay->lambda exp) env))
 (put 'eval 'delay eval-delay)
 
+;; force
+(define (eval-force exp env)
+     (eval (cdr exp) env))
+(put 'eval 'force eval-force)
+
 ;; cons-stream
 (define (cons-stream->cons exp)
   (list 'cons (cadr exp) (list 'delay (caddr exp))))
@@ -62,13 +67,24 @@
   (eval (stream-null?->null? exp) env))
 (put 'eval 'stream-null? eval-stream-null?)
 
+;; stream-car
+(define (eval-stream-car exp env)
+  (eval (cons 'car (cdr exp)) env))
+(put 'eval 'stream-car eval-stream-car)
+  
+;; stream-cdr
+(define (eval-stream-cdr exp env)
+  (println (list 'force (list 'cdr (cadr exp))))
+  (eval (list 'force (list 'cdr (cadr exp))) env))
+(put 'eval 'stream-cdr eval-stream-cdr)
+
+
 (define expression
   '(lambda ()
-     (define (force x) (x))
      
-     (define (stream-car stream) (car stream))
+     ;(define (stream-car stream) (car stream))
 
-     (define (stream-cdr stream) (force (cdr stream)))
+     ;(define (stream-cdr stream) (force (cdr stream)))
 
      (define (stream-map proc s)
        (if (stream-null? s)
@@ -77,7 +93,7 @@
                         (stream-map proc (stream-cdr s)))))
 
      (define (scale-stream stream factor)
-       (stream-map (lambda (x) (println x)(* x factor)) stream))
+       (stream-map (lambda (x) (* x factor)) stream))
 
      (define (add-streams s1 s2)
        (cons-stream (+ (stream-car s1) (stream-car s2))
@@ -91,35 +107,53 @@
        int)
 
      (define (solve f y0 dt)
-       (define dy (stream-map f y))
        (define y (integral (delay dy) y0 dt))
+       (define dy (stream-map f y))
        y)
 
-;     (define solve
-;       (lambda (f y0 dt)
-;         (let ((y '*unassigned*)
-;               (dy '*unassigned*))
-;           (let ((a (integral (delay dy) y0 dt))
-;                 (b (stream-map f y)))
-;             (set! u a)
-;             (set! v b)
-;             y)))
+     ;     (define solve
+     ;       (lambda (f y0 dt)
+     ;         (let ((y '*unassigned*)
+     ;               (dy '*unassigned*))
+     ;           (let ((a (integral (delay dy) y0 dt))
+     ;                 (b (stream-map f y)))
+     ;             (set! y a)
+     ;             (set! dy b)
+     ;             y))))
      
      ;(define solution (solve (lambda (x) x) 0 1))
-     (define solution (solve (lambda (x) (+ x 2)) 2 1))
+     (define solution (solve (lambda (x) x) 1 1))
 
-;     (define (integers-starting-from n)
-;       (cons-stream n (integers-starting-from (+ n 1))))
-;
-;     (define integers (integers-starting-from 1))
-;
-;     (define evens (scale-stream integers 2))
-;
-;     (define fives (add-streams integers
-;                                (scale-stream evens 2)))
+     ;     (define (integers-starting-from n)
+     ;       (cons-stream n (integers-starting-from (+ n 1))))
+     ;
+     ;     (define integers (integers-starting-from 1))
+     ;
+     ;     (define evens (scale-stream integers 2))
+     ;
+     ;     (define fives (add-streams integers
+     ;                                (scale-stream evens 2)))
 
      ;(stream-car (stream-cdr (stream-cdr fives)))
-     (stream-car (stream-cdr (stream-cdr solution)))
+     ;(stream-car (stream-cdr (stream-cdr solution)))
+
+     (define (reverse list)
+       (define (iter list rev-list)
+         (if (null? list)
+             rev-list
+             (iter (cdr list) (cons (car list) rev-list))))
+       (iter list '()))
+     
+     (define (stream->list count stream)
+       (define (iter count stream list)
+         (if (equal? count 0)
+             list
+             (iter (- count 1)
+                   (stream-cdr stream)
+                   (cons (stream-car stream) list))))
+       (reverse (iter count stream '())))
+
+     (println (stream->list 5 solution))
      ))
 
 
