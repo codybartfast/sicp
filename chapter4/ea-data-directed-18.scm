@@ -422,7 +422,7 @@
                           (get-frame-val var frame)))))
     (if rslt
         (let ((val (car rslt)))
-          (if (eq? val '*unassigned-token*)
+          (if (eq? val '*unassigned*)
               (error "Unassigned variable:" var)
               val))
         (error "Unbound variable:" var))))
