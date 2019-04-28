@@ -1,8 +1,6 @@
 #lang sicp
 
-;; This combines changes from a number of previous eval-applys including
-;; frame-pairs, updated 'debug', and various extensions from the exercises
-;; such as and, or, calling-cond, various lets
+;; Same as previous eval-apply except scan-out is not used in make-procedure
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

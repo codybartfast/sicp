@@ -39,7 +39,8 @@
 (-start- "4.18")
 (#%require "ea-data-directed-18.scm")
 (put-evaluators)
-(#%require "ea-pick-fruit-expression.scm")
+
+;; Extend language to support stream primitives ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; delay
 (define (delay->lambda exp)
@@ -50,7 +51,7 @@
 
 ;; force
 (define (eval-force exp env)
-     (eval (cdr exp) env))
+  (eval (cdr exp) env))
 (put 'eval 'force eval-force)
 
 ;; cons-stream
@@ -74,17 +75,15 @@
   
 ;; stream-cdr
 (define (eval-stream-cdr exp env)
-  (println (list 'force (list 'cdr (cadr exp))))
   (eval (list 'force (list 'cdr (cadr exp))) env))
 (put 'eval 'stream-cdr eval-stream-cdr)
 
+;; The program to test the different forms:
 
 (define expression
-  '(lambda ()
-     
-     ;(define (stream-car stream) (car stream))
+  '(begin
 
-     ;(define (stream-cdr stream) (force (cdr stream)))
+     ;; General stream functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
      (define (stream-map proc s)
        (if (stream-null? s)
@@ -99,6 +98,7 @@
        (cons-stream (+ (stream-car s1) (stream-car s2))
                     (add-streams (stream-cdr s1) (stream-cdr s2))))
 
+     ;; modified to force the integrand
      (define (integral integrand initial-value dt)
        (define int
          (cons-stream initial-value
@@ -106,58 +106,63 @@
                                    int)))
        int)
 
-     (define (solve f y0 dt)
+     ;; Three forms of solve ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+     
+     (define (solve-text f y0 dt)
        (define y (integral (delay dy) y0 dt))
        (define dy (stream-map f y))
        y)
+      
+     (define solve-scan-out
+       (lambda (f y0 dt)
+         (let ((y '*unassigned*)
+               (dy '*unassigned*))
+           (set! y (integral (delay dy) y0 dt))
+           (set! dy (stream-map f y))
+           y)))
 
-     ;     (define solve
-     ;       (lambda (f y0 dt)
-     ;         (let ((y '*unassigned*)
-     ;               (dy '*unassigned*))
-     ;           (let ((a (integral (delay dy) y0 dt))
-     ;                 (b (stream-map f y)))
-     ;             (set! y a)
-     ;             (set! dy b)
-     ;             y))))
-     
-     ;(define solution (solve (lambda (x) x) 0 1))
-     (define solution (solve (lambda (x) x) 1 1))
+     (define solve-alternate-scan-out
+       (lambda (f y0 dt)
+         (let ((y '*unassigned*)
+               (dy '*unassigned*))
+           (let ((a (integral (delay dy) y0 dt))
+                 (b (stream-map f y)))
+             (set! y a)
+             (set! dy b)
+             y))))
 
-     ;     (define (integers-starting-from n)
-     ;       (cons-stream n (integers-starting-from (+ n 1))))
-     ;
-     ;     (define integers (integers-starting-from 1))
-     ;
-     ;     (define evens (scale-stream integers 2))
-     ;
-     ;     (define fives (add-streams integers
-     ;                                (scale-stream evens 2)))
+     ;; Helper to call solve and display the results ;;;;;;;;;;;;;;;;;;;;;;
+     (define (solve-with solve)
+       (define (reverse list)
+         (define (iter list rev-list)
+           (if (null? list)
+               rev-list
+               (iter (cdr list) (cons (car list) rev-list))))
+         (iter list '()))
+       (define (stream->list count stream)
+         (define (iter count stream list)
+           (if (equal? count 0)
+               list
+               (iter (- count 1)
+                     (stream-cdr stream)
+                     (cons (stream-car stream) list))))
+         (reverse (iter count stream '())))
 
-     ;(stream-car (stream-cdr (stream-cdr fives)))
-     ;(stream-car (stream-cdr (stream-cdr solution)))
+       (stream->list 7
+                     (solve (lambda (x) x) 1 1)))
 
-     (define (reverse list)
-       (define (iter list rev-list)
-         (if (null? list)
-             rev-list
-             (iter (cdr list) (cons (car list) rev-list))))
-       (iter list '()))
-     
-     (define (stream->list count stream)
-       (define (iter count stream list)
-         (if (equal? count 0)
-             list
-             (iter (- count 1)
-                   (stream-cdr stream)
-                   (cons (stream-car stream) list))))
-       (reverse (iter count stream '())))
-
-     (println (stream->list 5 solution))
+     (println "Solving with solve from text:")
+     (println (solve-with solve-text))
+     (println "")
+     (println "Solving with orignal scan-out:")
+     (println (solve-with solve-scan-out))
+     (println "")
+     (println "Solving with alternate scan-out:")
+     (println "  expect *unassigned* error")
+     (println (solve-with solve-alternate-scan-out))
      ))
 
-
-(apply (eval expression the-global-environment) '())
+(eval expression the-global-environment)
 
 (println "")
 (--end-- "4.18")
