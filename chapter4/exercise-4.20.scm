@@ -69,38 +69,71 @@
 (#%require "ea-data-directed-19.scm")
 (put-evaluators)
 
-
-;(define (append a b ) a)
-
 (define (letrec->let exp)
   (make-let
    (map (lambda (pair) (list (let-pair-id pair) '*unassigned*))
         (let-pairs exp))
-   (append (reverse
-            (map (lambda (pair)
-                   (list 'set! (let-pair-id pair) (let-pair-value pair)))
-                 (let-pairs exp)))
+   (append (map (lambda (pair)
+                  (list 'set! (let-pair-id pair) (let-pair-value pair)))
+                (let-pairs exp))
            (let-body exp))))
 
 (define (eval-letrec exp env)
   (eval (letrec->let exp) env))
 (put 'eval 'letrec eval-letrec)
 
-(define letrec-exp
-  '(letrec ((even?
-             (lambda (n)
-               (if (equal? n 0)
-                   true
-                   (odd? (- n 1)))))
-            (odd?
-             (lambda (n)
-               (if (equal? n 0)
-                   false
-                   (even? (- n 1))))))
-     (odd? 8)))
+
+(define letrec-prog
+  '(begin
+
+     (define (f x)
+       (letrec ((even?
+                 (lambda (n)
+                   (if (equal? n 0)
+                       true
+                       (odd? (- n 1)))))
+                (odd?
+                 (lambda (n)
+                   (if (equal? n 0)
+                       false
+                       (even? (- n 1))))))
+         (even? x)))
+
+     (f 5)))
+
+(eval letrec-prog the-global-environment)
+
+(define let-xxx-exp
+  '(let-xxx ((even?
+                   (lambda (n)
+                     (if (equal? n 0)
+                         true
+                         (odd? (- n 1)))))
+                  (odd?
+                   (lambda (n)
+                     (if (equal? n 0)
+                         false
+                         (even? (- n 1))))))
+                 (even? x)))
 
 
-(eval letrec-exp the-global-environment)
+(println (let->combination (letrec->let let-xxx-exp)))
+(println (let->combination let-xxx-exp))
+
+(println "
+((lambda (even? odd?)
+   (set! even? (lambda (n) (if (equal? n 0) true (odd? (- n 1)))))
+   (set! odd? (lambda (n) (if (equal? n 0) false (even? (- n 1)))))
+   (even? x))
+ *unassigned* *unassigned*)
+
+((lambda (even? odd?)
+   (even? x))
+ (lambda (n) (if (equal? n 0) true (odd? (- n 1))))
+ (lambda (n) (if (equal? n 0) false (even? (- n 1)))))
+
+
+")
 
 (--end-- "4.20")
 
