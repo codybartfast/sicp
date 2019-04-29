@@ -66,7 +66,41 @@
 
 (-start- "4.20")
 
+(#%require "ea-data-directed-19.scm")
+(put-evaluators)
 
+
+;(define (append a b ) a)
+
+(define (letrec->let exp)
+  (make-let
+   (map (lambda (pair) (list (let-pair-id pair) '*unassigned*))
+        (let-pairs exp))
+   (append (reverse
+            (map (lambda (pair)
+                   (list 'set! (let-pair-id pair) (let-pair-value pair)))
+                 (let-pairs exp)))
+           (let-body exp))))
+
+(define (eval-letrec exp env)
+  (eval (letrec->let exp) env))
+(put 'eval 'letrec eval-letrec)
+
+(define letrec-exp
+  '(letrec ((even?
+             (lambda (n)
+               (if (equal? n 0)
+                   true
+                   (odd? (- n 1)))))
+            (odd?
+             (lambda (n)
+               (if (equal? n 0)
+                   false
+                   (even? (- n 1))))))
+     (odd? 8)))
+
+
+(eval letrec-exp the-global-environment)
 
 (--end-- "4.20")
 
