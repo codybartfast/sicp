@@ -43,8 +43,11 @@
 Alyssa's of course :-)
 
   - Ben's approach is hamstrung by not supporting mutual recursion.
+    (Although after seeing exercise 4.20 Ben's approach may be more
+    practical than initially apparent because I quite like the idea of
+    making mutal recursion explicit.)
 
-  - Eva's approach has a purity to it, but the rewrites required to support
+  - Eva's approach has a purity to it, but the analysis required to support
     every kind of definition seems complicated.  One could also argue that
     mutual recursion of functions is a necessary complication that allows
     compact and expressive code.  Whereas having simple variables used
@@ -66,9 +69,17 @@ option then my argument above is the original code should be in that order
 to make it more readable).
 
 But it does seem analysis of code, whether for dependency analysis or for
-rewriting a to (a) is very hard.  If you encounter (funky (a (a + 1)) ...)
+rewriting a to (a) is very hard.  If you encounter (funky (a (+ a 1)) ...)
 how do you know if funky is a varient of exp, let, set! or 'quote' but with
-funky syntax?
+funky syntax? (funky a (+ a 1) ... could be quivalent to:
+    (exp a (+ a 1))
+    (let ((a (+ a 1))) ...)
+    (set! a (+ a 1))
+so funky can't be analysed merely by looking at the syntax.
+
+--------
+
+Manually rewriting the expression so it is evaluated as Eva prefers:
 ")
 
 
@@ -85,6 +96,7 @@ funky syntax?
 
 (define with-memo-delay
   '(begin
+
      (define (memo-proc proc)
        (let ((already-run? false) (result false))
          (lambda ()
