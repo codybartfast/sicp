@@ -69,6 +69,11 @@
 (#%require "ea-data-directed-19.scm")
 (put-evaluators)
 
+
+;; Part A
+;; ======
+
+;; letrec implementation
 (define (letrec->let exp)
   (make-let
    (map (lambda (pair) (list (let-pair-id pair) '*unassigned*))
@@ -83,6 +88,7 @@
 (put 'eval 'letrec eval-letrec)
 
 
+;; program using letrec
 (define letrec-prog
   '(begin
 
@@ -101,39 +107,126 @@
 
      (f 5)))
 
-(eval letrec-prog the-global-environment)
+;; run the programe
+(println "
+Evaling (f 5), expect #f, got: "
+         (eval letrec-prog the-global-environment) )
 
-(define let-xxx-exp
-  '(let-xxx ((even?
-                   (lambda (n)
-                     (if (equal? n 0)
-                         true
-                         (odd? (- n 1)))))
-                  (odd?
-                   (lambda (n)
-                     (if (equal? n 0)
-                         false
-                         (even? (- n 1))))))
-                 (even? x)))
+;; the let expression the program
+(define let???-exp
+  '(let??? ((even?
+             (lambda (n)
+               (if (equal? n 0)
+                   true
+                   (odd? (- n 1)))))
+            (odd?
+             (lambda (n)
+               (if (equal? n 0)
+                   false
+                   (even? (- n 1))))))
+           (even? x)))
 
 
-(println (let->combination (letrec->let let-xxx-exp)))
-(println (let->combination let-xxx-exp))
+;(println (let->combination (letrec->let let???-exp)))
+;(println (let->combination let???-exp))
 
 (println "
-((lambda (even? odd?)
-   (set! even? (lambda (n) (if (equal? n 0) true (odd? (- n 1)))))
-   (set! odd? (lambda (n) (if (equal? n 0) false (even? (- n 1)))))
-   (even? x))
- *unassigned* *unassigned*)
+letrec expression gets replaced with:
+-------------------------------------
 
-((lambda (even? odd?)
-   (even? x))
- (lambda (n) (if (equal? n 0) true (odd? (- n 1))))
- (lambda (n) (if (equal? n 0) false (even? (- n 1)))))
+    ((lambda (even? odd?)
+       (set! even? (lambda (n) (if (equal? n 0) true (odd? (- n 1)))))
+       (set! odd? (lambda (n) (if (equal? n 0) false (even? (- n 1)))))
+       (even? x))
+     *unassigned* *unassigned*)
 
+compared with a regular let:
+----------------------------
 
+    ((lambda (even? odd?)
+       (even? x))
+     (lambda (n) (if (equal? n 0) true (odd? (- n 1))))
+     (lambda (n) (if (equal? n 0) false (even? (- n 1)))))
+
+Letrec Environment Diagram
+==========================
+Even? and odd? procs reference E2 because the are created by set! within the
+body of the lambda.  This means they can lookup the even? and odd? variables
+defined in this frame.
+
+global env ──┐
+             v
+┌───────────────────────────┐
+│                           │
+│(after call to define)     │
+│f:┐                        │<─────────────────────────────┐
+└───────────────────────────┘                              │
+   │  ^                                                    │
+   │  │                                  call to f         │
+   v  │                          ┌─────────────────────────┴─┐
+  @ @ │                          │x: 5                       │
+  │ └─┘                     E1 ->│                           │
+  v                              │                           │<───┐
+parameter: x                     └───────────────────────────┘    │
+((lambda (even? odd?)                                             │
+   (set! even? (lambda (n) ...)                                   │
+   (set! odd? (lambda (n) ...)             call to letrec/lambda  │
+   (even? x))                           ┌─────────────────────────┴─┐
+ *unassigned* *unassigned*)             │even?:─────────────────┐   │
+                                   E2 ->│odd?:┐                 │   │
+                                        │     │                 │   │
+                                        └───────────────────────────┘
+                                              │  ^              │  ^ 
+                                              │  │              │  │ 
+                                              v  │              v  │ 
+                                             @ @ │             @ @ │ 
+                                             │ └─┘             │ └─┘ 
+                                             v                 v 
+                                        parameter: n      parameter: n
+                                      (if (equal? n 0)  (if (equal? n 0)
+                                          false             true
+                                          ...               ...
+
+Let Environment Diagram
+==========================
+Even? and odd? procs reference E1 because they are evaluated in the body of
+f but outside the 'let lambda' because they are passed as arguments to that
+lambda.  This means they can't lookup the even? and odd? variables defined
+in E2.
+
+global env ──┐
+             v
+┌───────────────────────────┐
+│                           │
+│(after call to define)     │
+│f:┐                        │<─────────────────────────────┐
+└───────────────────────────┘                              │
+   │  ^                                                    │
+   │  │                                  call to f         │
+   v  │                          ┌─────────────────────────┴─┐
+  @ @ │                          │x: 5                       │<───────────┐
+  │ └─┘                     E1 ->│                           │<─────────┐ │
+  v                              │                           │<───┐     │ │
+parameter: x                     └───────────────────────────┘    │     │ │
+((lambda (even? odd?)                                             │     │ │
+   (even? x))                                                     │     │ │
+ (lambda (n) (if (equal? n ...))           call to let/lambda     │     │ │
+ (lambda (n) (if (equal? n ...)))       ┌─────────────────────────┴─┐   │ │
+                                        │even?:─────────────────┐   │   │ │
+                                   E2 ->│odd?:┐                 │   │   ^ │
+                                        │     │                 │   │   │ │
+                                        └───────────────────────────┘   │ │
+                                              │                 │       │ │
+                                              │  ┌──────────────────────┘ ^
+                                              │  │              │         │
+                                              v  │              v         │
+                                             @ @ │             @ @        │
+                                             │ └─┘             │ └────────┘
+                                             v                 v 
+                                        parameter: n      parameter: n
+                                      (if (equal? n 0)  (if (equal? n 0)
+                                          false             true
+                                          ...               ...
 ")
-
 (--end-- "4.20")
 
