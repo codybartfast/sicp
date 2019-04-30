@@ -23,12 +23,16 @@
 
 ;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(println "Checking with data-directed eval:")
-(check-fruit
- (apply (eval
-         pick-fruit
-         the-global-environment)
-        '()))
+(println "Checking with data-directed eval:
+"
+         ;(check-fruit
+         ;(apply
+         (eval
+          '(lambda () 12)
+          the-global-environment)
+         ; '())
+         ;)
+         )
 (println "")
 
 (--end-- "4.22")
