@@ -58,7 +58,48 @@
 
 (-start- "4.21")
 
+(println "
+Part A
+======")
+(define (factorial n)
+  ((lambda (fact)
+     (fact fact n))
+   (lambda (ft k)
+     (if (= k 1)
+         1
+         (* k (ft ft (- k 1)))))))
 
+(println "
+Factorial 10, expect 3628800, got: "
+         (factorial 10))
+
+(define (fibonacci n)
+  ((lambda (fib)
+    (fib fib 1 0 n))
+  (lambda (fb a b count)
+    (if (= count 0)
+        b
+        (fb fb (+ a b) a (- count 1))))))
+
+(println "
+10th Fibonacci, expect 55, got: "
+         (fibonacci 10))
+
+(println "
+Part B
+======")
+
+(define (f x)
+  ((lambda (even? odd?)
+     (even? even? odd? x))
+   (lambda (ev? od? n)
+     (if (= n 0) true (od? ev? od? (- n 1))))
+   (lambda (ev? od? n)
+     (if (= n 0) false (ev? ev? od? (- n 1))))))
+
+(println "
+even? 5, expect #f, got: "
+         (f 5))
 
 (--end-- "4.21")
 
