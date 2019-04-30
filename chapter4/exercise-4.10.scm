@@ -25,7 +25,7 @@ named let from (let name pairs body) to (let pairs name body).  But apart
 from renaming and reodering stuff, other changes my limited imagination can
 summon just seem to make the language less usable and harder to implement.")
 
-(#%require "ea-data-directed.scm")
+(#%require "ea-data-directed-03.scm")
 (put-evaluators)
 
 ;; Rename let to 'with' ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

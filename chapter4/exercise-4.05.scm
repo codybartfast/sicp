@@ -24,7 +24,7 @@
 
 (-start- "4.5")
 
-(#%require "ea-data-directed.scm")
+(#%require "ea-data-directed-03.scm")
 (put-evaluators)
 
 ;; Unchanged functions, reproduced here because so they will refer to the

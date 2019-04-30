@@ -53,7 +53,7 @@ new environment is created with each level of let, it is, but it might not
 be obvious because there is no explicit use of apply.  But each let
 expression creates a derived lambda expression that is applied.")
 
-(#%require "ea-data-directed.scm")
+(#%require "ea-data-directed-03.scm")
 (put-evaluators)
 
 ;; Helpers used by let and let* evaluators ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

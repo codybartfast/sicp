@@ -30,7 +30,7 @@
 
 (-start- "4.4")
 
-(#%require "ea-data-directed.scm")
+(#%require "ea-data-directed-03.scm")
 ;(#%require "ea-pick-fruit-expression.scm")
 
 (put-evaluators)

@@ -35,7 +35,7 @@
 
 (-start- "4.8")
 
-(#%require "ea-data-directed.scm")
+(#%require "ea-data-directed-03.scm")
 (put-evaluators)
 
 ;; Helpers used by named-let evaluators ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -50,7 +50,7 @@ have any structure so long as it makes sense to the specific evaluator.
 ;; data-directed eval.  It's in a separated file so it can be used with
 ;; other exercises.
 
-(#%require "ea-data-directed.scm")
+(#%require "ea-data-directed-03.scm")
 (#%require "ea-pick-fruit-expression.scm")
 
 (put-evaluators)

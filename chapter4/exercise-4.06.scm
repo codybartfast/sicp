@@ -29,7 +29,7 @@
 
 (-start- "4.6")
 
-(#%require "ea-data-directed.scm")
+(#%require "ea-data-directed-03.scm")
 (put-evaluators)
 
 ;; Helper functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
