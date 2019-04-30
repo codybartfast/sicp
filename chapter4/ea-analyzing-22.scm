@@ -1,7 +1,6 @@
 #lang sicp
 
-;; Same as previous eval-apply but includes letrec (and base of first
-;; analyzing eval-apply)
+;; wip
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -18,7 +17,7 @@
 ;; Data-Directed Eval ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (#%require "ea-underlying-apply.scm")
-(#%require "ea-evaluators.scm")
+(#%require "ea-analyzers.scm")
 
 (define expression-type car)
 
@@ -30,7 +29,7 @@
     ((quoted? exp) (text-of-quotation exp))
     (else
      (if (pair? exp)
-         (let ((evaluator (get 'eval (expression-type exp))))
+         (let ((evaluator (get 'analyzer (expression-type exp))))
            (if evaluator
                (evaluator exp env)
                (begin
@@ -49,25 +48,25 @@
   (define (eval-cond exp env)
     (eval (cond->if exp) env))
 
-  (put 'eval 'set! eval-assignment)
-  (put 'eval 'define eval-definition)
-  (put 'eval 'if eval-if)
-  (put 'eval 'lambda eval-lambda)
-  (put 'eval 'begin eval-begin)
-  (put 'eval 'cond eval-cond)
+  (put 'analyzer 'set! eval-assignment)
+  (put 'analyzer 'define eval-definition)
+  (put 'analyzer 'if eval-if)
+  (put 'analyzer 'lambda eval-lambda)
+  (put 'analyzer 'begin eval-begin)
+  (put 'analyzer 'cond eval-cond)
   
-  (put 'eval 'and eval-and)
-  (put 'eval 'or eval-or)
-  (put 'eval 'let eval-let)
-  (put 'eval 'let* eval-let*)
-  (put 'eval 'letrec eval-letrec)
-  (put 'eval 'unbind! eval-unbind!)
-  (put 'eval 'delay eval-delay)
-  (put 'eval 'force eval-force)
-  (put 'eval 'cons-stream eval-cons-stream)
-  (put 'eval 'stream-null? eval-stream-null?)
-  (put 'eval 'stream-car eval-stream-car)
-  (put 'eval 'stream-cdr eval-stream-cdr)
+  (put 'analyzer 'and eval-and)
+  (put 'analyzer 'or eval-or)
+  (put 'analyzer 'let eval-let)
+  (put 'analyzer 'let* eval-let*)
+  (put 'analyzer 'letrec eval-letrec)
+  (put 'analyzer 'unbind! eval-unbind!)
+  (put 'analyzer 'delay eval-delay)
+  (put 'analyzer 'force eval-force)
+  (put 'analyzer 'cons-stream eval-cons-stream)
+  (put 'analyzer 'stream-null? eval-stream-null?)
+  (put 'analyzer 'stream-car eval-stream-car)
+  (put 'analyzer 'stream-cdr eval-stream-cdr)
   )
 
 ;; Shared by exercise extensions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

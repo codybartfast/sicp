@@ -1,8 +1,8 @@
 #lang sicp
 
-;; Provides 'put' and 'get' for a data-directed eval.  It uses a single key
+;; Provides 'put' and 'get' for analyzers.  It uses a single key
 ;; table (for simplicity) but presents a double key interface (in case it is
-;; needed).  Initial key has to be 'eval.
+;; needed).  Initial key has to be 'analyzer.
 
 (define (lookup key table)
   (let ((record (assoc key (cdr table))))
@@ -27,18 +27,18 @@
   (list '*table*))
 
 (define (check-op op)
-  (if (not (eq? op 'eval))
-      (error "'eval is the only supported operation -- EVALUATORS")))
+  (if (not (eq? op 'analyzer))
+      (error "'analyzer is the only supported operation -- ANALYZERS")))
 
-(define evaluators (make-table))
+(define analyzers (make-table))
 
-(define (put op exp-type evaluator)
+(define (put op exp-type analyzer)
   (check-op op)
-  (insert! exp-type evaluator evaluators)
+  (insert! exp-type analyzer analyzers)
   (if #f 'unreachable))
 
 (define (get op exp-type)
   (check-op op)
-  (lookup exp-type evaluators))
+  (lookup exp-type analyzers))
 
 (#%provide put get)
