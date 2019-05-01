@@ -83,7 +83,7 @@ Validating with pick-fruit expression:
 
 (define expression-a
   '(begin
-     (define x '*unassigned-token*)
+     (define x '*unassigned*)
      (println x)))
 
 (println "

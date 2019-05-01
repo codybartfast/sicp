@@ -1,6 +1,7 @@
 #lang sicp
 
-;; data-driven-22 modified to use analysis as in 4.1.7
+;; data-driven-22 modified to use analysis as in 4.1.7 including updated
+;; versions of extensions from the previous exercises.
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -54,23 +55,22 @@
   
   (put 'analyze 'and analyze-and)
   (put 'analyze 'or analyze-or)
-;  (put 'analyze 'let eval-let)
-;  (put 'analyze 'let* eval-let*)
-;  (put 'analyze 'letrec eval-letrec)
-;  (put 'analyze 'unbind! eval-unbind!)
-;  (put 'analyze 'delay eval-delay)
-;  (put 'analyze 'force eval-force)
-;  (put 'analyze 'cons-stream eval-cons-stream)
-;  (put 'analyze 'stream-null? eval-stream-null?)
-;  (put 'analyze 'stream-car eval-stream-car)
-;  (put 'analyze 'stream-cdr eval-stream-cdr)
+  (put 'analyze 'let analyze-let)
+  (put 'analyze 'let* analyze-let*)
+  (put 'analyze 'letrec analyze-letrec)
+  (put 'analyze 'unbind! analyze-unbind!)
+  (put 'analyze 'delay analyze-delay)
+  (put 'analyze 'force analyze-force)
+  (put 'analyze 'cons-stream analyze-cons-stream)
+  (put 'analyze 'stream-null? analyze-stream-null?)
+  (put 'analyze 'stream-car analyze-stream-car)
+  (put 'analyze 'stream-cdr analyze-stream-cdr)
   )
 
 ;; Add 'apply' as an alias for 'execute-application' so that previous
 ;; exercises don't neeed to be modified to be used with this implementation.
 ;; This may be the first use of a misleading alias for the sake of
-;; convenience and backward compatibility in the history of computer
-;; science.
+;; convenience and backward compatibility in the history of computing.
 
 (define (apply proc args) (execute-application proc args))
 (define (put-evaluators) (put-analyzers))
@@ -148,13 +148,13 @@
         (error "Empty sequence -- ANALYZE"))
     (loop (car procs) (cdr procs))))
 
-;;; Shared by exercise extensions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;(define make-call cons)
-;(define (make-definition name params body)
-;  (cons 'define
-;        (cons (cons name params)
-;              body)))
+;; Shared by exercise extensions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define make-call cons)
+(define (make-definition name params body)
+  (cons 'define
+        (cons (cons name params)
+              body)))
 
 ;; Ex 4.04 and, or ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -177,193 +177,147 @@
                      true
                      false))))
 
-;;; Ex 4.05 calling-cond ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;(define (calling-cond? exp)
-;  (eq? (cadr exp) '=>))
-;(define calling-cond-actions cddr)
-;
-;(define (clause->exp clause predicate-value)
-;  (if (calling-cond? clause)
-;      (make-call (sequence->exp (calling-cond-actions clause))
-;                 ;; ... with predicate value
-;                 (list predicate-value))
-;      (sequence->exp (cond-actions clause))))
-;
-;;; Ex 4.06-4.08 let, let*, named-let, letrec;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;;; let helpers
-;(define let-name cadr)
-;(define (named-let? exp)
-;  (symbol? (let-name exp)))
-;(define (let-body exp)
-;  (if (named-let? exp)
-;      (cdddr exp)
-;      (cddr exp)))
-;(define (let-pairs exp)
-;  (if (named-let? exp)
-;      (caddr exp)
-;      (cadr exp)))
-;
-;(define let-pair-id car)
-;(define let-pair-value cadr)
-;(define (let-params exp)
-;  (map let-pair-id
-;       (let-pairs exp)))
-;(define (let-values exp)
-;  (map let-pair-value
-;       (let-pairs exp)))
-;
-;;; let, named-let
-;(define (let->combination exp )
-;  (if (named-let? exp)
-;      (make-begin
-;       (list
-;        (make-definition (let-name exp)
-;                         (let-params exp)
-;                         (let-body exp))
-;        (make-call (let-name exp)
-;                   (let-values exp))))
-;      (make-call
-;       (make-lambda (let-params exp)
-;                    (let-body exp))
-;       (let-values exp))))
-;
-;(define (eval-let exp env)
-;  (eval (let->combination exp) env))
-;
-;;; let*
-;(define (make-let pairs body)
-;  (cons 'let (cons pairs body)))
-;
-;(define (let*->nested-lets exp)
-;  (define (wrap-lets pairs body)
-;    (make-let (list (car pairs))
-;              (if (pair? (cdr pairs))
-;                  (list (wrap-lets (cdr pairs) body))
-;                  body)))
-;  (let ((pairs (let-pairs exp)))
-;    (if (pair? pairs)
-;        (wrap-lets pairs (let-body exp))
-;        (make-let pairs (let-body exp)))))
-;        
-;(define (eval-let* exp env)
-;  (eval (let*->nested-lets exp) env))
-;
-;;; letrec
-;(define (letrec->let exp)
-;  (make-let
-;   (map (lambda (pair) (list (let-pair-id pair) '*unassigned*))
-;        (let-pairs exp))
-;   (append (map (lambda (pair)
-;                  (list 'set! (let-pair-id pair) (let-pair-value pair)))
-;                (let-pairs exp))
-;           (let-body exp))))
-;
-;(define (eval-letrec exp env)
-;  (eval (letrec->let exp) env))
-;
-;;; Unbind! ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;(define (remove-frame-var var frame)
-;  (define (scan frame-pairs)
-;    (let ((rest (cdr frame-pairs)))
-;      (cond ((null? rest)
-;             #f)
-;            ((eq? var (car (car rest)))
-;             (set-cdr! frame-pairs (cddr frame-pairs))
-;             #t)
-;            (else (scan (cdr frame-pairs))))))
-;  (scan frame))
-;              
-;(define (make-unbound! var env)
-;  (let ((frame (first-frame env)))
-;    (if (not (remove-frame-var var frame))
-;        (error "Unbound variable -- UNBIND!" var))))
-;
-;(define (eval-unbind! exp env)
-;  (make-unbound! (cadr exp) env))
-;
-;;; Stream primitives ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;;; delay
-;(define (delay->lambda exp)
-;  (make-lambda '() (cdr exp)))
-;(define (eval-delay exp env)
-;  (eval (delay->lambda exp) env))
-;
-;;; force
-;(define (eval-force exp env)
-;  (eval (cdr exp) env))
-;
-;;; cons-stream
-;(define (cons-stream->cons exp)
-;  (list 'cons (cadr exp) (list 'delay (caddr exp))))
-;(define (eval-cons-stream exp env)
-;  (eval (cons-stream->cons exp) env))
-;
-;;; stream-null?
-;(define (stream-null?->null? exp)
-;  (cons 'null? (cdr exp)))
-;(define (eval-stream-null? exp env)
-;  (eval (stream-null?->null? exp) env))
-;
-;;; stream-car
-;(define (eval-stream-car exp env)
-;  (eval (cons 'car (cdr exp)) env))
-;  
-;;; stream-cdr
-;(define (eval-stream-cdr exp env)
-;  (eval (list 'force (list 'cdr (cadr exp))) env))
-;
-;;; Mainly unchanged from ea-text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Ex 4.05 calling-cond ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;(define (apply procedure arguments)
-;  (cond ((primitive-procedure? procedure)
-;         (apply-primitive-procedure procedure arguments))
-;        ((compound-procedure? procedure)
-;;         (((procedure-body procedure))
-;;          (extend-environment
-;;           (procedure-parameters procedure)
-;;           arguments
-;;           (procedure-environment procedure))))
-;           
-;         (eval-sequence
-;          (procedure-body procedure)
-;          (extend-environment
-;           (procedure-parameters procedure)
-;           arguments
-;           (procedure-environment procedure))))
-;        (else
-;         (error
-;          "Unknown procedure type -- APPLY" procedure))))
+(define (calling-cond? exp)
+  (eq? (cadr exp) '=>))
+(define calling-cond-actions cddr)
 
-(define (list-of-values exps env)
-  (if (no-operands? exps)
-      '()
-      (cons (eval (first-operand exps) env)
-            (list-of-values (rest-operands exps) env))))
+(define (clause->exp clause predicate-value)
+  (if (calling-cond? clause)
+      (make-call (sequence->exp (calling-cond-actions clause))
+                 ;; ... with predicate value
+                 (list predicate-value))
+      (sequence->exp (cond-actions clause))))
 
-(define (eval-if exp env)
-  (if (true? (eval (if-predicate exp) env))
-      (eval (if-consequent exp) env)
-      (eval (if-alternative exp) env)))
+;; Ex 4.06-4.08 let, let*, named-let, letrec;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (eval-sequence exps env)
-  (cond ((last-exp? exps) (eval (first-exp exps) env))
-        (else (eval (first-exp exps) env)
-              (eval-sequence (rest-exps exps) env))))
+;; let helpers
+(define let-name cadr)
+(define (named-let? exp)
+  (symbol? (let-name exp)))
+(define (let-body exp)
+  (if (named-let? exp)
+      (cdddr exp)
+      (cddr exp)))
+(define (let-pairs exp)
+  (if (named-let? exp)
+      (caddr exp)
+      (cadr exp)))
 
-(define (eval-assignment exp env)
-  (set-variable-value! (assignment-variable exp)
-                       (eval (assignment-value exp) env)
-                       env)
-  'ok)
+(define let-pair-id car)
+(define let-pair-value cadr)
+(define (let-params exp)
+  (map let-pair-id
+       (let-pairs exp)))
+(define (let-values exp)
+  (map let-pair-value
+       (let-pairs exp)))
 
-(define (eval-definition exp env)
-  (define-variable! (definition-variable exp)
-    (eval (definition-value exp) env)
-    env))
+;; let, named-let
+(define (let->combination exp )
+  (if (named-let? exp)
+      (make-begin
+       (list
+        (make-definition (let-name exp)
+                         (let-params exp)
+                         (let-body exp))
+        (make-call (let-name exp)
+                   (let-values exp))))
+      (make-call
+       (make-lambda (let-params exp)
+                    (let-body exp))
+       (let-values exp))))
+
+(define (analyze-let exp)
+  (analyze (let->combination exp)))
+
+;; let*
+(define (make-let pairs body)
+  (cons 'let (cons pairs body)))
+
+(define (let*->nested-lets exp)
+  (define (wrap-lets pairs body)
+    (make-let (list (car pairs))
+              (if (pair? (cdr pairs))
+                  (list (wrap-lets (cdr pairs) body))
+                  body)))
+  (let ((pairs (let-pairs exp)))
+    (if (pair? pairs)
+        (wrap-lets pairs (let-body exp))
+        (make-let pairs (let-body exp)))))
+        
+(define (analyze-let* exp)
+  (analyze (let*->nested-lets exp)))
+
+;; letrec
+(define (letrec->let exp)
+  (make-let
+   (map (lambda (pair) (list (let-pair-id pair) '*unassigned*))
+        (let-pairs exp))
+   (append (map (lambda (pair)
+                  (list 'set! (let-pair-id pair) (let-pair-value pair)))
+                (let-pairs exp))
+           (let-body exp))))
+
+(define (analyze-letrec exp)
+  (analyze (letrec->let exp)))
+
+;; Unbind! ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (remove-frame-var var frame)
+  (define (scan frame-pairs)
+    (let ((rest (cdr frame-pairs)))
+      (cond ((null? rest)
+             #f)
+            ((eq? var (car (car rest)))
+             (set-cdr! frame-pairs (cddr frame-pairs))
+             #t)
+            (else (scan (cdr frame-pairs))))))
+  (scan frame))
+              
+(define (make-unbound! var env)
+  (let ((frame (first-frame env)))
+    (if (not (remove-frame-var var frame))
+        (error "Unbound variable -- UNBIND!" var))))
+
+(define (analyze-unbind! exp)
+  (lambda (env)
+    (make-unbound! (cadr exp) env)))
+
+;; Stream primitives ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; delay
+(define (delay->lambda exp)
+  (make-lambda '() (cdr exp)))
+(define (analyze-delay exp)
+  (analyze (delay->lambda exp)))
+
+;; force
+(define (analyze-force exp)
+  (analyze (cdr exp)))
+
+;; cons-stream
+(define (cons-stream->cons exp)
+  (list 'cons (cadr exp) (list 'delay (caddr exp))))
+(define (analyze-cons-stream exp)
+  (analyze (cons-stream->cons exp)))
+
+;; stream-null?
+(define (stream-null?->null? exp)
+  (cons 'null? (cdr exp)))
+(define (analyze-stream-null? exp)
+  (analyze (stream-null?->null? exp)))
+
+;; stream-car
+(define (analyze-stream-car exp)
+  (analyze (cons 'car (cdr exp))))
+  
+;; stream-cdr
+(define (analyze-stream-cdr exp)
+  (analyze (list 'force (list 'cdr (cadr exp)))))
+
+;; Mainly unchanged from ea-text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
@@ -380,20 +334,14 @@
 
 (define (text-of-quotation exp) (cadr exp))
 
-(define (tex-of-quotation exp) (cadr exp))
-
 (define (tagged-list? exp tag)
   (if (pair? exp)
       (eq? (car exp) tag)
       false))
 
-(define (assignment? exp)
-  (tagged-list? exp 'set!))
 (define (assignment-variable exp) (cadr exp))
 (define (assignment-value exp) (caddr exp))
 
-(define (definition? exp)
-  (tagged-list? exp 'define))
 (define (definition-variable exp)
   (if (symbol? (cadr exp))
       (cadr exp)
@@ -404,14 +352,12 @@
       (make-lambda (cdadr exp)   ; formal parameters
                    (cddr exp)))) ; body
 
-(define (lambda? exp) (tagged-list? exp 'lambda))
 (define (lambda-parameters exp) (cadr exp))
 (define (lambda-body exp) (cddr exp))
 
 (define (make-lambda parameters body)
   (cons 'lambda (cons parameters body)))
 
-(define (if? exp) (tagged-list? exp 'if))
 (define (if-predicate exp) (cadr exp))
 (define (if-consequent exp) (caddr exp))
 (define (if-alternative exp)
@@ -422,7 +368,6 @@
 (define (make-if predicate consequent alternative)
   (list 'if predicate consequent alternative))
 
-(define (begin? exp) (tagged-list? exp 'begin))
 (define (begin-actions exp) (cdr exp))
 (define (last-exp? seq) (null? (cdr seq)))
 (define (first-exp seq) (car seq))
@@ -434,14 +379,9 @@
         (else (make-begin seq))))
 (define (make-begin seq) (cons 'begin seq))
 
-(define (application? exp) (pair? exp))
 (define (operator exp) (car exp))
 (define (operands exp) (cdr exp))
-(define (no-operands? ops) (null? ops))
-(define (first-operand ops) (car ops))
-(define (rest-operands ops) (cdr ops))
 
-(define (cond? exp) (tagged-list? exp 'cond))
 (define (cond-clauses exp) (cdr exp))
 (define (cond-else-clause? clause)
   (eq? (cond-predicate clause) 'else))
@@ -450,35 +390,21 @@
 (define (cond->if exp)
   (expand-clauses (cond-clauses exp)))
 
-;;; Modified for Ex 4.05
-;(define (expand-clauses clauses)
-;  (if (null? clauses)
-;      'false
-;      (let ((first (car clauses))
-;            (rest (cdr clauses)))
-;        (if (cond-else-clause? first)
-;            (if (null? rest)
-;                (sequence->exp (cond-actions first))
-;                (error "ELSE clause isn't last -- COND-IF"
-;                       clauses))
-;            (let ((predicate-value (cond-predicate first)))
-;              (make-if predicate-value
-;                       (clause->exp first predicate-value)
-;                       (expand-clauses rest)))))))
-
+;; Modified for Ex 4.05
 (define (expand-clauses clauses)
   (if (null? clauses)
-      'false                          ; no else clause
+      'false
       (let ((first (car clauses))
             (rest (cdr clauses)))
         (if (cond-else-clause? first)
             (if (null? rest)
                 (sequence->exp (cond-actions first))
-                (error "ELSE clause isn't last -- COND->IF"
+                (error "ELSE clause isn't last -- COND-IF"
                        clauses))
-            (make-if (cond-predicate first)
-                     (sequence->exp (cond-actions first))
-                     (expand-clauses rest))))))
+            (let ((predicate-value (cond-predicate first)))
+              (make-if predicate-value
+                       (clause->exp first predicate-value)
+                       (expand-clauses rest)))))))
 
 (define (true? x)
   (not (eq? x false)))
@@ -558,7 +484,7 @@
 
 ;; end frame interface
 
-;; convenience method for iterating over the separate frames
+;; shared proc for iterating over the separate frames
 (define (scan-env env f)
   (define (env-loop env)
     (if (eq? env the-empty-environment)

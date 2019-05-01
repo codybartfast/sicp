@@ -17,19 +17,35 @@
 (-start- "4.22")
 
 (#%require "ea-analyzing-22.scm")
-(put-evaluators)
-(#%require "ea-pick-fruit-expression.scm")
+(put-analyzers)
+;; ea-analyzing-22 has updated versions of all the extensions from the
+;; previous exercises.
 
+(println "
+This is cool.  The only thing that needs to change is the code that calls
+let->combination.  Instead of evaling the result we analyze it:
 
-;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define (analyze-let exp)
+  (analyze (let->combination exp)))
+(put 'analyze 'let analyze-let)
 
-(println "Checking with data-directed eval:")
-(check-fruit
- (apply (eval
-         pick-fruit
-         the-global-environment)
-        '()))
-(println "")
+Once this change is made we can run the original test: ")
+
+(define expression '(let ((operand1 3)
+                          (operator +)
+                          (operand2 2))
+                      'first-line
+                      (+ 1 1)
+                      (operator operand1 operand2)))
+
+(println "
+Evaluating expression:
+    " expression "
+Expect: 5
+Got: "
+      (eval
+       expression
+       the-global-environment))
 
 (--end-- "4.22")
 
