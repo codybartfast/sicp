@@ -27,7 +27,7 @@
   (list '*table*))
 
 (define (check-op op)
-  (if (not (eq? op 'analyzer))
+  (if (not (eq? op 'analyze))
       (error "'analyzer is the only supported operation -- ANALYZERS")))
 
 (define analyzers (make-table))
