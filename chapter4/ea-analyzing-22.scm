@@ -1,6 +1,6 @@
 #lang sicp
 
-;; wip
+;; data-driven-22 modified to use analysis as in 4.1.7
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -39,17 +39,7 @@
                (analyze-application exp)))
          ((error "Unknown expression type -- ANALYSE" exp))))))
 
-;    ((assignment? exp) (analyze-assignment exp))
-;    ((definition? exp) (analyze-definition exp))
-;    ((if? exp) (analyze-if exp))
-;    ((lambda? exp) (analyze-lambda exp))
-;    ((begin? exp) (analyze-sequence (begin-actions exp)))
-;    ((cond? exp) (analyze (cond->if exp)))
-;    ((application? exp) (analyze-application exp))
-;    (else
-;     (error "Unknown expression type -- ANALYZE" exp))))
-
-(define (put-evaluators)
+(define (put-analyzers)
   (define (analyze-begin exp)
     (analyze-sequence (begin-actions exp)))
   (define (analyze-cond exp)
@@ -76,8 +66,16 @@
 ;  (put 'analyzer 'stream-cdr eval-stream-cdr)
   )
 
+;; Add 'apply' as an alias for 'execute-application' so that previous
+;; exercises don't neeed to be modified to be used with this implementation.
+;; This may be the first use of a misleading alias for the sake of
+;; convenience and backward compatibility in the history of computer
+;; science.
 
-;;;;;;
+(define (apply proc args) (execute-application proc args))
+(define (put-evaluators) (put-analyzers))
+
+;; Support for analyzing from book ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (analyze-self-evaluating exp)
   (lambda (env) exp))
 
@@ -314,25 +312,25 @@
 ;
 ;;; Mainly unchanged from ea-text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (apply procedure arguments)
-  (cond ((primitive-procedure? procedure)
-         (apply-primitive-procedure procedure arguments))
-        ((compound-procedure? procedure)
-;         (((procedure-body procedure))
+;(define (apply procedure arguments)
+;  (cond ((primitive-procedure? procedure)
+;         (apply-primitive-procedure procedure arguments))
+;        ((compound-procedure? procedure)
+;;         (((procedure-body procedure))
+;;          (extend-environment
+;;           (procedure-parameters procedure)
+;;           arguments
+;;           (procedure-environment procedure))))
+;           
+;         (eval-sequence
+;          (procedure-body procedure)
 ;          (extend-environment
 ;           (procedure-parameters procedure)
 ;           arguments
 ;           (procedure-environment procedure))))
-           
-         (eval-sequence
-          (procedure-body procedure)
-          (extend-environment
-           (procedure-parameters procedure)
-           arguments
-           (procedure-environment procedure))))
-        (else
-         (error
-          "Unknown procedure type -- APPLY" procedure))))
+;        (else
+;         (error
+;          "Unknown procedure type -- APPLY" procedure))))
 
 (define (list-of-values exps env)
   (if (no-operands? exps)

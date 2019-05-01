@@ -17,17 +17,18 @@
 (-start- "4.22")
 
 (#%require "ea-analyzing-22.scm")
+(put-evaluators)
 (#%require "ea-pick-fruit-expression.scm")
 
-(put-evaluators)
 
 ;; Try it ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (println "Checking with data-directed eval:")
 (check-fruit
- (eval
-  (list pick-fruit)
-  the-global-environment))
+ (apply (eval
+         pick-fruit
+         the-global-environment)
+        '()))
 (println "")
 
 (--end-- "4.22")
