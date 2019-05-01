@@ -52,8 +52,8 @@
   (put 'analyze 'begin analyze-begin)
   (put 'analyze 'cond analyze-cond)
   
-;  (put 'analyze 'and eval-and)
-;  (put 'analyze 'or eval-or)
+  (put 'analyze 'and analyze-and)
+  (put 'analyze 'or analyze-or)
 ;  (put 'analyze 'let eval-let)
 ;  (put 'analyze 'let* eval-let*)
 ;  (put 'analyze 'letrec eval-letrec)
@@ -155,22 +155,28 @@
 ;  (cons 'define
 ;        (cons (cons name params)
 ;              body)))
-;
-;;; Ex 4.04 and, or ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;(define first-predicate cadr)
-;(define second-predicate caddr)
-;
-;(define (eval-and exp env)
-;  (if (true? (eval (first-predicate exp) env))
-;           (true? (eval (second-predicate exp) env))
-;           false))
-;
-;(define (eval-or exp env)
-;  (if (true? (eval (first-predicate exp) env))
-;           true
-;           (true? (eval (second-predicate exp) env))))
-;
+
+;; Ex 4.04 and, or ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define first-predicate cadr)
+(define second-predicate caddr)
+
+(define (analyze-and exp)
+  (analyze 
+   (make-if (first-predicate exp)
+            (make-if (second-predicate exp)
+                     true
+                     false)
+            false)))
+
+(define (analyze-or exp)
+  (analyze
+   (make-if (first-predicate exp)
+            true
+            (make-if (second-predicate exp)
+                     true
+                     false))))
+
 ;;; Ex 4.05 calling-cond ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;(define (calling-cond? exp)
