@@ -4,7 +4,7 @@
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define debug true)
+(define debug false)
 
 (define (log . parts)
   (if debug
@@ -318,6 +318,12 @@
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure procedure arguments))
         ((compound-procedure? procedure)
+;         (((procedure-body procedure))
+;          (extend-environment
+;           (procedure-parameters procedure)
+;           arguments
+;           (procedure-environment procedure))))
+           
          (eval-sequence
           (procedure-body procedure)
           (extend-environment
