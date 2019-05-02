@@ -1,6 +1,6 @@
 #lang sicp
 
-(define line-length 72)
+(define line-length 76)
 (define dash-line (make-string line-length #\-))
   
 (define (println . parts)
@@ -15,7 +15,10 @@
 (define (--end-- ex-number)
    (println dash-line))
 
+(#%require (only racket time))
+
 (#%provide
  println
  -start-
- --end--)
+ --end--
+ time)

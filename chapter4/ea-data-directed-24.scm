@@ -1,7 +1,6 @@
 #lang sicp
 
-;; Same as previous eval-apply but includes letrec (and base of first
-;; analyzing eval-apply)
+;; data-directed-24 with a few extra primitives to run Ex 1.22 code.
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -510,7 +509,6 @@
    (cons 'null? null?)
    (cons 'square (lambda (x) (* x x)))
    (cons 'println writeln)
-   (cons 'display display)
    (cons '= =)
    (cons 'remainder remainder)
    ))

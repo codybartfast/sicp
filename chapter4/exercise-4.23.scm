@@ -45,7 +45,7 @@
 
 (println "
 Analysis of the individual expressions still only happens once as procs is
-only created once.
+only created oncc.
 
 But Alyssa's always does more work at execution time but it doesn't seem a
 significant amount.  With one expression Eva's immediately calls the the
@@ -54,14 +54,17 @@ execute-sequence then check whether it is the last proc (cdr and a null
 comparison) before calling car
 
 With two items we have two calls, two null comaparisons, two calls to car
-and two call to cdr.  Conceiveably we could have cond being repeatedly being
-rewritten to if and begin statements but we can probalby assume the
+and two calsl to cdr.  Conceiveably we could have cond being repeatedly
+being rewritten to if and begin statements but we can probalby assume the
 executing version is also using analysis.  In contrast Eva's just has one
-call to loop in addition to the procs.
+call to 'loop' in addition to the procs.
 
 This iteration over the list of procs doesn't seem as though it would ever
 be expensive, but if the procedures were themselves short and the sequence
-were heavily recusive then perhaps it could be significant.")
+were heavily recusive then perhaps it could be significant.
+
+When working on Exercise 4.24 I compared timings of Alyssa's version and
+there was no noticable difference in speed.")
 
 (--end-- "4.23")
 

@@ -1,7 +1,6 @@
 #lang sicp
 
-;; data-driven-22 modified to use analysis as in 4.1.7 including updated
-;; versions of extensions from the previous exercises.
+;; analysing-22 with a few extra primitives to run Ex 1.22 code.
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -540,7 +539,6 @@
    (cons 'null? null?)
    (cons 'square (lambda (x) (* x x)))
    (cons 'println writeln)
-   (cons 'display display)
    (cons '= =)
    (cons 'remainder remainder)
    ))
