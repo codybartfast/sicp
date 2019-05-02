@@ -17,6 +17,13 @@
 
 (-start- "4.24")
 
+(#%require "exercise-4.24-eval-apply.scm")
+(#%require "exercise-4.24-eval-exec.scm")
+(#%require "exercise-4.24-search-for-primes.scm")
+
+
+(eval-apply search-for-primes apply-env)
+
 
 
 (--end-- "4.24")
