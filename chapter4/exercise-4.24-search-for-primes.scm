@@ -44,10 +44,10 @@
       (report-prime-repeat prime? n 1))
 
     (define (search-for-primes even-start count)
-      (println "First three primes above " even-start ":") 
+      (println "First three primes above " even-start ":")
       (define prime? sd-all-prime?)
       (define (iter candidate count)
-        (cond ((= count 0) (ignore 'unused))
+        (cond ((= count 0) (ignore))
               (else
                (cond ((prime? candidate)
                       (report-prime prime? candidate)
@@ -55,7 +55,15 @@
                      (else
                       (iter (+ candidate 2) count))))))
       (iter (+ even-start 1) count)
-      (println "-- end --"))
+      (display "\n"))
+
+    (println "
+   ###    All timings come from running the    ###
+   ###      relevant 'prime?' " repeat-count  " times.      ###
+   ###                                         ###
+   ###    prime? 2 is tested to estimate       ###
+   ###         any fixed overhead.             ###
+")
 
     (search-for-primes 1000 3)
     (search-for-primes 10000 3)
