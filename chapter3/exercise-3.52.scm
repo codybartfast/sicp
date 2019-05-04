@@ -31,78 +31,255 @@
 
 (-start- "3.52")
 (prn "
-(define sum 0)
-sum = 0
++--------------------------+------------------+---------------------+
+|                          | With Memoization | Without Memoization |
++--------------------------+------------------+---------------------+
+| sum after define accum   |          0       |           0         |
++--------------------------+------------------+---------------------+
+| sum after define seq     |          1       |           1         |
++--------------------------+------------------+---------------------+
+| sum after define y       |          6       |           6         |
++--------------------------+------------------+---------------------+
+| sum after define z       |         10       |          15         |
++--------------------------+------------------+---------------------+
+| sum after stream-ref     |        136       |         162         |
++--------------------------+------------------+---------------------+
+| sum after display-stream |        210       |         362         |
++--------------------------+------------------+---------------------+
 
-(define (accum x)
-  (set! sum (+ x sum))
-  sum)
-sum = 0
+Printed response with memoization:    10, 15, 45, 55, 105, 120, 190, 210
+Printed response without memoization: 15, 180, 230, 305
 
-(define seq (stream-map accum (stream-enumerate-interval 1 20)))
-sum = 0
+============================================================================
+==  Run the Code  ==========================================================
+============================================================================
+")
 
-(define y (stream-filter even? seq))
-sum = 0
+;; The program from the exercise and text
+(define program
+  '(begin
+     
+     (define (memo-proc proc)
+       (let ((already-run? false) (result false))
+         (lambda ()
+           (if (not already-run?)
+               (begin (set! result (proc))
+                      (set! already-run? true)
+                      result)
+               result))))
+     
+     (define (stream-map proc s)
+       (if (stream-null? s)
+           the-empty-stream
+           (cons-stream (proc (stream-car s))
+                        (stream-map proc (stream-cdr s)))))
 
-(define z (stream-filter (lambda (x) (= (remainder x 5) 0))
-                         seq))
-sum = 0
+     (define (stream-enumerate-interval low high)
+       (if (> low high)
+           the-empty-stream
+           (cons-stream
+            low
+            (stream-enumerate-interval (+ low 1) high))))
 
-(stream-ref y 7)
-sum = 136
+     (define (stream-filter pred stream)
+       (cond ((stream-null? stream) the-empty-stream)
+             ((pred (stream-car stream))
+              (cons-stream (stream-car stream)
+                           (stream-filter pred
+                                          (stream-cdr stream))))
+             (else (stream-filter pred (stream-cdr stream)))))
 
-(display-stream z)
-sum = 210  (346 without memoization)
+     (define (stream-ref s n)
+       (if (= n 0)
+           (stream-car s)
+           (stream-ref (stream-cdr s) (- n 1))))
+
+     (define (display-stream s)
+       (stream-for-each println s))
+
+     (define (stream-for-each proc s)
+       (if (stream-null? s)
+           'done
+           (begin (proc (stream-car s))
+                  (stream-for-each proc (stream-cdr s)))))
+
+     (define sum 0)
+     (define (accum x)
+       (set! sum (+ x sum))
+       sum)    
+     (println "sum after define accum: " sum)
+
+     (define seq (stream-map accum (stream-enumerate-interval 1 20)))
+     (println "sum after define seq: " sum)
+     
+     (define y (stream-filter even? seq))
+     (println "sum after define y: " sum)
+     
+     (define z
+       (stream-filter (lambda (x) (= (remainder x 5) 0))
+                      seq))
+     (println "sum after define z: " sum)
+
+     (stream-ref y 7)
+     (println "sum after stream-ref: " sum)
+
+     (display-stream z)
+     (println "sum after display-stream: " sum)
+     ))
+
+;; Implemenation of language from Chapter 4
+(#%require "exercise-3.52-eval.scm")
+(put-analyzers)
+
+;; Existing non-momoizing delay analyzer
+(define original-delay-analyzer (get 'analyze 'delay))
+;; Updated momoizing delay analyzer
+(define memoizing-delay-analyzer
+  (lambda (exp)
+       (analyze
+        (list 'memo-proc (make-lambda '() (cdr exp))))))
+
+;; Do the memoizing version first (as first in exercise)
+(put 'analyze 'delay memoizing-delay-analyzer)
+(prn "With Memoization"
+     "================")
+(eval program (setup-environment))
+
+;; And now the original non-memoizing version
+(put 'analyze 'delay original-delay-analyzer)
+(prn ""
+     "Without Memoization"
+     "===================")
+(eval program (setup-environment))
+
+(prn "
+===========================================================================
+==  With Memoization  =====================================================
+===========================================================================
+
+Call to define seq:
+===================
+      sum:   0 | 
+  car seq:   - | 
+    car y:   - |
+    car z:   - |
+ interval:     | 1
+---------------+--
+      seq:     | 1            
+
+Call to define y:
+=================
+      sum:   1 | 
+  car seq:   1 | 1
+    car y:   - |
+    car z:   - |
+ interval:   1 |   2 3
+      seq:     |   3 6
+ memoized:     |
+---------------+------
+        y:     | - - 6
+             
+             
+Call to define z:
+=================
+      sum:   6 | 
+  car seq:   1 | 1
+    car y:   6 | 
+    car z:   - | 
+ interval:   3 |        4
+      seq:     |       10
+ memoized:     |   3 6 
+---------------+---------
+        z:     | - - - 10
 
 
-First use of Seq for 'even':
-============================
+Call to stream-ref y 7
+======================
+      sum:  10 |    
+  car seq:   1 |
+    car y:   6 | 6  
+    car z:  10 |    
+ interval:   4 |       5  6  7  8  9 10 11 12 13  14  15  16
+      seq:     |      15 21 28 36 45 55 66 78 91 105 120 136
+ memoized:     |   10
+---------------+--------------------------------------------
+ strm-ref:     | 6 10  -  - 28 36  -  - 66 78  -   - 120 136 
+    
+       
+Call to display-stream
+======================
+      sum: 136 |                                          
+  car seq:   1 |                                          
+    car y:   6 |                                          
+    car z:  10 | 10                                         
+ interval:  16 |                                            17  18  19  20
+      seq:     |                                           153 171 190 210
+ memoized:     |    15 21 28 36 45 55 66 78 91 105 120 136
+---------------+----------------------------------------------------------
+disp-strm:     | 10 15  -  -  - 45 55  -  -  - 105 120   -   -   - 190 210
+       
+       
+===========================================================================
+==  Without Memoization  ==================================================
+===========================================================================
 
-sum = 0
+Call to define seq:
+===================
+      sum:   0 | 
+  car seq:   - | 
+    car y:   - |
+    car z:   - |
+ interval:     | 1
+---------------+--
+      seq:     | 1            
 
-interval: 1 2 3  4  5  6  7  8  9 10 11 12 13  14  15  16 | 
-seq:      1 3 6 10 15 21 28 36 45 55 66 78 91 105 120 136 |
+Call to define y:
+=================
+      sum:   1 | 
+  car seq:   1 | 1
+    car y:   - |
+    car z:   - |
+ interval:   1 |   2 3
+      seq:     |   3 6
+---------------+------
+        y:     | - - 6
+             
+             
+Call to define z:
+=================
+      sum:   6 | 
+  car seq:   1 | 1
+    car y:   6 | 
+    car z:   - |   
+ interval:   1 |   2  3  4
+      seq:     |   8 11 15
+---------------+----------
+        z:     | - -  - 15
 
-y (even): - - 6 10  -  - 28 36  -  - 66 78  -   - 120 136 |
-ref:      - - 0  1  -  -  2  3  -  -  4  5  -   -   6   7 | (end)
 
-sum = 136
-
-
-Second use with mem-proc:
-=========================
-
-sum = 136
-
-interval:                                                 |  17  18  19  20
-mem-proc: 1 2 3  4  5  6  7  8  9 10 11 12 13  14  15  16 |  
-seq:      1 3 6 10 15 21 28 36 45 55 66 78 91 105 120 136 | 153 171 190 210
-z (%5=0): - - - 10 15  -  -  - 45 55  -  -  - 105 120   - |   -   - 190 210
-
-sum = 210
-
-Second use without mem-proc:
-============================
-
-sum = 136
-
-interval:   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
-seq:      137 139 142 146 151 157 164 172 181 191 202 214 227 241 256 272
-
-          ...  17  18  19  20
-          ... 289 307 326 346
-
-z (%5=0):   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
-
-                -   -   -   -
-
-sum = 346
-
-Yes it would differ without memoization.  Infact I believe it returns
-different results, so it doesn't just affect performance.  The final sum
-would be 346 (136 + 210) becaue when z is evaluated seq would be
-re-evaulated from the beginning and 1 to 16 would be accumulated twice.")
+Call to stream-ref y 7
+======================
+      sum:  15 |    
+  car seq:   1 |
+    car y:   6 | 6  
+    car z:  15 |    
+ interval:   3 |    4  5  6  7  8  9 10 11 12  13  14  15  16  17
+      seq:     |   19 24 30 37 45 54 64 75 87 100 114 129 145 162
+---------------+-------------------------------------------------
+ strm-ref:     | 6  - 24 30  -  - 54 64  -  - 100 114   -   - 162
+    
+       
+Call to display-stream
+======================
+      sum: 162 |                                          
+  car seq:   1 |                                          
+    car y:   6 |                                          
+    car z:  15 | 15
+ interval:   4 |      5   6   7   8   9  10  11  12 ...  16  17  18  19  20
+      seq:     |    167 173 180 188 197 207 218 230 ... 288 305 323 342 362
+---------------+-----------------------------------------------------------
+disp-strm:     | 15   -   - 180   -   -   -   - 230 ...   - 305   -   -   -
+")
 
 (--end-- "3.52")
 
