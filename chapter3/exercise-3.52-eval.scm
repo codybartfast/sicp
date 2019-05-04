@@ -579,6 +579,7 @@
       (error "APPLY PRIMITIVE - unknown procedure" proc)))
 
 (#%provide (all-defined)
+           get
            put)
 
 

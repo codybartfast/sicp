@@ -31,6 +31,7 @@
 
 (-start- "3.52")
 
+;; The program from the exercise and text
 (define program
   '(begin
      
@@ -82,33 +83,49 @@
      (define (accum x)
        (set! sum (+ x sum))
        sum)    
+     (println "sum after define accum: " sum)
+
      (define seq (stream-map accum (stream-enumerate-interval 1 20)))
+     (println "sum after define seq: " sum)
+     
      (define y (stream-filter even? seq))
-     (define z (stream-filter (lambda (x) (= (remainder x 5) 0))
-                              seq))
+     (println "sum after define y: " sum)
+     
+     (define z
+       (stream-filter (lambda (x) (= (remainder x 5) 0))
+                      seq))
+     (println "sum after define z: " sum)
+
      (stream-ref y 7)
      (println "sum after stream-ref: " sum)
+
      (display-stream z)
      (println "sum after display-stream: " sum)
      ))
 
+;; Implemenation of language from Chapter 4
 (#%require "exercise-3.52-eval.scm")
 (put-analyzers)
 
-(prn "With Naive Stream:"
-     "==================")
+;; Existing non-momoizing delay analyzer
+(define original-delay-analyzer (get 'analyze 'delay))
+;; Updated momoizing delay analyzer
+(define memoizing-delay-analyzer
+  (lambda (exp)
+       (analyze
+        (list 'memo-proc (make-lambda '() (cdr exp))))))
+
+;; Do the memoizing version first (as first in exercise)
+(put 'analyze 'delay memoizing-delay-analyzer)
+(prn "Naive Streams with Memo-Proc"
+     "============================")
 (eval program (setup-environment))
 
-(put 'analyze 'delay
-     (lambda (exp)
-       (analyze
-        (list 'memo-proc (make-lambda '() (cdr exp)))
-        )))
-       
+;; And now the original non-memoizing version
+(put 'analyze 'delay original-delay-analyzer)
 (prn ""
-     ""
-     "With Naive Stream plus memo-proc:"
-     "=================================")
+     "Naive Streams"
+     "=============")
 (eval program (setup-environment))
 
 (--end-- "3.52")
