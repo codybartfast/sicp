@@ -47,8 +47,26 @@
 | sum after display-stream |        210       |         362         |
 +--------------------------+------------------+---------------------+
 
-Printed response with memoization:    10, 15, 45, 55, 105, 120, 190, 210
-Printed response without memoization: 15, 180, 230, 305
+  Printed response with memoization: 10, 15, 45, 55, 105, 120, 190, 210
+  Printed response without memoization: 15, 180, 230, 305
+
+Unlike generators and streams from most languages, including modern Scheme
+the first element of the stream is not delayed and is evaluated at creation
+time.  This doesn't make a difference with memoization because the elements
+of seq (and hence values of sum) are evaluated just once and always in the
+same order.  But without memoization several elements are evaluated more
+than once and the order in which they are evaluated will affect the values
+of seq.
+
+The lack of a delay for the first item of a stream is discussed in the
+Rationale of SRFI 41 (Scheme Request For Implementation) where Abelson and
+Sussman's implementation is described as 'odd' and this chapter of SICP is
+referenced for understanding 'odd' streams.  However, 'even' streams (Wadler
+et al), which do delay the first item, predominate today.
+
+The non-memoizing results were obtained by implementing a naive, non-
+memoizing stream using the language implementation from Chapter 4.
+
 
 ============================================================================
 ==  Run the Code  ==========================================================
@@ -127,19 +145,21 @@ Printed response without memoization: 15, 180, 230, 305
      (println "sum after display-stream: " sum)
      ))
 
-;; Implemenation of language from Chapter 4
+
+;; An implemenation of the language from Chapter 4
 (#%require "exercise-3.52-eval.scm")
 (put-analyzers)
 
-;; Existing non-momoizing delay analyzer
+;; Existing non-memoizing delay analyzer
 (define original-delay-analyzer (get 'analyze 'delay))
-;; Updated momoizing delay analyzer
+
+;; Memoizing delay analyzer
 (define memoizing-delay-analyzer
   (lambda (exp)
        (analyze
         (list 'memo-proc (make-lambda '() (cdr exp))))))
 
-;; Do the memoizing version first (as first in exercise)
+;; First run with the memoizing version of delay
 (put 'analyze 'delay memoizing-delay-analyzer)
 (prn "With Memoization"
      "================")
@@ -152,17 +172,51 @@ Printed response without memoization: 15, 180, 230, 305
      "===================")
 (eval program (setup-environment))
 
+
 (prn "
-===========================================================================
-==  With Memoization  =====================================================
-===========================================================================
+
+============================================================================
+==  Output from running above code  ========================================
+============================================================================
+
+>   With Memoization
+>   ================
+>   sum after define accum: 0
+>   sum after define seq: 1
+>   sum after define y: 6
+>   sum after define z: 10
+>   sum after stream-ref: 136
+>   10
+>   15
+>   45
+>   55
+>   105
+>   120
+>   190
+>   210
+>   sum after display-stream: 210
+>   
+>   Without Memoization
+>   ===================
+>   sum after define accum: 0
+>   sum after define seq: 1
+>   sum after define y: 6
+>   sum after define z: 15
+>   sum after stream-ref: 162
+>   15
+>   180
+>   230
+>   305
+>   sum after display-stream: 362
+
+
+============================================================================
+==  With Memoization  ======================================================
+============================================================================
 
 Call to define seq:
 ===================
       sum:   0 | 
-  car seq:   - | 
-    car y:   - |
-    car z:   - |
  interval:     | 1
 ---------------+--
       seq:     | 1            
@@ -171,11 +225,8 @@ Call to define y:
 =================
       sum:   1 | 
   car seq:   1 | 1
-    car y:   - |
-    car z:   - |
  interval:   1 |   2 3
       seq:     |   3 6
- memoized:     |
 ---------------+------
         y:     | - - 6
              
@@ -185,7 +236,6 @@ Call to define z:
       sum:   6 | 
   car seq:   1 | 1
     car y:   6 | 
-    car z:   - | 
  interval:   3 |        4
       seq:     |       10
  memoized:     |   3 6 
@@ -203,7 +253,7 @@ Call to stream-ref y 7
       seq:     |      15 21 28 36 45 55 66 78 91 105 120 136
  memoized:     |   10
 ---------------+--------------------------------------------
- strm-ref:     | 6 10  -  - 28 36  -  - 66 78  -   - 120 136 
+ stream-ref:   | 6 10  -  - 28 36  -  - 66 78  -   - 120 136 
     
        
 Call to display-stream
@@ -216,19 +266,16 @@ Call to display-stream
       seq:     |                                           153 171 190 210
  memoized:     |    15 21 28 36 45 55 66 78 91 105 120 136
 ---------------+----------------------------------------------------------
-disp-strm:     | 10 15  -  -  - 45 55  -  -  - 105 120   -   -   - 190 210
+display-stream:| 10 15  -  -  - 45 55  -  -  - 105 120   -   -   - 190 210
        
        
-===========================================================================
-==  Without Memoization  ==================================================
-===========================================================================
+============================================================================
+==  Without Memoization  ===================================================
+============================================================================
 
 Call to define seq:
 ===================
       sum:   0 | 
-  car seq:   - | 
-    car y:   - |
-    car z:   - |
  interval:     | 1
 ---------------+--
       seq:     | 1            
@@ -237,8 +284,6 @@ Call to define y:
 =================
       sum:   1 | 
   car seq:   1 | 1
-    car y:   - |
-    car z:   - |
  interval:   1 |   2 3
       seq:     |   3 6
 ---------------+------
@@ -250,7 +295,6 @@ Call to define z:
       sum:   6 | 
   car seq:   1 | 1
     car y:   6 | 
-    car z:   - |   
  interval:   1 |   2  3  4
       seq:     |   8 11 15
 ---------------+----------
@@ -266,7 +310,7 @@ Call to stream-ref y 7
  interval:   3 |    4  5  6  7  8  9 10 11 12  13  14  15  16  17
       seq:     |   19 24 30 37 45 54 64 75 87 100 114 129 145 162
 ---------------+-------------------------------------------------
- strm-ref:     | 6  - 24 30  -  - 54 64  -  - 100 114   -   - 162
+ streamm-ref:  | 6  - 24 30  -  - 54 64  -  - 100 114   -   - 162
     
        
 Call to display-stream
@@ -277,8 +321,8 @@ Call to display-stream
     car z:  15 | 15
  interval:   4 |      5   6   7   8   9  10  11  12 ...  16  17  18  19  20
       seq:     |    167 173 180 188 197 207 218 230 ... 288 305 323 342 362
----------------+-----------------------------------------------------------
-disp-strm:     | 15   -   - 180   -   -   -   - 230 ...   - 305   -   -   -
+---------------+-----------------------------------     -------------------
+display-stream:| 15   -   - 180   -   -   -   - 230 ...   - 305   -   -   -
 ")
 
 (--end-- "3.52")
