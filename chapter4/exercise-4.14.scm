@@ -20,12 +20,20 @@
 (-start- "4.14")
 
 (println "
-I imagine the problem is that map takes a procedure as an argument.  If it
-is implemented as a primitive then map is called in the context of the
-metacircular evaluator not the interpreted environment.  That would be fine
-except in this case it also means the procedure passed as an agument to map,
-which is defined in the interpreted environment, is evaluated in the
-metacircular evaluator's environment.
+I believe the problem is that Louis is 'crossing the streams'.  He is
+passing one of 'our' procedures to a primitive procedure.
+
+We have a procedure, cube, that is designed to be applied in the
+implementation that we are constructing.  But here we are passing cube (i.e.
+the procedure object referenced by the symbol 'cube) to the underlying map.
+So it will be the underlying implementation (e.g. Racket, Guile, Chicken,
+...) that will apply map and, in turn, attempt to apply our cube procedure.
+This cannot work if our implementation of procedures, environments, etcetera
+is different from the ones used by the underlying implementation.
+
+(If key parts of the underlying implementation were identical to our
+implementation I can imagine that it might work, but clearly we should never
+rely on that.)
 
 So if we define our own map we get:
 
