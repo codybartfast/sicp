@@ -25,14 +25,17 @@
 
 (-start- "3.20")
 
-(prn "It's tempting to use different symbols in the question's code so that
+(prn "It's tempting to use different symbols in the question's code so that:
     (define x (cons 1 2))
+    (define z (cons x x))
 becomes:
     (define a (cons 1 2))
-to avoid potential (human) ambiguity between the x and z used in the
-question and the x, y and z used in the definition of cons.  But I suspect
-the re-use of symbols is intentional to emphasise they are different
-identifiers because they exist in different contexts/environments.
+    (define b (cons a a))
+to avoid potential (human) confusion between the x and z used in the
+question and the x used in the definition of cons and the z used in the
+definition of car, cdr and set-cdr!.  But I suspect the re-use of symbols is
+intentional to emphasise that they are different identifiers because they
+are defined in different environments.
 
 
             para: x                                        para: z
@@ -149,7 +152,6 @@ global env ──┐   │   │              │   │        │   │        
                   │                           │
                   └───────────────────────────┘
                          (returns 17)
-
 ")
   
 (--end-- "3.20")
