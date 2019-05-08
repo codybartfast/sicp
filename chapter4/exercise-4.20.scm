@@ -150,9 +150,9 @@ compared with a regular let:
 
 Letrec Environment Diagram
 ==========================
-Even? and odd? procs reference E2 because the are created by set! within the
-body of the lambda.  This means they can lookup the even? and odd? variables
-defined in this frame.
+Even? and odd? procs reference E2 because the are created when evaluating
+set! within the body of the lambda.  This means they can lookup the even?
+and odd? variables defined in this frame.
 
 global env ──┐
              v
@@ -176,19 +176,19 @@ parameter: x                     └──────────────�
                                    E2 ->│odd?:┐                 │   │
                                         │     │                 │   │
                                         └───────────────────────────┘
-                                              │  ^              │  ^ 
-                                              │  │              │  │ 
-                                              v  │              v  │ 
-                                             @ @ │             @ @ │ 
-                                             │ └─┘             │ └─┘ 
-                                             v                 v 
+                                              │  ^              │  ^
+                                              │  │              │  │
+                                              v  │              v  │
+                                             @ @ │             @ @ │
+                                             │ └─┘             │ └─┘
+                                             v                 v
                                         parameter: n      parameter: n
                                       (if (equal? n 0)  (if (equal? n 0)
                                           false             true
                                           ...               ...
 
 Let Environment Diagram
-==========================
+=======================
 Even? and odd? procs reference E1 because they are evaluated in the body of
 f but outside the 'let lambda' because they are passed as arguments to that
 lambda.  This means they can't lookup the even? and odd? variables defined
@@ -222,7 +222,7 @@ parameter: x                     └──────────────�
                                               v  │              v         │
                                              @ @ │             @ @        │
                                              │ └─┘             │ └────────┘
-                                             v                 v 
+                                             v                 v
                                         parameter: n      parameter: n
                                       (if (equal? n 0)  (if (equal? n 0)
                                           false             true
