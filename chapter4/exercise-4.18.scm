@@ -39,14 +39,28 @@
 (-start- "4.18")
 
 (println "
-No. The alternate scan-out will not work.  All the 'magic' stuff would still
-work (I think) but we have the more fundamental problem that y is unassigned
-when b is evaluated.
+The new scan-out in this exercise does not run. The fundamental problem is
+that y is unassigned when b is assigned. It didn't work with SICP's streams
+(added into this chapters eval-apply) nor Racket's built in streams, though
+I think it is possible to imagine a 'very lazy' stream-map implementation
+that doesn't evaluate it's arguments until the first element of the stream
+is accessed and which might allow this to work.
 
-Yes, it does work with the orignal scan-out, this is demonstrated working
-below.
+The original scan-out does work.  y is assigned before dy, avoidng the
+problem with the new scan-out, and (delay dy) allows dy to be referenced,
+without being evaluated, in the definition of y.
 
-It also works without any scanning out.
+It also runs with internal definitions without scanning out.
+
+The following runs too, emphasizng the ability to define y without dy:
+
+    (lambda (f y0 dt)
+      (let ((y '*unassigned*)
+            (dy '*unassigned*))
+        (let ((a (integral (delay dy) y0 dt)))
+          (set! y a)
+          (set! dy (stream-map f y))
+          y))))
 ")
 
 (#%require "ea-data-directed-18.scm")
@@ -110,12 +124,13 @@ It also works without any scanning out.
        (cons-stream (+ (stream-car s1) (stream-car s2))
                     (add-streams (stream-cdr s1) (stream-cdr s2))))
 
-     ;; modified to force the integrand
-     (define (integral integrand initial-value dt)
+     ;; integral from 3.5.4
+     (define (integral delayed-integrand initial-value dt)
        (define int
          (cons-stream initial-value
-                      (add-streams (scale-stream (force integrand) dt)
-                                   int)))
+                      (let ((integrand (force delayed-integrand)))
+                        (add-streams (scale-stream integrand dt)
+                                     int))))
        int)
 
      ;; Three forms of solve ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -163,7 +178,7 @@ It also works without any scanning out.
        (stream->list 7
                      (solve (lambda (x) x) 1 1)))
 
-     (println "Solving with solve from text:")
+     (println "Solving with solve from exercise (internal defines):")
      (println (solve-with solve-no-scan))
      (println "")
      (println "Solving with orignal scan-out:")
