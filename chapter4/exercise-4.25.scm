@@ -23,6 +23,13 @@
 
 (-start- "4.25")
 
+(println "
+With existing applicative order I would expect this to hang because each
+call to factorial will always result in another call to factorial when the
+arguments to unless are avaluated.
+
+By contrast with normal order we would get the 'expected' results as the
+inner factorial will not be call when n equals 1.")
 
 
 (--end-- "4.25")

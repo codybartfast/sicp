@@ -2,3 +2,10 @@ Lecture 7a
 ==========
 1:12:40 Y-Combinator (video)
 1:20:?? grand wizard badge
+
+Lecture 7b
+==========
+
+0:02:40  There are many languages that have made a mess of themselves by adding huge numbers of features.
+
+0:04:12  The other alternative into is something called feeping creaturism, which is when you have a box which has a [fancy display], and a mouse, ... and your computer language becomes a dismal little, tiny thing that barely works because of all the swapping and disk twitching, and so on, caused by your windows sysem.
