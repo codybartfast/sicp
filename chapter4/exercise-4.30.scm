@@ -81,7 +81,73 @@
 
 (-start- "4.30")
 
+(#%require "ea-data-directed-27.scm")
+(put-evaluators)
 
+(define program
+  '(begin
+
+     (println "
+Part A
+------")
+     (define (for-each proc items)
+       (if (null? items)
+           'done
+           (begin (proc (car items))
+                  (for-each proc (cdr items)))))
+
+     (for-each (lambda (x) (println x))
+               (list 57 321 88))
+
+     (println "
+Part B
+------")
+     (define (p1 x)
+       (set! x (cons x '(2)))
+       x)
+
+     (define (p2 x)
+       (define (p e)
+         e
+         x)
+       (p (set! x (cons x '(2)))))
+     
+     (println (p1 'dog))
+     (println (p2 'cat))
+     
+     ))
+
+(eval program the-global-environment)
+
+
+(println "
+Part A
+======
+When for-each is called it in turn makes a call to proc.  So proc will be
+evaluated before it is applied and, unless it ignores its arguments, (car
+list) will be evaluated during the call.
+
+Part B
+======
+With the original eval-sequence we get X and (X 2).
+With Cy's change we get (X 2) and (X 2).
+Where X is the value of evaluating x.
+
+Part C
+======
+The updated eval-sequence only has an affect if an expression in the
+sequence is a thunk, i.e., an argument, but in Part A none of the
+expressions in the sequence are thunks.
+
+Part D
+======
+I wouldn't make Cy's change.  If we have lazy evaluation then then we should
+be consistent.  Also, we're predominantly working with a functional paradigm
+so making an exception just for the benefit of side effects seems doubly
+wrong.  However, we could add the equivalent of force-it to the language so
+that we can explicitly call a procedure for its side effects.
+
+")
 
 (--end-- "4.30")
 
