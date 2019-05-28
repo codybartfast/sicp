@@ -317,7 +317,7 @@
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
         ((string? exp) true)
-        ((equal? exp 'undefined) true)  ;; extra
+        ((equal? exp 'undefined) true)     ;; extra
         ((equal? exp '*unassigned*) true)  ;; extra
         ((boolean? exp) true)
         (else false)))

@@ -47,7 +47,45 @@
   '()
   the-global-environment))
 
-(println "Starting mc-evaluator...")
+(println "
+Sample Output
+=============
+
+    ;;; M-Eval input:
+    (define w (id (id 10)))
+
+    ;;; M-Eval value:
+    #<void>
+
+    ;;; M-Eval input:
+    count
+
+    ;;; M-Eval value:
+    1
+
+    ;;; M-Eval input:
+    w
+
+    ;;; M-Eval value:
+    #0=(thunk (id 10) #1=((*frame* (w . #0#) (id procedure (x) ((set! count
+        (+ count 1)) x) #1#) (count . 1) (false . #f) (true . #t) (remainder
+        . #<procedure:remainder>) (= . #<procedure:=>) (println .
+        #<procedure:writeln>) (square . #<procedure:...-directed-27.scm:
+        550:17>) (null? . #<procedure:null?>) (list . #<procedure:mlist>)
+        (equal? . #<procedure:equal?>) (cons . #<procedure:mcons>) (cdr .
+        #<procedure:mcdr>) (car . #<procedure:mcar>) (> . #<procedure:>>) (-
+        . #<procedure:->) (+ . #<procedure:+>) (* . #<procedure:*>))))
+
+    ;;; M-Eval input:
+    count
+
+    ;;; M-Eval value:
+    1
+")
+
+(println "
+Starting mc-evaluator...
+========================")
 (put-evaluators)
 (driver-loop)
 
