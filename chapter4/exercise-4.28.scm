@@ -14,9 +14,20 @@
 ;   4.2.2 An Interpreter with Lazy Evaluation - p407
 ;   ------------------------------------------------------------------------
 
-(-start- "4.28")
+(-start- "4.28")     
 
+(println "
+Forcing will be necessary anytime a function is passed as an argument,
+because all arguments are delayed becasue we're lazy.  E.g.:
 
+(define (3something2 operator)
+  (operator 3 2))
 
+(3something2 +)
+
+If we didn't use actual-value eval would just return a thunk which cannot be
+applied because it's not a procedure.  Actual-value will recognise that it's
+a thunk and then use force-it to get the procedure.
+")
 (--end-- "4.28")
 
