@@ -1,6 +1,6 @@
 #lang sicp
 
-;; analysing-26 with lazy, memoized aguments
+;; data-directed-24 with a few extra primitives to run Ex 1.22 code.
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -17,138 +17,59 @@
 ;; Data-Directed Eval ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (#%require "ea-underlying-apply.scm")
-(#%require "ea-analyzers.scm")
-
-(define (eval exp env)
-  ((analyze exp) env))
+(#%require "ea-evaluators.scm")
 
 (define expression-type car)
 
-(define (analyze exp)
-  (log "analyzing: " exp)
+(define (eval exp env)
+  (log "evaluating: " exp)
   (cond
-    ((self-evaluating? exp)
-     (analyze-self-evaluating exp))
-    ((quoted? exp) (analyze-quoted exp))
-    ((variable? exp) (analyze-variable exp))
+    ((self-evaluating? exp) exp)
+    ((variable? exp) (lookup-variable-value exp env))
+    ((quoted? exp) (text-of-quotation exp))
     (else
      (if (pair? exp)
-         (let ((analyzer (get 'analyze (expression-type exp))))
-           (if analyzer
-               (analyzer exp)
-               (analyze-application exp)))
-         ((error "Unknown expression type -- ANALYSE" exp))))))
+         (let ((evaluator (get 'eval (expression-type exp))))
+           (if evaluator
+               (evaluator exp env)
+               (begin
+                 (log "about to apply: " exp)
+                 (apply (actual-value (operator exp) env)
+                        (operands exp)
+                        env))))
+         ((error "Unknown expression type -- EVAL" exp))))))
 
-(define (put-analyzers)
-  (define (analyze-begin exp)
-    (analyze-sequence (begin-actions exp)))
-  (define (analyze-cond exp)
-    (analyze (cond->if exp)))
+(define (put-evaluators)
+  (define (eval-lambda exp env)
+    (make-procedure (lambda-parameters exp)
+                    (lambda-body exp)
+                    env))
+  (define (eval-begin exp env)
+    (eval-sequence (begin-actions exp) env))
+  (define (eval-cond exp env)
+    (eval (cond->if exp) env))
 
-  (put 'analyze 'set! analyze-assignment)
-  (put 'analyze 'define analyze-definition)
-  (put 'analyze 'if analyze-if)
-  (put 'analyze 'lambda analyze-lambda)
-  (put 'analyze 'begin analyze-begin)
-  (put 'analyze 'cond analyze-cond)
-
-  (put 'analyze 'and analyze-and)
-  (put 'analyze 'or analyze-or)
-  (put 'analyze 'let analyze-let)
-  (put 'analyze 'let* analyze-let*)
-  (put 'analyze 'letrec analyze-letrec)
-  (put 'analyze 'unbind! analyze-unbind!)
-  (put 'analyze 'unless analyze-unless)
-  (put 'analyze 'when analyze-when)
-
-  (put 'analyze 'delay analyze-delay)
-  (put 'analyze 'force analyze-force)
-  (put 'analyze 'cons-stream analyze-cons-stream)
-  (put 'analyze 'stream-null? analyze-stream-null?)
-  (put 'analyze 'stream-car analyze-stream-car)
-  (put 'analyze 'stream-cdr analyze-stream-cdr)
+  (put 'eval 'set! eval-assignment)
+  (put 'eval 'define eval-definition)
+  (put 'eval 'if eval-if)
+  (put 'eval 'lambda eval-lambda)
+  (put 'eval 'begin eval-begin)
+  (put 'eval 'cond eval-cond)
+  
+  (put 'eval 'and eval-and)
+  (put 'eval 'or eval-or)
+  (put 'eval 'let eval-let)
+  (put 'eval 'let* eval-let*)
+  (put 'eval 'letrec eval-letrec)
+  (put 'eval 'unbind! eval-unbind!)
+  (put 'eval 'delay eval-delay)
+  (put 'eval 'force eval-force)
+  (put 'eval 'cons-stream eval-cons-stream)
+  (put 'eval 'stream-null? eval-stream-null?)
+  (put 'eval 'stream-car eval-stream-car)
+  (put 'eval 'stream-cdr eval-stream-cdr)
   )
 
-;; Add 'apply' as an alias for 'execute-application' so that previous
-;; exercises don't neeed to be modified to be used with this implementation.
-;; This may be the first use of a misleading alias for the sake of
-;; convenience and backward compatibility in the history of computing.
-
-(define (apply proc args) (execute-application proc args))
-(define (put-evaluators) (put-analyzers))
-
-;; Support for analyzing from book ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define (analyze-self-evaluating exp)
-  (lambda (env) exp))
-
-(define (analyze-quoted exp)
-  (let ((qval (text-of-quotation exp)))
-    (lambda (env) qval)))
-
-(define (analyze-variable exp)
-  (lambda (env) (lookup-variable-value exp env)))
-
-(define (analyze-assignment exp)
-  (let ((var (assignment-variable exp))
-        (vproc (analyze (assignment-value exp))))
-    (lambda (env)
-      (set-variable-value! var (vproc env) env)
-      'ok)))
-
-(define (analyze-definition exp)
-  (let ((var (definition-variable exp))
-        (vproc (analyze (definition-value exp))))
-    (lambda (env)
-      (define-variable! var (vproc env) env)
-      'ok)))
-
-(define (analyze-application exp)
-  (let ((fproc (analyze (operator exp)))
-        (aprocs (map analyze (operands exp))))
-    (lambda (env)
-      (execute-application (fproc env)
-                           (map (lambda (aproc) (aproc env))
-                                aprocs)))))
-
-(define (execute-application proc args)
-  (cond ((primitive-procedure? proc)
-         (apply-primitive-procedure proc args))
-        ((compound-procedure? proc)
-         ((procedure-body proc)
-          (extend-environment (procedure-parameters proc)
-                              args
-                              (procedure-environment proc))))
-        (else
-         (error
-          "Unknown procedure type -- EXECUTE-APPLICATION"
-          proc))))
-
-(define (analyze-if exp)
-  (let ((pproc (analyze (if-predicate exp)))
-        (cproc (analyze (if-consequent exp)))
-        (aproc (analyze (if-alternative exp))))
-    (lambda (env)
-      (if (true? (pproc env))
-          (cproc env)
-          (aproc env)))))
-
-(define (analyze-lambda exp)
-  (let ((vars (lambda-parameters exp))
-        (bproc (analyze-sequence (lambda-body exp))))
-    (lambda (env) (make-procedure vars bproc env))))
-
-(define (analyze-sequence exps)
-  (define (sequentially proc1 proc2)
-    (lambda (env) (proc1 env) (proc2 env)))
-  (define (loop first-proc rest-procs)
-    (if (null? rest-procs)
-        first-proc
-        (loop (sequentially first-proc (car rest-procs))
-              (cdr rest-procs))))
-  (let ((procs (map analyze exps)))
-    (if (null? procs)
-        (error "Empty sequence -- ANALYZE"))
-    (loop (car procs) (cdr procs))))
 
 ;; Shared by exercise extensions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -163,21 +84,15 @@
 (define first-predicate cadr)
 (define second-predicate caddr)
 
-(define (analyze-and exp)
-  (analyze
-   (make-if (first-predicate exp)
-            (make-if (second-predicate exp)
-                     true
-                     false)
-            false)))
+(define (eval-and exp env)
+  (if (true? (eval (first-predicate exp) env))
+           (true? (eval (second-predicate exp) env))
+           false))
 
-(define (analyze-or exp)
-  (analyze
-   (make-if (first-predicate exp)
-            true
-            (make-if (second-predicate exp)
-                     true
-                     false))))
+(define (eval-or exp env)
+  (if (true? (eval (first-predicate exp) env))
+           true
+           (true? (eval (second-predicate exp) env))))
 
 ;; Ex 4.05 calling-cond ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -231,8 +146,8 @@
                     (let-body exp))
        (let-values exp))))
 
-(define (analyze-let exp)
-  (analyze (let->combination exp)))
+(define (eval-let exp env)
+  (eval (let->combination exp) env))
 
 ;; let*
 (define (make-let pairs body)
@@ -248,9 +163,9 @@
     (if (pair? pairs)
         (wrap-lets pairs (let-body exp))
         (make-let pairs (let-body exp)))))
-
-(define (analyze-let* exp)
-  (analyze (let*->nested-lets exp)))
+        
+(define (eval-let* exp env)
+  (eval (let*->nested-lets exp) env))
 
 ;; letrec
 (define (letrec->let exp)
@@ -262,10 +177,10 @@
                 (let-pairs exp))
            (let-body exp))))
 
-(define (analyze-letrec exp)
-  (analyze (letrec->let exp)))
+(define (eval-letrec exp env)
+  (eval (letrec->let exp) env))
 
-;; Unbind! ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Ex 4.13 Unbind! ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (remove-frame-var var frame)
   (define (scan frame-pairs)
@@ -277,71 +192,127 @@
              #t)
             (else (scan (cdr frame-pairs))))))
   (scan frame))
-
+              
 (define (make-unbound! var env)
   (let ((frame (first-frame env)))
     (if (not (remove-frame-var var frame))
         (error "Unbound variable -- UNBIND!" var))))
 
-(define (analyze-unbind! exp)
-  (lambda (env)
-    (make-unbound! (cadr exp) env)))
+(define (eval-unbind! exp env)
+  (make-unbound! (cadr exp) env))
 
-;; Ex 4.26 Unless ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(define unless-condition cadr)
-(define unless-usual-value caddr)
-(define unless-exceptional-value cadddr)
-
-(define (analyze-unless exp)
-  (analyze-if
-   (make-if (unless-condition exp)
-            (unless-exceptional-value exp)
-            (unless-usual-value exp))))
-
-(define when-condition cadr)
-(define when-usual-value caddr)
-(define when-exceptional-value cadddr)
-
-(define (analyze-when exp)
-  (analyze-if
-   (make-if (when-condition exp)
-            (when-usual-value exp)
-            (when-exceptional-value exp))))
-
-;; Stream primitives ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Ex 4.18 Stream primitives ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; delay
 (define (delay->lambda exp)
   (make-lambda '() (cdr exp)))
-(define (analyze-delay exp)
-  (analyze (delay->lambda exp)))
+(define (eval-delay exp env)
+  (eval (delay->lambda exp) env))
 
 ;; force
-(define (analyze-force exp)
-  (analyze (cdr exp)))
+(define (eval-force exp env)
+  (eval (cdr exp) env))
 
 ;; cons-stream
 (define (cons-stream->cons exp)
   (list 'cons (cadr exp) (list 'delay (caddr exp))))
-(define (analyze-cons-stream exp)
-  (analyze (cons-stream->cons exp)))
+(define (eval-cons-stream exp env)
+  (eval (cons-stream->cons exp) env))
 
 ;; stream-null?
 (define (stream-null?->null? exp)
   (cons 'null? (cdr exp)))
-(define (analyze-stream-null? exp)
-  (analyze (stream-null?->null? exp)))
+(define (eval-stream-null? exp env)
+  (eval (stream-null?->null? exp) env))
 
 ;; stream-car
-(define (analyze-stream-car exp)
-  (analyze (cons 'car (cdr exp))))
-
+(define (eval-stream-car exp env)
+  (eval (cons 'car (cdr exp)) env))
+  
 ;; stream-cdr
-(define (analyze-stream-cdr exp)
-  (analyze (list 'force (list 'cdr (cadr exp)))))
+(define (eval-stream-cdr exp env)
+  (eval (list 'force (list 'cdr (cadr exp))) env))
 
 ;; Mainly unchanged from ea-text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (apply procedure arguments env)
+  (cond ((primitive-procedure? procedure)
+         (apply-primitive-procedure
+          procedure
+          (list-of-arg-values arguments env)))
+        ((compound-procedure? procedure)
+         (eval-sequence
+          (procedure-body procedure)
+          (extend-environment
+           (procedure-parameters procedure)
+           (list-of-delayed-args arguments  env)
+           (procedure-environment procedure))))
+        (else
+         (error
+          "Unknown procedure type -- APPLY" procedure))))
+
+(define (actual-value exp env)
+  (force-it (eval exp env)))
+
+(define (list-of-arg-values exps env)
+  (if (no-operands? exps)
+      '()
+      (cons (actual-value (first-operand exps) env)
+            (list-of-arg-values (rest-operands exps)
+                                env))))
+(define (list-of-delayed-args exps env)
+  (if (no-operands? exps)
+      '()
+      (cons (delay-it (first-operand exps) env)
+            (list-of-delayed-args (rest-operands exps)
+                                  env))))
+(define (delay-it exp env)
+  (list 'thunk exp env))
+
+(define (thunk? obj)
+  (tagged-list? obj 'thunk))
+
+(define (thunk-exp thunk) (cadr thunk))
+
+(define (thunk-env thunk) (caddr thunk))
+
+(define (evaluated-thunk? obj)
+  (tagged-list? obj 'evaluated-thunk))
+
+(define (thunk-value evaluated-thunk) (cadr evaluated-thunk))
+(define (force-it obj)
+  (cond ((thunk? obj)
+         (let ((result (actual-value
+                        (thunk-exp obj)
+                        (thunk-env obj))))
+           (set-car! obj 'evaluated-thunk)
+           (set-car! (cdr obj) result)  ; replace exp with its value
+           (set-cdr! (cdr obj) '())     ; forget unneeded env
+           result))
+        ((evaluated-thunk? obj)
+         (thunk-value obj))
+        (else obj)))
+
+(define (eval-if exp env)
+  (if (true? (actual-value (if-predicate exp) env))
+      (eval (if-consequent exp) env)
+      (eval (if-alternative exp) env)))
+
+(define (eval-sequence exps env)
+  (cond ((last-exp? exps) (eval (first-exp exps) env))
+        (else (eval (first-exp exps) env)
+              (eval-sequence (rest-exps exps) env))))
+
+(define (eval-assignment exp env)
+  (set-variable-value! (assignment-variable exp)
+                       (eval (assignment-value exp) env)
+                       env)
+  'ok)
+
+(define (eval-definition exp env)
+  (define-variable! (definition-variable exp)
+    (eval (definition-value exp) env)
+    env))
 
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
@@ -358,14 +329,20 @@
 
 (define (text-of-quotation exp) (cadr exp))
 
+(define (tex-of-quotation exp) (cadr exp))
+
 (define (tagged-list? exp tag)
   (if (pair? exp)
       (eq? (car exp) tag)
       false))
 
+(define (assignment? exp)
+  (tagged-list? exp 'set!))
 (define (assignment-variable exp) (cadr exp))
 (define (assignment-value exp) (caddr exp))
 
+(define (definition? exp)
+  (tagged-list? exp 'define))
 (define (definition-variable exp)
   (if (symbol? (cadr exp))
       (cadr exp)
@@ -376,12 +353,14 @@
       (make-lambda (cdadr exp)   ; formal parameters
                    (cddr exp)))) ; body
 
+(define (lambda? exp) (tagged-list? exp 'lambda))
 (define (lambda-parameters exp) (cadr exp))
 (define (lambda-body exp) (cddr exp))
 
 (define (make-lambda parameters body)
   (cons 'lambda (cons parameters body)))
 
+(define (if? exp) (tagged-list? exp 'if))
 (define (if-predicate exp) (cadr exp))
 (define (if-consequent exp) (caddr exp))
 (define (if-alternative exp)
@@ -392,6 +371,7 @@
 (define (make-if predicate consequent alternative)
   (list 'if predicate consequent alternative))
 
+(define (begin? exp) (tagged-list? exp 'begin))
 (define (begin-actions exp) (cdr exp))
 (define (last-exp? seq) (null? (cdr seq)))
 (define (first-exp seq) (car seq))
@@ -403,9 +383,14 @@
         (else (make-begin seq))))
 (define (make-begin seq) (cons 'begin seq))
 
+(define (application? exp) (pair? exp))
 (define (operator exp) (car exp))
 (define (operands exp) (cdr exp))
+(define (no-operands? ops) (null? ops))
+(define (first-operand ops) (car ops))
+(define (rest-operands ops) (cdr ops))
 
+(define (cond? exp) (tagged-list? exp 'cond))
 (define (cond-clauses exp) (cdr exp))
 (define (cond-else-clause? clause)
   (eq? (cond-predicate clause) 'else))
@@ -435,31 +420,31 @@
 (define (false? x)
   (eq? x false))
 
-;(define (scan-out-defines exp)
-;  (define (definition? exp)
-;    (tagged-list? exp 'define))
-;  (define (scan exp new-members vars)
-;    (if (null? exp)
-;        (cons new-members vars)
-;        (let ((member (car exp)))
-;          (if (definition? member)
-;              (scan (cdr exp)
-;                    (cons
-;                     (list 'set!
-;                           (definition-variable member)
-;                           (definition-value member))
-;                     new-members)
-;                    (cons (definition-variable member) vars))
-;              (scan (cdr exp)
-;                    (cons member new-members)
-;                    vars)))))
-;  (let* ((scan-rslt (scan exp '() '()))
-;         (new-body (reverse (car scan-rslt)))
-;         (vars (reverse (cdr scan-rslt)))
-;         (let-pairs (map (lambda (var) (list var '*unassigned*)) vars)))
-;    (if (null? vars)
-;        exp
-;        (list (make-let let-pairs new-body)))))
+(define (scan-out-defines exp)
+  (define (definition? exp)
+    (tagged-list? exp 'define))
+  (define (scan exp new-members vars)
+    (if (null? exp)
+        (cons new-members vars)
+        (let ((member (car exp)))
+          (if (definition? member)
+              (scan (cdr exp)
+                    (cons
+                     (list 'set!
+                           (definition-variable member)
+                           (definition-value member))
+                     new-members)
+                    (cons (definition-variable member) vars))
+              (scan (cdr exp)
+                    (cons member new-members)
+                    vars)))))
+  (let* ((scan-rslt (scan exp '() '()))
+         (new-body (reverse (car scan-rslt)))
+         (vars (reverse (cdr scan-rslt)))
+         (let-pairs (map (lambda (var) (list var '*unassigned*)) vars)))
+    (if (null? vars)
+        exp
+        (list (make-let let-pairs new-body)))))
 
 (define (make-procedure parameters body env)
   (list 'procedure parameters body env))
@@ -508,12 +493,12 @@
 
 ;; end frame interface
 
-;; shared proc for iterating over the separate frames
+;; convenience method for iterating over the separate frames
 (define (scan-env env f)
   (define (env-loop env)
     (if (eq? env the-empty-environment)
         #f
-        (let ((rslt (f (first-frame env))))
+        (let ((rslt (f (first-frame env))))        
           (if  rslt
                rslt
                (env-loop (enclosing-environment env))))))
@@ -536,12 +521,12 @@
               (error "Unassigned variable:" var)
               val))
         (error "Unbound variable:" var))))
-
+ 
 (define (set-variable-value! var val env)
   (if (not (scan-env env
                      (lambda (frame)
                        (set-frame-val! var val frame))))
-      (error "Unbound variable -- SET!:" var)))
+      (error "Unbound variable -- SET!:" var)))        
 
 (define (define-variable! var val env)
   (let ((frame (first-frame env)))
@@ -591,7 +576,6 @@
                              the-empty-environment)))
     (define-variable! 'true true initial-env)
     (define-variable! 'false false initial-env)
-    (define-variable! 'the-empty-stream '() initial-env)
     initial-env))
 (define the-global-environment (setup-environment))
 
