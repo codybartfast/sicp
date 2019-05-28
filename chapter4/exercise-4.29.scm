@@ -32,7 +32,69 @@
 
 (-start- "4.29")
 
+(define program
+  '(begin
 
+     (define (fib n)
+       (if (> 2 n)
+           n
+           (+ (fib (- n 1)) (fib (- n 2)))))
+
+     (define (add-repeatedly value count)
+       (define (iter remaining)
+         (if (= 0 remaining)
+             0
+             (+ value (iter (- remaining 1)))))
+       (iter count))
+
+     (add-repeatedly (fib 16) 100)
+
+     ))
+
+;(#%require "ea-data-directed-27.scm")
+;(put-evaluators)
+;(time (eval program the-global-environment))
+
+(println"
+An example of a program that would benefit from memoization is:
+
+     (define (fib n)
+       (if (> 2 n)
+           n
+           (+ (fib (- n 1)) (fib (- n 2)))))
+
+     (define (add-repeatedly value count)
+       (define (iter remaining)
+         (if (= 0 remaining)
+             0
+             (+ value (iter (- remaining 1)))))
+       (iter count))
+
+     (add-repeatedly (fib 16) 100)
+
+This will evaluate the value of (fib 16) 100 times if the argument is not
+memoized.
+
+   (define (square x)
+     (* x x))
+   ;;; L-Eval input:
+   (square (id 10))
+   ;;; L-Eval value:
+   <response>          100 with or without memoization
+   ;;; L-Eval input:
+   count
+   ;;; L-Eval value:
+   <response>          1 with, 2 without memoization
+
+Because x is referred to twice in the body of square it is evaluated twice.
+Therefore, without memoization (id 10) is called twice.  With memoization it
+is only called one.
+")
+
+;(#%require "ea-data-directed-27.scm")
+;(put-evaluators)
+;(println "Starting mc-evaluator...")
+;(driver-loop)
 
 (--end-- "4.29")
 
