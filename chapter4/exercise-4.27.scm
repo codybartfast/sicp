@@ -47,5 +47,9 @@
   '()
   the-global-environment))
 
+(println "Starting mc-evaluator...")
+(put-evaluators)
+(driver-loop)
+
 (--end-- "4.27")
 
