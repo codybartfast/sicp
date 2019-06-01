@@ -241,16 +241,19 @@
           procedure
           (list-of-arg-values arguments env)))
         ((compound-procedure? procedure)
-         (let ()
+         (let ((parameter-defs (procedure-parameter-defs procedure)))
            (eval-sequence
             (procedure-body procedure)
             (extend-environment
-             (procedure-parameter-defs procedure)
-             (list-of-delayed-args arguments  env)
+             (param-defs->params parameter-defs)
+             (list-of-delayed-args parameter-defs arguments  env)
              (procedure-environment procedure)))))
         (else
          (error
           "Unknown procedure type -- APPLY" procedure))))
+
+(define (param-defs->params parameter-defs)
+  parameter-defs)
 
 (define (actual-value exp env)
   (force-it (eval exp env)))
@@ -261,12 +264,17 @@
       (cons (actual-value (first-operand exps) env)
             (list-of-arg-values (rest-operands exps)
                                 env))))
-(define (list-of-delayed-args exps env)
-  (if (no-operands? exps)
-      '()
-      (cons (delay-it (first-operand exps) env)
-            (list-of-delayed-args (rest-operands exps)
-                                  env))))
+(define (list-of-delayed-args parameter-defs exps env)
+  (cond ((no-operands? exps) '())
+        (else
+         (if (no-parameter-defs? parameter-defs)
+             (error "Too few parameter-defs"))
+         (cons (delay-it (first-operand exps) env)
+               (list-of-delayed-args
+                (rest-parameter-defs parameter-defs)
+                (rest-operands exps)
+                env)))))
+
 (define (delay-it exp env)
   (list 'thunk exp env))
 
@@ -390,7 +398,10 @@
 (define (no-operands? ops) (null? ops))
 (define (first-operand ops) (car ops))
 (define (rest-operands ops) (cdr ops))
-
+(define no-parameter-defs? null?)
+(define first-parameter-def car)
+(define rest-parameter-defs cdr)
+         
 (define (cond? exp) (tagged-list? exp 'cond))
 (define (cond-clauses exp) (cdr exp))
 (define (cond-else-clause? clause)
