@@ -233,6 +233,22 @@
 (define (eval-stream-cdr exp env)
   (eval (list 'force (list 'cdr (cadr exp))) env))
 
+;; Ex 4.31 Selective laziness ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (param-def-parameter param-def)
+  (if (symbol? param-def)
+      param-def
+      (car param-def)))
+
+(define (param-def-style param-def)
+  (if (symbol? param-def)
+      'default
+      (cadr param-def)))
+
+(define (param-defs->params parameter-defs)
+  (map param-def-parameter parameter-defs))
+
+
 ;; Mainly unchanged from ea-text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (apply procedure arguments env)
@@ -252,9 +268,6 @@
          (error
           "Unknown procedure type -- APPLY" procedure))))
 
-(define (param-defs->params parameter-defs)
-  parameter-defs)
-
 (define (actual-value exp env)
   (force-it (eval exp env)))
 
@@ -269,11 +282,21 @@
         (else
          (if (no-parameter-defs? parameter-defs)
              (error "Too few parameter-defs"))
-         (cons (delay-it (first-operand exps) env)
-               (list-of-delayed-args
-                (rest-parameter-defs parameter-defs)
-                (rest-operands exps)
-                env)))))
+         (let* ((param-style
+                (param-def-style (first-parameter-def parameter-defs)))
+                (arg
+                 (cond ((equal? param-style 'default)
+                        (eval (first-operand exps) env))
+                       ((equal? param-style 'lazy-memo)
+                        (delay-it (first-operand exps) env))
+                       (else error "Uknown parameer style" param-style))))
+           
+           (cons
+            arg
+            (list-of-delayed-args
+             (rest-parameter-defs parameter-defs)
+             (rest-operands exps)
+             env))))))
 
 (define (delay-it exp env)
   (list 'thunk exp env))

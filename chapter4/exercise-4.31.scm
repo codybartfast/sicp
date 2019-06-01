@@ -47,5 +47,26 @@
   '()
   the-global-environment))
 
+(define program
+  '(begin
+
+          (define (p1 (x lazy-memo))
+       (set! x (cons x '(2)))
+       x)
+
+     (define (p2 (x lazy-memo))
+       (define (p (e lazy-memo))
+         e
+         x)
+       (p (set! x (cons x '(2)))))
+     
+     (println (p1 'dog))
+     (println (p2 'cat))
+
+     ))
+
+(eval program the-global-environment)
+
+
 (--end-- "4.31")
 
