@@ -37,7 +37,15 @@
 
 (-start- "4.31")
 
+(#%require "ea-data-directed-31.scm")
+(put-evaluators)
+(#%require "ea-pick-fruit-expression.scm")
 
+(check-fruit
+ (apply
+  (eval pick-fruit the-global-environment)
+  '()
+  the-global-environment))
 
 (--end-- "4.31")
 
