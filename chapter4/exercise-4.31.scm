@@ -39,30 +39,45 @@
 
 (#%require "ea-data-directed-31.scm")
 (put-evaluators)
-(#%require "ea-pick-fruit-expression.scm")
 
-(check-fruit
- (apply
-  (eval pick-fruit the-global-environment)
-  '()
-  the-global-environment))
 
 (define program
   '(begin
 
-     (define (p1 x)
-       (set! x (cons x '(2)))
-       x)
+     (define (get-greeting)
+       (println "    " "Getting greeting...")
+       "Hello, World!")
 
-     (define (p2 x)
-       (define (p (e lazy))
-         e
-         x)
-       (p (set! x (cons x '(2)))))
-     
-     (println (p1 'dog))
-     (println (p2 'cat))
+     (define (greet3 greeting)
+       (println "    " "< About to Greet >")
+       (println "    " greeting)
+       (println "    " greeting)
+       (println "    " greeting))
 
+     (define (greet3-lazy (greeting lazy))
+       (println "    " "< About to Greet >")
+       (println "    " greeting)
+       (println "    " greeting)
+       (println "    " greeting))
+
+     (define (greet3-lazy-memo (greeting lazy-memo))
+       (println "    " "< About to Greet >")
+       (println "    " greeting)
+       (println "    " greeting)
+       (println "    " greeting))
+
+     (println "
+Using strict argument:")
+     (greet3 (get-greeting))
+
+     (println "
+Using lazy-memo argument:")
+     (greet3-lazy-memo (get-greeting))
+
+     (println "
+Using lazy argument:")     
+     (greet3-lazy (get-greeting))
+      
      ))
 
 (eval program the-global-environment)

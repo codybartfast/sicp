@@ -328,7 +328,6 @@
          (let ((result (actual-value
                         (thunk-exp obj)
                         (thunk-env obj))))
-           (error "here")
            (set-car! obj 'evaluated-thunk)
            (set-car! (cdr obj) result)  ; replace exp with its value
            (set-cdr! (cdr obj) '())     ; forget unneeded env
