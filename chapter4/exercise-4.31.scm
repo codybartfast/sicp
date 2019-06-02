@@ -37,9 +37,101 @@
 
 (-start- "4.31")
 
+(println "
+Given an expression like (define (f a (b lazy) c (d lazy-memo)) I decided to
+call (b lazy) a 'parameter definition'  where b is the parameter and lazy is
+the 'parameter style'.  If no style (i.e., lazy / lazy-memo) is defined then
+the styly is considered to be 'default. So the new syntax handlers are:
+
+    (define (param-def-parameter param-def)
+      (if (symbol? param-def)
+          param-def
+          (car param-def)))
+
+    (define (param-def-style param-def)
+      (if (symbol? param-def)
+          'default
+          (cadr param-def)))
+
+    (define (param-defs->params parameter-defs)
+      (map param-def-parameter parameter-defs))
+
+    (define first-parameter-def car)
+    (define rest-parameter-defs cdr)
+
+And procedure-parameters is renamed procedure-parameter-defs
+
+    (define (procedure-parameter-defs p) (cadr  p))
+
+I renamed the existing delay-it to delay-memo-it, and created a new delay-it
+that delays without memoizing.  Delay only expressions are tagged with
+'thunk, while delay-memo expressions are tagged with 'thunk-memo
+
+    (define (delay-memo-it exp env)
+      (list 'thunk-memo exp env))
+
+    (define (thunk-memo? obj)
+      (tagged-list? obj 'thunk-memo))
+
+    (define (delay-it exp env)
+      (list 'thunk exp env))
+
+    (define (thunk? obj)
+      (tagged-list? obj 'thunk))
+
+This procedure gets an argument from an expression appropriate to the style:
+
+    (define (exp->arg parameter-def exp env)
+      (let ((param-style (param-def-style parameter-def))) 
+        (cond ((equal? param-style 'default)
+               (actual-value exp env))
+              ((equal? param-style 'lazy-memo)
+               (delay-memo-it exp env))
+              ((equal? param-style 'lazy)
+               (delay-it exp env))
+              (else error \"Unknown parameter style:\" param-style))))
+
+This is then called by list-of-delayed-args (which now only delays args that
+are explicitly marked as lazy). 
+
+    (define (list-of-delayed-args parameter-defs exps env)
+      (cond ((no-operands? exps) '())
+            (else
+             (if (no-parameter-defs? parameter-defs)
+                 (error \"Too few parameter-defs\"))
+             (cons
+              (exp->arg (first-parameter-def parameter-defs)
+                        (first-operand exps)
+                        env)
+              (list-of-delayed-args
+               (rest-parameter-defs parameter-defs)
+               (rest-operands exps)
+               env)))))
+
+As the above requires paramater definitions, apply is updated to pass them:
+
+    (define (apply procedure arguments env)
+      (cond ((primitive-procedure? procedure)
+             (apply-primitive-procedure
+              procedure
+              (list-of-arg-values arguments env)))
+            ((compound-procedure? procedure)
+             (let ((parameter-defs (procedure-parameter-defs procedure)))
+               (eval-sequence
+                (procedure-body procedure)
+                (extend-environment
+                 (param-defs->params parameter-defs)
+                 (list-of-delayed-args parameter-defs arguments  env)
+                 (procedure-environment procedure)))))
+            (else
+             (error
+              \"Unknown procedure type -- APPLY\" procedure))))
+
+Demo Code
+=========")
+
 (#%require "ea-data-directed-31.scm")
 (put-evaluators)
-
 
 (define program
   '(begin

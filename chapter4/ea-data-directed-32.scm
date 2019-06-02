@@ -1,6 +1,6 @@
 #lang sicp
 
-;; data-directed-27 with support for explicit laziness for ex 4.31.
+;; data-directed-31 updated for ex 4.32:.
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -55,7 +55,7 @@
   (put 'eval 'lambda eval-lambda)
   (put 'eval 'begin eval-begin)
   (put 'eval 'cond eval-cond)
-  
+
   (put 'eval 'and eval-and)
   (put 'eval 'or eval-or)
   (put 'eval 'let eval-let)
@@ -163,7 +163,7 @@
     (if (pair? pairs)
         (wrap-lets pairs (let-body exp))
         (make-let pairs (let-body exp)))))
-        
+
 (define (eval-let* exp env)
   (eval (let*->nested-lets exp) env))
 
@@ -192,7 +192,7 @@
              #t)
             (else (scan (cdr frame-pairs))))))
   (scan frame))
-              
+
 (define (make-unbound! var env)
   (let ((frame (first-frame env)))
     (if (not (remove-frame-var var frame))
@@ -228,7 +228,7 @@
 ;; stream-car
 (define (eval-stream-car exp env)
   (eval (cons 'car (cdr exp)) env))
-  
+
 ;; stream-cdr
 (define (eval-stream-cdr exp env)
   (eval (list 'force (list 'cdr (cadr exp))) env))
@@ -249,7 +249,7 @@
   (map param-def-parameter parameter-defs))
 
 (define (exp->arg parameter-def exp env)
-  (let ((param-style (param-def-style parameter-def))) 
+  (let ((param-style (param-def-style parameter-def)))
     (cond ((equal? param-style 'default)
            (actual-value exp env))
           ((equal? param-style 'lazy-memo)
@@ -435,7 +435,7 @@
 (define no-parameter-defs? null?)
 (define first-parameter-def car)
 (define rest-parameter-defs cdr)
-         
+
 (define (cond? exp) (tagged-list? exp 'cond))
 (define (cond-clauses exp) (cdr exp))
 (define (cond-else-clause? clause)
@@ -544,7 +544,7 @@
   (define (env-loop env)
     (if (eq? env the-empty-environment)
         #f
-        (let ((rslt (f (first-frame env))))        
+        (let ((rslt (f (first-frame env))))
           (if  rslt
                rslt
                (env-loop (enclosing-environment env))))))
@@ -567,12 +567,12 @@
               (error "Unassigned variable:" var)
               val))
         (error "Unbound variable:" var))))
- 
+
 (define (set-variable-value! var val env)
   (if (not (scan-env env
                      (lambda (frame)
                        (set-frame-val! var val frame))))
-      (error "Unbound variable -- SET!:" var)))        
+      (error "Unbound variable -- SET!:" var)))
 
 (define (define-variable! var val env)
   (let ((frame (first-frame env)))
