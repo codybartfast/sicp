@@ -248,6 +248,14 @@
 (define (param-defs->params parameter-defs)
   (map param-def-parameter parameter-defs))
 
+(define (exp->arg parameter-def exp env)
+  (let ((param-style (param-def-style parameter-def))) 
+    (cond ((equal? param-style 'default)
+           (eval exp env))
+          ((equal? param-style 'lazy-memo)
+           (delay-it exp env))
+          (else error "Unknown parameter style:" param-style))))
+
 
 ;; Mainly unchanged from ea-text ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -282,21 +290,14 @@
         (else
          (if (no-parameter-defs? parameter-defs)
              (error "Too few parameter-defs"))
-         (let* ((param-style
-                (param-def-style (first-parameter-def parameter-defs)))
-                (arg
-                 (cond ((equal? param-style 'default)
-                        (eval (first-operand exps) env))
-                       ((equal? param-style 'lazy-memo)
-                        (delay-it (first-operand exps) env))
-                       (else error "Uknown parameer style" param-style))))
-           
-           (cons
-            arg
-            (list-of-delayed-args
-             (rest-parameter-defs parameter-defs)
-             (rest-operands exps)
-             env))))))
+         (cons
+          (exp->arg (first-parameter-def parameter-defs)
+                    (first-operand exps)
+                    env)
+          (list-of-delayed-args
+           (rest-parameter-defs parameter-defs)
+           (rest-operands exps)
+           env)))))
 
 (define (delay-it exp env)
   (list 'thunk exp env))
@@ -349,8 +350,8 @@
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
         ((string? exp) true)
-        ((equal? exp 'undefined) true)     ;; extra
-        ((equal? exp '*unassigned*) true)  ;; extra
+        ((equal? exp 'undefined) true)     ; extra
+        ((equal? exp '*unassigned*) true)  ; extra
         ((boolean? exp) true)
         (else false)))
 

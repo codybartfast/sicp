@@ -50,11 +50,11 @@
 (define program
   '(begin
 
-          (define (p1 (x lazy-memo))
+     (define (p1 x)
        (set! x (cons x '(2)))
        x)
 
-     (define (p2 (x lazy-memo))
+     (define (p2 x)
        (define (p (e lazy-memo))
          e
          x)
