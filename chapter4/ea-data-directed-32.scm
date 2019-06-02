@@ -1,6 +1,6 @@
 #lang sicp
 
-;; data-directed-31 updated for ex 4.32:.
+;; data-directed-31 with cons, car and cdr removed for ex 4.32:
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -587,9 +587,9 @@
    (cons '+ +)
    (cons '- -) ;;
    (cons '> >) ;;
-   (cons 'car car)
-   (cons 'cdr cdr)
-   (cons 'cons cons)
+   ;(cons 'car car)
+   ;(cons 'cdr cdr)
+   ;(cons 'cons cons)
    (cons 'equal? equal?)
    (cons 'list list)
    (cons 'null? null?)
