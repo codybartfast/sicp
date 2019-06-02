@@ -253,6 +253,8 @@
     (cond ((equal? param-style 'default)
            (eval exp env))
           ((equal? param-style 'lazy-memo)
+           (delay-memo-it exp env))
+          ((equal? param-style 'lazy)
            (delay-it exp env))
           (else error "Unknown parameter style:" param-style))))
 
@@ -299,6 +301,12 @@
            (rest-operands exps)
            env)))))
 
+(define (delay-memo-it exp env)
+  (list 'thunk-memo exp env))
+
+(define (thunk-memo? obj)
+  (tagged-list? obj 'thunk-memo))
+
 (define (delay-it exp env)
   (list 'thunk exp env))
 
@@ -315,9 +323,12 @@
 (define (thunk-value evaluated-thunk) (cadr evaluated-thunk))
 (define (force-it obj)
   (cond ((thunk? obj)
+         (actual-value (thunk-exp obj) (thunk-env obj)))
+        ((thunk-memo? obj)
          (let ((result (actual-value
                         (thunk-exp obj)
                         (thunk-env obj))))
+           (error "here")
            (set-car! obj 'evaluated-thunk)
            (set-car! (cdr obj) result)  ; replace exp with its value
            (set-cdr! (cdr obj) '())     ; forget unneeded env

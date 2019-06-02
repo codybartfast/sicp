@@ -55,7 +55,7 @@
        x)
 
      (define (p2 x)
-       (define (p (e lazy-memo))
+       (define (p (e lazy))
          e
          x)
        (p (set! x (cons x '(2)))))
