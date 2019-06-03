@@ -160,23 +160,11 @@ The following runs too, emphasizng the ability to define y without dy:
 
      ;; Helper to call solve and display the results ;;;;;;;;;;;;;;;;;;;;;;
      (define (solve-with solve)
-       (define (reverse list)
-         (define (iter list rev-list)
-           (if (null? list)
-               rev-list
-               (iter (cdr list) (cons (car list) rev-list))))
-         (iter list '()))
-       (define (stream->list count stream)
-         (define (iter count stream list)
-           (if (equal? count 0)
-               list
-               (iter (- count 1)
-                     (stream-cdr stream)
-                     (cons (stream-car stream) list))))
-         (reverse (iter count stream '())))
-
-       (stream->list 7
-                     (solve (lambda (x) x) 1 1)))
+       (define (stream-ref s n)
+         (if (equal? n 0)
+             (stream-car s)
+             (stream-ref (stream-cdr s) (- n 1))))
+       (stream-ref (solve (lambda (x) x) 1 0.1) 10))
 
      (println "Solving with solve from exercise (internal defines):")
      (println (solve-with solve-no-scan))
