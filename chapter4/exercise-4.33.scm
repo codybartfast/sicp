@@ -23,7 +23,37 @@
 
 (-start- "4.33")
 
+(#%require "ea-data-directed-33.scm")
+(put-evaluators)
 
+
+(define program
+  '(begin
+     
+     (define (cons (x lazy-memo) (y lazy-memo))
+       (lambda (m) (m x y)))
+     (define (car z)
+       (z (lambda (p q) p)))
+     (define (cdr z)
+       (z (lambda (p q) q)))
+
+     (println (car
+      (lambda (m) (m 'a 'b))))
+
+     (println (car (cdr
+      (lambda (m) (m 'a (lambda (m) (m 'b 'c)))))))
+
+     (println (car (cdr (cdr 
+      (lambda (m) (m 'a (lambda (m) (m 'b (lambda (m) (m 'c '()))))))))))
+
+     (println (cdr (cdr (cdr 
+      (lambda (m) (m 'a (lambda (m) (m 'b (lambda (m) (m 'c '()))))))))))
+
+
+     ))
+
+(eval program the-global-environment)
 
 (--end-- "4.33")
+
 
