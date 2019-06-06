@@ -26,6 +26,24 @@
 (#%require "ea-data-directed-33.scm")
 (put-evaluators)
 
+(define (quoted-exp exp) (cadr exp))
+(define (quoted-pair? exp) (pair? (quoted-exp exp)))
+
+
+(define (eval-quotation exp env)
+  (println "------------------------------------")
+  (println "Expression: " exp)
+  (println "Q-expression: " (quoted-exp exp) ", Pair?: " (quoted-pair? exp))
+  (println "====================================")
+
+  (let ((q-exp (quoted-exp exp))
+        (q-pair? (quoted-pair? exp)))
+    (if (not q-pair?)
+        q-exp
+        q-exp)))
+   
+
+(put 'eval 'quote eval-quotation)
 
 (define program
   '(begin
@@ -37,23 +55,30 @@
      (define (cdr z)
        (z (lambda (p q) q)))
 
-     (println (car
-      (lambda (m) (m 'a 'b))))
-
-     (println (car (cdr
-      (lambda (m) (m 'a (lambda (m) (m 'b 'c)))))))
-
-     (println (car (cdr (cdr 
-      (lambda (m) (m 'a (lambda (m) (m 'b (lambda (m) (m 'c '()))))))))))
-
-     (println (cdr (cdr (cdr 
-      (lambda (m) (m 'a (lambda (m) (m 'b (lambda (m) (m 'c '()))))))))))
-
+     (println 'xyx)
+     (println '(a b c))
 
      ))
 
 (eval program the-global-environment)
 
+(define (make-quote exp)
+  (list 'quote exp))
+
+(println (eval-quotation (make-quote 'xyz) '()))
+(println (eval-quotation (make-quote '(a b c)) '()))
+
 (--end-- "4.33")
 
+;     (println (car
+;      (lambda (m) (m 'a 'b))))
+;
+;     (println (car (cdr
+;      (lambda (m) (m 'a (lambda (m) (m 'b 'c)))))))
+;
+;     (println (car (cdr (cdr 
+;      (lambda (m) (m 'a (lambda (m) (m 'b (lambda (m) (m 'c '()))))))))))
+;
+;     (println (cdr (cdr (cdr 
+;      (lambda (m) (m 'a (lambda (m) (m 'b (lambda (m) (m 'c '()))))))))))
 
