@@ -1,6 +1,6 @@
 #lang sicp
 
-;; data-directed-31 with cons, car and cdr removed for ex 4.32:
+;; data-directed-32 with most 'quote' stuff removed for ex 4.33:
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -49,7 +49,6 @@
   (define (eval-cond exp env)
     (eval (cond->if exp) env))
 
-  (put 'eval 'quote eval-quotation)
   (put 'eval 'set! eval-assignment)
   (put 'eval 'define eval-definition)
   (put 'eval 'if eval-if)
@@ -347,10 +346,6 @@
         (else (eval (first-exp exps) env)
               (eval-sequence (rest-exps exps) env))))
 
-(define (eval-quotation exp env)
-  (text-of-quotation exp))
-    
-
 (define (eval-assignment exp env)
   (set-variable-value! (assignment-variable exp)
                        (eval (assignment-value exp) env)
@@ -372,8 +367,8 @@
 
 (define (variable? exp) (symbol? exp))
 
-(define (quoted? exp)
-  (tagged-list? exp 'quote))
+;(define (quoted? exp)
+;  (tagged-list? exp 'quote))
 
 (define (text-of-quotation exp) (cadr exp))
 

@@ -26,28 +26,20 @@
 (#%require "ea-data-directed-33.scm")
 (put-evaluators)
 
-(define (quoted-exp exp) (cadr exp))
-(define (quoted-pair? exp) (pair? (quoted-exp exp)))
-
 (define (make-quote exp)
   (list 'quote exp))
 
 (define (eval-quotation exp env)
-;  (println "------------------------------------")
-;  (println "Expression: " exp)
-;  (println "Q-expression: " (quoted-exp exp) ", Pair?: " (quoted-pair? exp))
-;  (println "====================================")
-
-  (let ((q-exp (quoted-exp exp))
-        (q-pair? (quoted-pair? exp)))
-    (if (not q-pair?)
-        q-exp
-        (eval (make-lambda (list 'm)
-                           (list
-                            (list 'm
-                                  (make-quote (car q-exp))
-                                  (make-quote (cdr q-exp))))) env))))
-   
+  (let ((quoted-exp (text-of-quotation exp)))
+    (if (not (pair? quoted-exp))
+        quoted-exp
+        (eval (make-lambda
+               (list 'm)
+               (list
+                (list 'm
+                      (make-quote (car quoted-exp))
+                      (make-quote (cdr quoted-exp)))))
+              env))))
 
 (put 'eval 'quote eval-quotation)
 
@@ -57,38 +49,47 @@
      (define (cons (x lazy-memo) (y lazy-memo))
        (lambda (m) (m x y)))
      (define (car z)
-       ;(println "car!!: " z)
        (z (lambda (p q) p)))
      (define (cdr z)
        (z (lambda (p q) q)))
      (define (cadr z) (car (cdr z)))
      (define (caddr z) (car (cdr (cdr z))))
+     (define (cdddr z) (cdr (cdr (cdr z))))
 
-     (println 'xyx)
-     (println (car '(a b c)))
-     (println (cadr '(a b c)))
-     (println (caddr '(a b c)))
+;     (println 'xyx)
+;     (println (car '(a b c)))
+;     (println (cadr '(a b c)))
+;     (println (caddr '(a b c)))
+;     (println (cdddr '(a b c)))
 
      ))
 
 (eval program the-global-environment)
+;(driver-loop)
 
+(println "
+Sample Output:
+==============
 
+> (driver-loop)
 
-;(println (eval-quotation (make-quote 'xyz) '()))
-;(println (eval-quotation (make-quote '(a b c)) '()))
+;;; M-Eval input:
+'xyz
+
+;;; M-Eval value:
+xyz
+
+;;; M-Eval input:
+'(a b c)
+
+;;; M-Eval value:
+(compound-procedure (m) ((m 'a '(b c))) <procedure-env>)
+
+;;; M-Eval input:
+(car (cdr '(a b c)))
+
+;;; M-Eval value:
+b
+")
 
 (--end-- "4.33")
-
-;     (println (car
-;      (lambda (m) (m 'a 'b))))
-;
-;     (println (car (cdr
-;      (lambda (m) (m 'a (lambda (m) (m 'b 'c)))))))
-;
-;     (println (car (cdr (cdr 
-;      (lambda (m) (m 'a (lambda (m) (m 'b (lambda (m) (m 'c '()))))))))))
-;
-;     (println (cdr (cdr (cdr 
-;      (lambda (m) (m 'a (lambda (m) (m 'b (lambda (m) (m 'c '()))))))))))
-
