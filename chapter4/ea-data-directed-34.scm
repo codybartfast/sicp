@@ -585,9 +585,9 @@
    (cons '+ +)
    (cons '- -) ;;
    (cons '> >) ;;
-   ;(cons 'car car)
-   ;(cons 'cdr cdr)
-   ;(cons 'cons cons)
+   (cons 'ucar car)
+   (cons 'ucdr cdr)
+   (cons 'ucons cons)
    (cons 'equal? equal?)
    (cons 'list list)
    (cons 'null? null?)

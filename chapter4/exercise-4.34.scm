@@ -36,14 +36,14 @@
   (newline) (display string) (newline))
 
 (define (cons-proc? obj)
-  (equal? (cadr obj) '(m)))
+  (tagged-list? obj 'cons-proc))
 
 (define (user-print object)
   (cond ((compound-procedure? object)
-         (if (cons-proc? object)
-             (user-print-list object)
-             (user-print-proc object)))
-         (else (display object))))
+         (user-print-proc object))
+        ((cons-proc? object)
+         (user-print-list object))
+        (else (display object))))
 
 (define (user-print-proc object)
   (display (list 'compound-procedure
@@ -58,76 +58,86 @@
 (define (user-print-list-head object count)
   (cond ((< 0 count)
          (let ((list-car
-                (apply object '((lambda (p q) p)) the-global-environment))
+                (apply (cdr object)
+                       '((lambda (p q) p))
+                       the-global-environment))
                (list-cdr
-                (apply object '((lambda (p q) q)) the-global-environment)))
+                (apply (cdr object)
+                       '((lambda (p q) q))
+                       the-global-environment)))
            (user-print list-car)
            (cond ((pair? list-cdr)
                   (display " ")
                   (user-print-list-head list-cdr (- count 1)))
                  (else (display ")")))))           
-        (else (display "...)")))
-  )
+        (else (display "...)"))))
 
-(define (lcar z)
-  (z (lambda (p q) p)))
-(define (lcdr z)
-  (z (lambda (p q) q)))
 
 (define program
   '(begin
 
      (define (cons (x lazy-memo) (y lazy-memo))
-       (lambda (m) (m x y)))
+       (ucons 'cons-proc (lambda (m) (m x y))))
      (define (car z)
-       (z (lambda (p q) p)))
+       ((ucdr z) (lambda (p q) p)))
      (define (cdr z)
-       (z (lambda (p q) q)))
+       ((ucdr z) (lambda (p q) q)))
 
-     (define list1
-       (cons 'apple '()))
-     
-     (define list2
+     (define fruit
        (cons
         'apple
         (cons
          'banana '())))
 
-     (define list4
+     (define animals
        (cons
-        list2
+        'aardvark
         (cons
-         'banana
+         'bee
          (cons
-          'cherry
+          'cat
           (cons
            'duck '())))))
 
-     (define list8
+     (define list-of-5
        (cons
-        'apple
+        fruit
         (cons
-         'banana
+         animals
          (cons
-          'cherry
+          'minerals
           (cons
-           'duck
+           'colours
            (cons
-            'elk
-            (cons
-             'fox
-             (cons
-              'grape
-              (cons
-               'horse
-               '())))))))))
+            'emotions
+            '()))))))
 
-     (define (add2) (+ 2 0))
+     (define (add2 n) (+ 2 n))
 
      ))
 
 (eval program the-global-environment)
 
+;;  Sample Output:
+;;  ==============
+;;
+;;  ;;; M-Eval input:
+;;  'abc
+;;  
+;;  ;;; M-Eval value:
+;;  abc
+;;  
+;;  ;;; M-Eval input:
+;;  add2
+;;  
+;;  ;;; M-Eval value:
+;;  (compound-procedure (n) ((+ 2 n)) <procedure-env>)
+;;  
+;;  ;;; M-Eval input:
+;;  list-of-5
+;;  
+;;  ;;; M-Eval value:
+;;  ((apple banana) (aardvark bee cat duck) minerals colours ...)
 
 (driver-loop)
 
