@@ -35,23 +35,38 @@
 (define (announce-output string)
   (newline) (display string) (newline))
 
-;(define (user-print object)
-;  (if (compound-procedure? object)
-;      (display (list 'compound-procedure
-;                     (procedure-parameter-defs object)
-;                     (procedure-body object)
-;                     '<procedure-env>))
-;      (display object)))
+(define (cons-proc? obj)
+  (equal? (cadr obj) '(m)))
 
 (define (user-print object)
-  (if (compound-procedure? object)
-      (user-print-list object 4)
-      (display 'other)))
+  (cond ((compound-procedure? object)
+         (if (cons-proc? object)
+             (user-print-list object)
+             (user-print-proc object)))
+         (else (display object))))
 
-(define (user-print-list object count)
-  (display (apply object '((lambda (p q) p)) the-global-environment))
-  (newline)
-  (display 'done)
+(define (user-print-proc object)
+  (display (list 'compound-procedure
+                 (procedure-parameter-defs object)
+                 (procedure-body object)
+                 '<procedure-env>)))
+
+(define (user-print-list object)
+  (display "(")
+  (user-print-list-head object 4))
+
+(define (user-print-list-head object count)
+  (cond ((< 0 count)
+         (let ((list-car
+                (apply object '((lambda (p q) p)) the-global-environment))
+               (list-cdr
+                (apply object '((lambda (p q) q)) the-global-environment)))
+           (user-print list-car)
+           (cond ((pair? list-cdr)
+                  (display " ")
+                  (user-print-list-head list-cdr (- count 1)))
+                 (else (display ")")))))           
+        (else (display "...)")))
   )
 
 (define (lcar z)
@@ -73,24 +88,39 @@
        (cons 'apple '()))
      
      (define list2
-       (cons 'apple
-             (cons 'banana '())))
+       (cons
+        'apple
+        (cons
+         'banana '())))
 
      (define list4
-       (cons 'apple
-             (cons 'banana
-                   (cons 'cherry
-                         (cons 'durian '())))))
+       (cons
+        list2
+        (cons
+         'banana
+         (cons
+          'cherry
+          (cons
+           'duck '())))))
 
      (define list8
-       (cons 'apple
-             (cons 'banana
-                   (cons 'cherry
-                         (cons 'duck
-                               (cons 'elk
-                                     (cons 'fox
-                                           (cons 'grape
-                                                 (cons 'horse '())))))))))
+       (cons
+        'apple
+        (cons
+         'banana
+         (cons
+          'cherry
+          (cons
+           'duck
+           (cons
+            'elk
+            (cons
+             'fox
+             (cons
+              'grape
+              (cons
+               'horse
+               '())))))))))
 
      (define (add2) (+ 2 0))
 
