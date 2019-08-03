@@ -23,8 +23,11 @@
 ;   ------------------------------------------------------------------------
 
 (-start- "4.35")
-
-
+(println "
+(define (an-integer-between low high)
+  (require (<= low high))
+  (amb low (an-integer-between (+ low 1) high)))
+")
 
 (--end-- "4.35")
 
