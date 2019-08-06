@@ -23,6 +23,32 @@
 
 (-start- "4.36")
 
+(println "
+The 'simple' solution would probably be:
+
+  (define (a-pythagorean-triple)
+    (let ((i (an-integer-starting-from 1)))
+      (let ((j (an-integer-starting-from i)))
+        (let ((k (an-integer-starting-from j)))
+          (require (= (+ (* i i) (* j j)) (* k k)))
+          (list i j k)))))
+
+This is not an adequate solution because it will run indefinitely without
+returning a value.  Each time 'require' fails k be be incremented but i and
+j will always have the value 1.
+
+To avoid this we can reverse the let statements and use k as an upper bound
+for i and j.
+
+  (define (a-pythagorean-triple)
+    (let ((k (an-integer-starting-from 1)))
+      (let ((j (an-integer-between 1 k)))
+        (let ((i (an-integer-between 1 j)))))
+          (require (= (+ (* i i) (* j j)) (* k k)))
+          (list i j k)))))
+
+")
+
 
 
 (--end-- "4.36")
