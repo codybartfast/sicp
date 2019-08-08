@@ -16,7 +16,21 @@
 
 (-start- "4.38")
 
+(println "
+To remove the requirement that Smith and Fletcher not be adjacent we simply
+need to remove the line:
 
+    (require (not (= (abs (- smith fletcher)) 1)))
+
+Without this requirement there is a total of five solutions:
+
+  M    M    M    M    S
+  F    F    C    C    F
+  B    S    S    B    M
+  C    C    F    F    C
+  S    B    B    S    B
+
+")
 
 (--end-- "4.38")
 
