@@ -28,7 +28,11 @@
 
 (-start- "4.37")
 
-
+(println"
+He is correct.  In our exercise, for any given value of i and j, we
+ultimately test every single value of k where k >= j to see if i, j, k are a
+pythagorian triple.  Whereas with Ben's solution just performs one test for
+any given value of i,j.")
 
 (--end-- "4.37")
 
