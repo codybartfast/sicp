@@ -17,7 +17,29 @@
 
 (-start- "4.44")
 
+(define (require p)
+  (if (not p) (amb)))
 
+(define (distinct? items)
+  (cond ((null? items) true)
+        ((null? (cdr items)) true)
+        ((member (car items) (cdr items)) false)
+        (else (distinct? (cdr items)))))
+
+(define (new-queen col)
+  (cons col (amb 1 2 3 4 5 6 7 8)))
+
+(define (8queens)
+  (define (iter queens)
+    (require (distinct? (map cdr queens)))
+    (require (distinct? (map (lambda (q) (- (car q) (cdr q))) queens)))
+    (require (distinct? (map (lambda (q) (+ (car q) (cdr q))) queens)))
+    (if (= 8 (length queens))
+        queens
+        (iter (cons (new-queen (+ 1 (length queens))) queens))))
+  (iter '()))
+        
+(8queens)
 
 (--end-- "4.44")
 
