@@ -30,7 +30,68 @@
 
 (-start- "4.43")
 
+(define (require p)
+  (if (not p) (amb)))            
 
+(define (distinct? items)
+  (cond ((null? items) true)
+        ((null? (cdr items)) true)
+        ((member (car items) (cdr items)) false)
+        (else (distinct? (cdr items)))))
+
+(define (daughters-and-yachts)
+  (define mary 'mary)
+  (define gabrielle 'gabrielle)
+  (define lorna 'lorna)
+  (define rosalind 'rosalind)
+  (define melissa 'melissa)
+  
+  (let ((moore (amb mary gabrielle lorna rosalind melissa))
+        (downing (amb mary gabrielle lorna rosalind melissa))
+        (hall (amb mary gabrielle lorna rosalind melissa))
+        (barnacle (amb mary gabrielle lorna rosalind melissa))
+        (parker (amb mary gabrielle lorna rosalind melissa))
+        (moore-yacht (amb mary gabrielle lorna rosalind melissa))
+        (downing-yacht (amb mary gabrielle lorna rosalind melissa))
+        (hall-yacht (amb mary gabrielle lorna rosalind melissa))
+        (barnacle-yacht (amb mary gabrielle lorna rosalind melissa))
+        (parker-yacht (amb mary gabrielle lorna rosalind melissa)))
+
+    (require (distinct? (list moore downing hall barnacle parker)))
+    (require (distinct? (list moore-yacht downing-yacht
+                              hall-yacht barnacle-yacht parker-yacht)))
+    
+    (require (not (equal? moore moore-yacht)))
+    (require (not (equal? downing downing-yacht)))
+    (require (not (equal? hall hall-yacht)))
+    (require (not (equal? barnacle barnacle-yacht)))
+    (require (not (equal? parker parker-yacht)))
+    
+    (require (equal? moore mary))
+    (require (equal? barnacle-yacht gabrielle))
+    (require (equal? moore-yacht lorna))
+    (require (equal? hall-yacht rosalind))
+    (require (equal? downing-yacht melissa))
+    (require (equal? barnacle melissa))
+    (require (or (and (equal? moore gabrielle)
+                      (equal? moore-yacht parker))
+                 (and (equal? downing gabrielle)
+                      (equal? downing-yacht parker))
+                 (and (equal? hall gabrielle)
+                      (equal? hall-yacht parker))
+                 (and (equal? barnacle gabrielle)
+                      (equal? barnacle-yacht parker))
+                 (and (equal? parker gabrielle)
+                      (equal? parker-yacht parker))))
+    (println (list (list 'moore moore moore-yacht)
+          (list 'downing downing downing-yacht)
+          (list 'hall hall hall-yacht)
+          (list 'barnacle barnacle barnacle-yacht)
+          (list 'parker parker parker-yacht)))
+    (amb)))
+
+ (daughters-and-yachts)
+    
 
 (--end-- "4.43")
 
