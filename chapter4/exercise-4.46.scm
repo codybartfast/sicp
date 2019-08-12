@@ -19,7 +19,30 @@
 
 (-start- "4.46")
 
+(println "
+I currently can't see any reason why it wouldn't work.  I've tried changing
+the order of the operands to amb, so that they get evaluated in a different
+order, and it still produces a valid result.
 
+My best guess it has an undesirable affect on back tracking.  Perhaps having
+amb fail when enumerating the values of an outer amb causes stops its peers
+being used.  e.g.: suppose evaluating operands right-to-left and the second
+maybe-extend fails, then perhaps that causes an amb higher up the tree to
+advance preventing noun-phrase being returned.
 
+  (define (maybe-extend noun-phrase)
+    (amb noun-phrase
+         (maybe-extend (...
+
+My read the question as referring to the order that the operands to amb are
+evaluated.  Clearly if the operands to:
+
+  (list 'sentence
+         (parse-noun-phrase)
+         (parse-verb-phrase))
+
+were evaluated right-to-left then you've got problems as parse-verb-phrase
+would fail if it's called before parse-noun-phrase.
+")
 (--end-- "4.46")
 
