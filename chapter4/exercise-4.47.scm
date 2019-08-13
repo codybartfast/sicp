@@ -26,7 +26,19 @@
 
 (-start- "4.47")
 
+(println "
+No it won't work.  It results in infinite recursion.  When parse-verb-phrase
+is evaluated in the second branch it is effectively the same as when it is
+evaluated in the first branch because *unparsed* is exactly the same.  So if
+the second branch is taken on the first call parse-verb-phrase then it will
+be taken on every subsequent call to parse-verb-phrase.
 
+If the operands are reordered then, essentially, the same thing happens,
+except the recursion happens on the first branch.
+
+This doesn't happen with the original code because the verb is removed from
+*unused* before calling amb.
+")
 
 (--end-- "4.47")
 
