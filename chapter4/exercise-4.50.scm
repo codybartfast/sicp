@@ -17,7 +17,19 @@
 
 (-start- "4.50")
 
+(#%require "ea-analyzing-50.scm")
+(#%require "ea-pick-fruit-expression.scm")
 
+(put-evaluators)
+
+(println "Checking with data-directed eval:")
+(check-fruit
+ (apply (eval
+         pick-fruit
+         the-global-environment)
+        '()))
+
+(println "")
 
 (--end-- "4.50")
 
