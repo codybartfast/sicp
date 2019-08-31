@@ -96,7 +96,7 @@
 (define (analyze-variable exp)
   (lambda (env succeed fail)
     (succeed (lookup-variable-value exp env)
-    fail)))
+             fail)))
 
 (define (analyze-definition exp)
   (let ((var (definition-variable exp))
@@ -127,7 +127,7 @@
 
 (define (analyze-application exp)
   (let ((fproc (analyze (operator exp)))
-        (aprocs (map analyze (operands exp))))    
+        (aprocs (map analyze (operands exp))))
     (lambda (env succeed fail)
       (fproc env
              (lambda (proc fail2)
@@ -143,7 +143,7 @@
   (if (null? aprocs)
       (succeed '() fail)
       ((car aprocs) env
-                    ;; success continuatin for this aproc
+                    ;; success continuation for this aproc
                     (lambda (arg fail2)
                       (get-args (cdr aprocs)
                                 env
@@ -153,7 +153,7 @@
                                   (succeed (cons arg args)
                                            fail3))
                                 fail2))
-                      fail)))
+                    fail)))
 
 (define (execute-application proc args succeed fail)
   (cond ((primitive-procedure? proc)
@@ -181,14 +181,14 @@
                            succeed
                            (lambda ()
                              (try-next (cdr choices))))))
-    (try-next cprocs))))
+      (try-next cprocs))))
 
 (define (analyze-lambda exp)
   (let ((vars (lambda-parameters exp))
         (bproc (analyze-sequence (lambda-body exp))))
-     (lambda (env succeed fail)
-       (succeed (make-procedure vars bproc env)
-                fail))))
+    (lambda (env succeed fail)
+      (succeed (make-procedure vars bproc env)
+               fail))))
 
 (define (analyze-if exp)
   (let ((pproc (analyze (if-predicate exp)))
@@ -212,7 +212,7 @@
          ;; success continuation for calling a
          (lambda (a-value fail2)
            (b env succeed fail2))
-         ;; failure coninuation for calling a
+         ;; failure continuation for calling a
          fail)))
   (define (loop first-proc rest-procs)
     (if (null? rest-procs)
