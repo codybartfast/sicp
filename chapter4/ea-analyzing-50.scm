@@ -4,7 +4,7 @@
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define debug false)
+(define debug true)
 
 (define (log . parts)
   (if debug
@@ -34,6 +34,7 @@
     (else
      (if (pair? exp)
          (let ((analyzer (get 'analyze (expression-type exp))))
+           (log exp)
            (if analyzer
                (analyzer exp)
                (analyze-application exp)))
@@ -126,7 +127,7 @@
 
 (define (analyze-application exp)
   (let ((fproc (analyze (operator exp)))
-        (aprocs (map analyze (operands exp))))
+        (aprocs (map analyze (operands exp))))    
     (lambda (env succeed fail)
       (fproc env
              (lambda (proc fail2)
@@ -194,16 +195,15 @@
         (cproc (analyze (if-consequent exp)))
         (aproc (analyze (if-alternative exp))))
     (lambda (env succeed fail)
-      ;; success continuation for evaluating the predicate
-      ;; to obtain pred-value
-      (lambda (pred-value fail2)
-        (if (true? pred-value)
-            (cproc env succeed fail2)
-            (aproc env succeed fail2)))
-      ;; failure continuation for evaluating the predicate
-      (if (true? (pproc env))
-          (cproc env)
-          (aproc env)))))
+      (pproc env
+             ;; success continuation for evaluating the predicate
+             ;; to obtain pred-value
+             (lambda (pred-value fail2)
+               (if (true? pred-value)
+                   (cproc env succeed fail2)
+                   (aproc env succeed fail2)))
+             ;; failure continuation for evaluating the predicate
+             fail))))
 
 (define (analyze-sequence exps)
   (define (sequentially a b)
@@ -617,6 +617,7 @@
    (cons 'square (lambda (x) (* x x)))
    (cons 'println writeln)
    (cons '= =)
+   (cons 'not not)
    (cons 'remainder remainder)
    ))
 
