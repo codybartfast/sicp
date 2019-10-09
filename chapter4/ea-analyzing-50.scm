@@ -20,7 +20,7 @@
 (#%require "ea-analyzers.scm")
 
 (define (eval exp env)
-  ((analyze exp) env))
+  (ambeval exp env (lambda (exp fail) exp) (lambda () 'eval-fail)))
 
 (define expression-type car)
 

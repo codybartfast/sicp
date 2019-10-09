@@ -24,10 +24,9 @@
 
 (println "Checking with data-directed eval:")
 (check-fruit
- (apply (eval
-         pick-fruit
-         the-global-environment)
-        '()))
+ (eval (cons 'begin
+         pick-fruit-body)
+         the-global-environment))
 
 (println "")
 

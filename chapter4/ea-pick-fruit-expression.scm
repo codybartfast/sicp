@@ -8,8 +8,8 @@
 
 (#%require "ea-text.scm")
 
-(define pick-fruit
-  '(lambda ()
+(define pick-fruit-body
+  '(
      (define trace '())
      (define (get-apple)
        (set! trace (cons "'getting apple'" trace))
@@ -25,6 +25,10 @@
        (first-or-second get-apple get-cherry 'first)
        (first-or-second get-apple get-cherry 'not-first))
       trace)))
+
+(define pick-fruit
+  (cons 'lambda
+        (cons '() pick-fruit-body)))
    
 (define (check-fruit result)
   (define fruit (car result))
@@ -52,4 +56,5 @@
 
 (#%provide
  pick-fruit
+ pick-fruit-body
  check-fruit)
