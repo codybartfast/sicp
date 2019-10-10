@@ -63,6 +63,7 @@
   (put 'analyze 'stream-car analyze-stream-car)
   (put 'analyze 'stream-cdr analyze-stream-cdr)
   (put 'analyze 'amb analyze-amb)
+  (put 'analyze 'ramb analyze-ramb)
   )
 
 ;; Added for amb
@@ -82,6 +83,32 @@
    the-global-environment
    (lambda (exp fail) exp)
    (lambda () 'eval-fail)))
+
+;; Ex 4.50 ramb ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (make-amb choices)
+  (cons 'amb choices))
+
+(define (randomize-list list)
+  (define (remove item list)
+    (define (iter source target)
+      (if (null? source)
+          target
+          (let ((head (car source)))
+            (if (equal? head item)
+                (iter (cdr source) target)
+                (iter (cdr source) (cons head target))))))
+    (iter list '()))
+  (define (iter source target)
+    (if (null? source)
+        target
+        (let ((chosen (list-ref source (random (length source)))))
+          (iter (remove chosen source) (cons chosen target)))))
+  (iter list '()))
+
+(define (analyze-ramb exp)
+  (analyze
+   (make-amb (randomize-list (amb-choices exp)))))
 
 
 ;; Add 'apply' as an alias for 'execute-application' so that previous
@@ -628,6 +655,10 @@
    (cons '= =)
    (cons 'not not)
    (cons 'remainder remainder)
+   (cons 'memq memq)
+   (cons 'list-ref list-ref)
+   (cons 'random random)
+   (cons 'length length)
    ))
 
 (define primitive-procedure-names
