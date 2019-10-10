@@ -4,7 +4,7 @@
 
 ;; 'Logging' for debug use ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define debug true)
+(define debug false)
 
 (define (log . parts)
   (if debug
@@ -18,9 +18,6 @@
 
 (#%require "ea-underlying-apply.scm")
 (#%require "ea-analyzers.scm")
-
-(define (eval exp env)
-  (ambeval exp env (lambda (exp fail) exp) (lambda () 'eval-fail)))
 
 (define expression-type car)
 
@@ -74,6 +71,18 @@
 
 (define (ambeval exp env succeed fail)
   ((analyze exp) env succeed fail))
+
+(define (require p)
+  (if (not p) (amb)))
+
+;; convenience wrapper for ambeval
+(define (eval exp)
+  (ambeval
+   exp
+   the-global-environment
+   (lambda (exp fail) exp)
+   (lambda () 'eval-fail)))
+
 
 ;; Add 'apply' as an alias for 'execute-application' so that previous
 ;; exercises don't neeed to be modified to be used with this implementation.

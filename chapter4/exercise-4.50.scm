@@ -25,10 +25,29 @@
 (println "Checking with data-directed eval:")
 (check-fruit
  (eval (cons 'begin
-         pick-fruit-body)
-         the-global-environment))
+         pick-fruit-body)))
 
-(println "")
+(println "
+======================================
+")
+
+(define simple-prog
+  '(begin
+
+     (define (require p)
+       (if (not p) (amb)))
+
+     (let ((x (amb 1 2 3 4)))
+       (require (= x 3))
+       (println x))
+
+     ))
+
+(eval simple-prog)
+
+(println "
+======================================
+")
+
 
 (--end-- "4.50")
-
