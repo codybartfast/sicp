@@ -17,38 +17,64 @@
 
 (-start- "4.50")
 
+(println "
+I believe Alyssa's problem can be restated as saying that all the generated
+sentences have the same structure, ramb can be used to find sentences with
+different structures.
+
+ramb can be implemented with:
+
+  (define (analyze-ramb exp)
+    (analyze
+     (make-amb (randomize-list (amb-choices exp)))))
+
+Then, by changing 'amb' to 'ramb' in the parsing code we will attempt to
+match extended expresions for verb and noun phrases half the time instead of
+always attempting to just match a shorter phrase first.
+
+i.e.:
+
+  (define (maybe-extend noun-phrase)
+    (ramb noun-phrase
+          (maybe-extend (...
+
+and
+
+  (define (maybe-extend noun-phrase)
+    (ramb noun-phrase
+          (maybe-extend (...
+
+This gives us sentences with this structure:
+
+  (sentence
+   (noun-phrase
+    (simple-noun-phrase (article the) (noun professor))
+    (prep-phrase
+     (prep with)
+     (noun-phrase
+      (simple-noun-phrase (article a) (noun cat))
+      (prep-phrase
+       (prep in)
+       (noun-phrase
+        (simple-noun-phrase (article a) (noun student))
+        (prep-phrase (prep for) (simple-noun-phrase (article a) (noun cl ...
+   (verb studies))
+
+As well as the previous structure:
+
+  (sentence
+   (simple-noun-phrase (article the) (noun student))
+   (verb-phrase
+    (verb-phrase
+     (verb-phrase (verb studies) (prep-phrase (prep by) (simple-noun-phr ...
+     (prep-phrase (prep with) (simple-noun-phrase (article the) (noun pr ...
+    (prep-phrase (prep in) (simple-noun-phrase (article a) (noun profess ...
+
+Demo:
+")
+
 (#%require "ea-analyzing-50.scm")
-(#%require "ea-pick-fruit-expression.scm")
-
 (put-evaluators)
-
-(println "Checking with data-directed eval:")
-(check-fruit
- (eval (cons 'begin
-             pick-fruit-body)))
-
-(println "
-======================================
-")
-
-(define simple-prog
-  '(begin
-
-     (define (require p)
-       (if (not p) (amb)))
-
-     (let ((x (amb 1 2 3 4)))
-       (require (= x 3))
-       (println x))
-
-     ))
-
-(eval simple-prog)
-
-(println "
-======================================
-")
-
 
 (define word-prog
   '(begin
@@ -117,7 +143,5 @@
 
 (eval word-prog)
 
-(println "
-======================================
-")
+
 (--end-- "4.50")
