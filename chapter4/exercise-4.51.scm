@@ -34,6 +34,56 @@
 
 (-start- "4.51")
 
+(println "
+permanent-set! can be implement thus:
+
+  (define (analyze-permanent-assignment exp)
+    (let ((var (assignment-variable exp))
+          (vproc (analyze (assignment-value exp))))
+      (lambda (env succeed fail)
+        (vproc env
+               (lambda (val fail2)        ; *1*
+                 (set-variable-value! var val env)
+                 (succeed 'ok fail2))
+               fail))))
+
+This is the existing set! implementation with the code removed that stores
+and re-assigns the existing value.  Sample output:
+
+  ;;; Amb-Eval input:
+
+  ;;; Starting a new problem 
+  ;;; Amb-Eval value:
+  (a b 2)
+
+  ;;; Amb-Eval input:
+
+  ;;; Amb-Eval value:
+  (a c 3)
+
+With regular set!, count is always 1.")
+
+(#%require "ea-analyzing-50.scm")
+(put-evaluators)
+
+#| paste the following into driver loop to demonstrate
+ 
+ (define (require p) (if (not p) (amb)))
+ (define (an-element-of items)
+   (require (not (null? items)))
+   (amb (car items) (an-element-of (cdr items))))
+
+ (define count 0)
+ (let ((x (an-element-of '(a b c)))
+       (y (an-element-of '(a b c))))
+   (permanent-set! count (+ count 1))
+   (require (not (equal? x y)))
+   (list x y count))
+ try-again
+
+ |#
+     
+(driver-loop)
 
 
 (--end-- "4.51")

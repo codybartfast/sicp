@@ -44,6 +44,7 @@
     (analyze (cond->if exp)))
 
   (put 'analyze 'set! analyze-assignment)
+  (put 'analyze 'permanent-set! analyze-permanent-assignment)
   (put 'analyze 'define analyze-definition)
   (put 'analyze 'if analyze-if)
   (put 'analyze 'lambda analyze-lambda)
@@ -72,9 +73,6 @@
 
 (define (ambeval exp env succeed fail)
   ((analyze exp) env succeed fail))
-
-(define (require p)
-  (if (not p) (amb)))
 
 ;; convenience wrapper for ambeval
 (define (eval exp)
@@ -159,6 +157,16 @@
                                                  old-value
                                                  env)
                             (fail2)))))
+             fail))))
+
+(define (analyze-permanent-assignment exp)
+  (let ((var (assignment-variable exp))
+        (vproc (analyze (assignment-value exp))))
+    (lambda (env succeed fail)
+      (vproc env
+             (lambda (val fail2)        ; *1*
+               (set-variable-value! var val env)
+               (succeed 'ok fail2))
              fail))))
 
 (define (analyze-application exp)
