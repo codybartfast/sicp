@@ -65,6 +65,7 @@
   (put 'analyze 'stream-cdr analyze-stream-cdr)
   (put 'analyze 'amb analyze-amb)
   (put 'analyze 'ramb analyze-ramb)
+  (put 'analyze 'if-fail analyze-if-fail)
   )
 
 ;; Added for amb
@@ -108,6 +109,15 @@
   (analyze
    (make-amb (randomize-list (amb-choices exp)))))
 
+
+;; Ex 4.51 if-fail ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (analyze-if-fail exp)
+  (let ((vproc (analyze (cadr exp)))
+        (fproc (analyze (caddr exp))))
+    (lambda (env succeed fail)
+      (vproc env succeed
+             (lambda () (fproc env succeed fail))))))
 
 ;; Add 'apply' as an alias for 'execute-application' so that previous
 ;; exercises don't neeed to be modified to be used with this implementation.
