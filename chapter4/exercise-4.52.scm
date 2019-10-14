@@ -36,14 +36,16 @@
 (-start- "4.52")
 
 (println "
-if-fail can be implemented thus:
+if-fail:
+
+  (define try-expr cadr)
+  (define fail-expr caddr)
 
   (define (analyze-if-fail exp)
-    (let ((vproc (analyze (cadr exp)))   ;; proc for main expression
-          (fproc (analyze (caddr exp)))) ;; proc for failure expression
+    (let ((tproc (analyze (try-expr exp)))
+          (fproc (analyze (fail-expr exp))))
       (lambda (env succeed fail)
-        (vproc env succeed
-               (lambda () (fproc env succeed fail))))))
+        (tproc env succeed (lambda () (fproc env succeed fail))))))
 
 Sample output:
 
@@ -81,6 +83,7 @@ Sample output:
              (require (even? x))
              x)
            'all-odd)
+
 
 |#
      

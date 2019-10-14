@@ -35,7 +35,7 @@
 (-start- "4.51")
 
 (println "
-permanent-set! can be implement thus:
+permanent-set!:
 
   (define (analyze-permanent-assignment exp)
     (let ((var (assignment-variable exp))

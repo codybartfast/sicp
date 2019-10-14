@@ -128,12 +128,13 @@
 
 ;; Ex 4.51 if-fail ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define try-expr cadr)
+(define fail-expr caddr)
 (define (analyze-if-fail exp)
-  (let ((vproc (analyze (cadr exp)))
-        (fproc (analyze (caddr exp))))
+  (let ((tproc (analyze (try-expr exp)))
+        (fproc (analyze (fail-expr exp))))
     (lambda (env succeed fail)
-      (vproc env succeed
-             (lambda () (fproc env succeed fail))))))
+      (tproc env succeed (lambda () (fproc env succeed fail))))))
 
 ;; Add 'apply' as an alias for 'execute-application' so that previous
 ;; exercises don't neeed to be modified to be used with this implementation.
