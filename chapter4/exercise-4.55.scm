@@ -21,7 +21,11 @@
 
 (-start- "4.55")
 
-
+(println "
+    a. (supervisor ?person (Bitdiddle Ben))
+    b. (job ?person (accounting . ?title))
+    c. (address ?person (Slumerville . ?street-address))
+")
 
 (--end-- "4.55")
 
