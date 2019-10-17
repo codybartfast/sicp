@@ -22,7 +22,22 @@
 
 (-start- "4.57")
 
+(println "
+(rule (can-replace ?person-a ?person-b)
+      (and (job ?person-a ?title-a)
+           (job ?person-b ?title-b)
+           (not (same ?person-a ?person-b))
+           (or (same ?title-a ?title-b)
+               (can-do-job ?title-a ?title-b))))
 
+    a. (can-replace ?replacing (Fect Cy D))
+
+    b. (and (can-replace ?person-a ?person-b)
+            (salary ?person-a ?salary-a)
+            (salary ?person-b ?salary-b)
+            (lisp-value < ?salary-a ?salary-b))
+               
+")             
 
 (--end-- "4.57")
 
