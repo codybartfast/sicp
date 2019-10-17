@@ -23,7 +23,19 @@
 
 (-start- "4.56")
 
+(println "
+    a. (and (supervisor ?person (Bitdiddle Ben))
+            (address . ?tail))
 
+    b. (and (salary ?person ?amount)
+            (salary (Bitdiddle Ben) ?ben-amount)
+            (lisp-value < ?amount ?ben-amount))
+
+    c. (and (supervisor ?person ?boss)
+            (not (job ?boss (computer . ?tail)))
+            (job ?boss ?tail))
+
+")
 
 (--end-- "4.56")
 
