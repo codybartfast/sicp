@@ -16,7 +16,28 @@
 
 (-start- "4.58")
 
+(println "
 
+(rule (bigshot ?shot ?division)
+      (and (job ?shot (?division . ?shot-tail))    
+           (not (and (supervisor ?shot ?boss)          
+                     (job ?boss (?boss-div . ?boss-tail))
+                     (same ?division ?boss-div)))))
+
+-tbc- differs in structure from scheme-wiki
+-tbc- differs in results from wizzardbook ??
+-tbc- alternate implemtation:
+
+(rule (boss-same-division ?shot)
+      (and (supervisor ?shot ?boss)          
+           (job ?boss (?boss-div . ?boss-tail))
+           (same ?division ?boss-div)))
+
+(rule (bigshot ?shot ?division)
+      (and (job ?shot (?division .? tail))
+           (not (boss-same-division ?shot))))
+
+")
 
 (--end-- "4.58")
 
