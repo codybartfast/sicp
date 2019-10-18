@@ -31,7 +31,20 @@
 
 (-start- "4.60")
 
+(println
+ "
+In a mathematical sense this is right.  If A is near B then B is near A.  So
+both are valid solutions.  It is returning valid permutations when we only
+want combinations.
 
+We could choose one permutaion of the elements (people) if the elements can
+be ordered. Then we can require that the elements satisfy that ordering.
+E.g., we could require that the people in a pair be ordered alphabetically.
+Something like:
+
+  (and (lives-near ?person-1 ?person-2)
+       (lisp-value less-than ?person-1 ?person-2))
+")
 
 (--end-- "4.60")
 
