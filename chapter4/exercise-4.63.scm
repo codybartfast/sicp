@@ -34,7 +34,25 @@
 
 (-start- "4.63")
 
+(println
+ "
+  (rule (grandson ?g ?s)
+        (and (son ?f ?s)
+             (son ?g ?f)))
+  
+  (rule (son ?s ?m)
+        (and (son ?w ?s)
+             (wife ?m ?w)))
+  
+  (grandson Cain ?gs)
+  (son Lamech ?s)
+  (grandson Methushael ?gs)
 
+-tbc- need to understand what happens when we define two rules with same
+      name, do both co-exist?  do they need different signatures?  does the
+      'son' rule above augment the existing son rule?
+
+")
 
 (--end-- "4.63")
 
