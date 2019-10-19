@@ -19,6 +19,16 @@
 
 (-start- "4.62")
 
+(println
+ "
+    (rule (last-pair (?x) (?x)))
+
+    (rule (last-pair (?u . ?v) (?x))
+          (last-pair ?v (?x)))
+
+-tbc- run the queries
+-tbc- works for (last-pair ?x (3)) ?
+")
 
 
 (--end-- "4.62")
