@@ -30,7 +30,18 @@
 
 (-start- "4.64")
 
+(println
+ "
+The evaluator will initially try the data against the first simple query
+(supervisor ...) and will find a match with:
 
+    (supervisor (Bitdiddle Ben) (Warbucks Oliver))
+
+However, when evaluating or's second query (and (...) (...)) we have 
+infinite recursion.  The first datum (which isn't the result above) causes
+'and' to be evaluated which causes outranked-by to be evaluated which causes
+'and' to be evaluated ...
+")
 
 (--end-- "4.64")
 
