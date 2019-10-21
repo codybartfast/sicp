@@ -30,7 +30,12 @@
 
 (-start- "4.65")
 
-
+(println
+ "
+Because Ben supervises three people there are three matches that satisfy the
+'wheel' rule with Oliver as ?person and Ben as ?middle-manager.  The fourth
+has Cratchet as ?x, and Scrooge as ?middle-manager.
+")
 
 (--end-- "4.65")
 
