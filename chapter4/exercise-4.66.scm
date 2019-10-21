@@ -40,7 +40,53 @@
 
 (-start- "4.66")
 
+(println
+ "
+Ben has realized that there may be multiple query results that are
+identical.  The query to find the salary of all computer programmers will
+work, as the <query pattern> will only return each computer programmer just
+once.  However, if a similar query were run to find the salary of all wheels
+then it would return the wrong value as Oliver would be returned four times
+and his salary would be counted four time.
 
+A general method for salvaging the situation is probably the use of a unique
+or distinct function to remove duplicates from the result of the querry
+pattern.  E.g., uniqueness would reduce:
 
+  (wheel (Warbucks Oliver))
+  (wheel (Bitdiddle Ben))
+  (wheel (Warbucks Oliver))
+  (wheel (Warbucks Oliver))
+  (wheel (Warbucks Oliver))
+
+to:
+
+  (wheel (Warbucks Oliver))
+  (wheel (Bitdiddle Ben))
+
+This would give us the correct number of wheels (if we accumulatd with
+count).  If we want the salary to be correct then we would futher require
+that the ?amount be included in the result, and that only ?amount values in
+the result are fed to the accumulator (I.e. only regard values after removal
+of duplicates).
+
+But having values like this in the result and then requiring uniqueness
+creates another issue.  Imagine we doing an accumulation of loc (lines of
+code) written by middle managers.  Then
+
+  (loc (Bitdiddle Ben) 1024)
+
+and 
+
+  (loc (Bitdiddle Ben) 1025)
+
+might be returned if Ben's record were updated while the query was running.
+This might result in 2049 loc being accumulated for Ben's work.  Fortunately
+we can rely on middle management never to allow skewed statistics that
+create an artificially high impression of their contribution.
+
+But just in case, we might want to specify which 'fields' of a result should
+be looked at when considering uniqueness.
+")
 (--end-- "4.66")
 
