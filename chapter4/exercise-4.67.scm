@@ -24,7 +24,25 @@
 
 (-start- "4.67")
 
+(println
+ "
+I think the history could be an 'identity' for the a query and the value of
+the frame passed to that query.  Then, before evaluating a query, we can
+check if the query is already in the history, and if it is, check if the
+historic fame is the same as the current frame.
 
+If evaluating a query with a given frame results in the same query and frame
+being evaluated again then we will have infinite loop.  However it is normal
+for the same query to be nested in itself (but with an updated frame).
+
+As for the 'identity' of the query to use in the history, I suspect using
+the query object itself is probably best 'key' for the history table.  I.e.
+use 'eq?' for object equality.
+
+I don't know enought about how we're going to implement things yet, but I'm
+assuming the history can be passed around like the environment in a regular
+scheme interpretor.
+")
 
 (--end-- "4.67")
 
