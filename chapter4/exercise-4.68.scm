@@ -18,7 +18,13 @@
 
 (-start- "4.68")
 
-
-
+(println
+ "
+  (rule (reverse '() '()))
+  (rule (reverse (?a . ?b) ?x)
+        (and
+         (append-to-form ?c (?a) ?x)
+         (reverse ?b ?c)))
+")  
 (--end-- "4.68")
 
