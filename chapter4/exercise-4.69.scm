@@ -25,7 +25,19 @@
 
 (-start- "4.69")
 
+(println
+ "
+  (rule ((great . ?rel) ?x ?y)
+        (or
+         (and (same ?rel grandson)
+              (grandson ?f ?y)
+              (son ?x ?f))
+         (and (same ?rel (great . ?rest))
+              (?rel ?f y)
+              (son ?x ?f))))
 
+  -tbc-- verify works
+") 
 
 (--end-- "4.69")
 
