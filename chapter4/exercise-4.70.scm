@@ -24,7 +24,17 @@
 
 (-start- "4.70")
 
+(println
+ "
+As described in 3.5.2 (cons-stream assertion THE-ASSERTIONS) is equivalent
+to:
 
+  (cons assertion (delay THE-ASSERTIONS))
+
+so THE-ASSERTIONS above will not be evaluated until after set! is completed
+and so THE-ASSERTIONS will refer to the statement above.  This will result
+in an infinite stream of the same same item, the 'assertion'.
+")
 
 (--end-- "4.70")
 
