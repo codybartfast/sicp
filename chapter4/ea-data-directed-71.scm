@@ -655,5 +655,4 @@
       (display object)))
 
 
-(#%provide (all-defined)
-           put)
+(#%provide (all-defined))
