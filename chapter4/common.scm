@@ -17,8 +17,12 @@
 
 (#%require (only racket time))
 
+(define (ignore . whatever)
+  (display ""))
+
 (#%provide
  println
  -start-
  --end--
- time)
+ time
+ ignore)

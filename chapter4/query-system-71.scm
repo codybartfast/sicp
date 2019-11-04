@@ -7,11 +7,15 @@
 
 ;; 4.4.4.1  The Driver Loop and Instantiation
 
+;(define (handle-input input)
+  
+
 (define input-prompt ";;; Query input:")
 (define output-prompt ";;; Query results:")
 (define (query-driver-loop)
   (prompt-for-input input-prompt)
-  (let ((q (query-syntax-process (read))))
+  (let* ((input (read))
+         (q (query-syntax-process input)))
     (cond ((assertion-to-be-added? q)
            (add-rule-or-assertion! (add-assertion-body q))
            (newline)
@@ -402,7 +406,7 @@
   (cons (make-binding variable value) frame))
 
 
-;; Other
+;; Supporting
 
 (define user-initial-environment the-global-environment)
 
@@ -437,3 +441,6 @@
       'done
       (begin (proc (stream-car s))
              (stream-for-each proc (stream-cdr s)))))
+
+(#%provide (all-defined))
+

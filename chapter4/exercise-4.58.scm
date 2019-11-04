@@ -16,28 +16,48 @@
 
 (-start- "4.58")
 
-(println "
+(println
+ "
+Rule:
 
-(rule (bigshot ?shot ?division)
-      (and (job ?shot (?division . ?shot-tail))    
-           (not (and (supervisor ?shot ?boss)          
-                     (job ?boss (?boss-div . ?boss-tail))
-                     (same ?division ?boss-div)))))
+ (assert! (rule (bigshot ?bshot ?division)
+                (and (job ?bshot (?division . ?bshot-rest))    
+                     (not (and (supervisor ?bshot ?boss)          
+                               (job ?boss (?division . ?boss-rest)))))))
 
--tbc- differs in structure from scheme-wiki
--tbc- differs in results from wizzardbook ??
--tbc- alternate implemtation:
+roduces:
 
-(rule (boss-same-division ?shot)
-      (and (supervisor ?shot ?boss)          
-           (job ?boss (?boss-div . ?boss-tail))
-           (same ?division ?boss-div)))
+ ;;; Query results:
+ (bigshot (Scrooge Eben) accounting)
+ (bigshot (Warbucks Oliver) administration)
+ (bigshot (Bitdiddle Ben) computer)
 
-(rule (bigshot ?shot ?division)
-      (and (job ?shot (?division .? tail))
-           (not (boss-same-division ?shot))))
-
+Using query system from section 4.4.4
+=====================================
+Paste the following in the prompt:
 ")
+
+(define extra-data
+  '(
+
+    (assert!
+     (rule (bigshot ?bshot ?division)
+           (and (job ?bshot (?division . ?bshot-rest))    
+                (not (and (supervisor ?bshot ?boss)          
+                          (job ?boss (?division . ?boss-rest)))))))
+    ))
+
+(#%require "query-system-71.scm")
+(#%require "query-microshaft.scm")
+
+(ignore (map println microshaft))
+(println)
+(ignore (map println extra-data))
+(println)
+(println "(bigshot ?a ?b)")
+
+(query-driver-loop)
+
 
 (--end-- "4.58")
 
