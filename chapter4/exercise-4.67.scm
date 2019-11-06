@@ -41,7 +41,7 @@ use 'eq?' for object equality.
 
 I don't know enought about how we're going to implement things yet, but I'm
 assuming the history can be passed around like the environment in a regular
-scheme interpretor.
+scheme interpretor. -tbc-
 ")
 
 (--end-- "4.67")

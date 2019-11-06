@@ -36,7 +36,7 @@
               (?rel ?f y)
               (son ?x ?f))))
 
-  -tbc-- verify works
+  -tbc- verify works
 ") 
 
 (--end-- "4.69")

@@ -36,23 +36,44 @@
 
 (println
  "
-  (rule (grandson ?g ?s)
-        (and (son ?f ?s)
-             (son ?g ?f)))
+Rules:
+======
+
+  (rule (grandson ?gp ?gs)
+        (and (son-of ?p ?gs)
+             (son-of ?gp ?p)))
   
-  (rule (son ?s ?m)
-        (and (son ?w ?s)
-             (wife ?m ?w)))
-  
+  (rule (son-of ?p ?s)
+        (or (son ?p ?s)
+            (and (son ?m ?s)
+                 (wife ?p ?m))))
+
+Output:
+=======
+
+  ;;; Query input:
   (grandson Cain ?gs)
-  (son Lamech ?s)
+
+  ;;; Query results:
+  (grandson Cain Irad)
+  
+  ;;; Query input:
+  (son-of Lamech ?s)
+
+  ;;; Query results:
+  (son-of Lamech Jubal)
+  (son-of Lamech Jabal)
+  
+  ;;; Query input:
   (grandson Methushael ?gs)
-
--tbc- need to understand what happens when we define two rules with same
-      name, do both co-exist?  do they need different signatures?  does the
-      'son' rule above augment the existing son rule?
-
+  
+  ;;; Query results:
+  (grandson Methushael Jubal)
+  (grandson Methushael Jabal)
 ")
+
+;(#%require "query-system-71.scm")
+;(query-driver-loop)
 
 (--end-- "4.63")
 
