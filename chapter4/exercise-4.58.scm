@@ -17,7 +17,7 @@
 (-start- "4.58")
 
 (println
- "
+ " -tbc- compare to wiki
 Rule:
 
  (assert! (rule (bigshot ?bshot ?division)
@@ -25,7 +25,7 @@ Rule:
                      (not (and (supervisor ?bshot ?boss)          
                                (job ?boss (?division . ?boss-rest)))))))
 
-roduces:
+Produces:
 
  ;;; Query results:
  (bigshot (Scrooge Eben) accounting)

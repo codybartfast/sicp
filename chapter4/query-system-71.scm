@@ -50,6 +50,9 @@
 ;; 4.4.4.2  The Evaluator
 
 (define (qeval query frame-stream)
+;  (writeln "")
+;  (writeln "query: " query)
+;  (writeln "frame-stream: " frame-stream)
   (let ((qproc (get (type query) 'qeval)))
     (if qproc
         (qproc (contents query) frame-stream)
