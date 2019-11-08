@@ -139,8 +139,6 @@ Paste the following into the prompt:
   (last-pair (2 ?x) (3))
 
   (last-pair ?x (3))
-
--tbc- paste wiki
 ")
 
 (#%require "query-system-71.scm")

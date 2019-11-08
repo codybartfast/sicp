@@ -17,7 +17,7 @@
 (-start- "4.58")
 
 (println
- " -tbc- compare to wiki
+ "
 Rule:
 
  (assert! (rule (bigshot ?bshot ?division)

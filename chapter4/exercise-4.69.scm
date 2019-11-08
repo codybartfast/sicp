@@ -53,16 +53,16 @@ Paste the following in the prompt:
 (assert! (son Ada Jabal))
 (assert! (son Ada Jubal))
 (assert!
-  (rule (grandson ?gp ?gs)
-        (and (son-of ?p ?gs)
-             (son-of ?gp ?p))))
-(assert!  
-  (rule (son-of ?p ?s)
-        (or (son ?p ?s)
-            (and (son ?m ?s)
-                 (wife ?p ?m)))))
+  (rule (grandson ?grand-parent ?grand-son)
+          (and (son-of ?parent ?grand-son)
+               (son-of ?grand-parent ?parent))))
+(assert!
+  (rule (son-of ?parent ?son)
+          (or (son ?parent ?son)
+              (and (son ?m ?son)
+                   (wife ?parent ?m)))))
 
-(assert! 
+(assert!
   (rule (same ?x ?x)))
 
 (assert!                 
@@ -75,17 +75,10 @@ Paste the following in the prompt:
            ((great . ?rest) ?i ?ggs)
            (son-of ?g ?i)))))
 
-(grandson Adam ?who)
-
-((great grandson) Adam ?who)
 
 ((great great grandson) Adam ?who)
 
-((great great great grandson) Adam ?who)
-
-((great great great great grandson) Adam ?who)
-
-((great great great great great grandson) Adam ?who)
+((great grandson) ?g ?ggs)
 
 (?rel Adam Jabal)
 
@@ -93,48 +86,31 @@ Paste the following in the prompt:
 Output:
 =======
 
-;;; Query input:
-(grandson Adam ?who)
+  ;;; Query input:
+  ((great great grandson) Adam ?who)
 
-;;; Query results:
-(grandson Adam Enoch)
+  ;;; Query results:
+  ((great great grandson) Adam Mehujael)
 
-;;; Query input:
-((great grandson) Adam ?who)
 
-;;; Query results:
-((great grandson) Adam Irad)
+  ;;; Query input:
+  ((great grandson) ?g ?ggs)
 
-;;; Query input:
-((great great grandson) Adam ?who)
+  ;;; Query results:
+  ((great grandson) Mehujael Jubal)
+  ((great grandson) Mehujael Jabal)
+  ((great grandson) Irad Lamech)
+  ((great grandson) Enoch Methushael)
+  ((great grandson) Cain Mehujael)
+  ((great grandson) Adam Irad)
 
-;;; Query results:
-((great great grandson) Adam Mehujael)
 
-;;; Query input:
-((great great great grandson) Adam ?who)
+  ;;; Query input:
+  (?rel Adam Jabal)
 
-;;; Query results:
-((great great great grandson) Adam Methushael)
-
-;;; Query input:
-((great great great great grandson) Adam ?who)
-
-;;; Query results:
-((great great great great grandson) Adam Lamech)
-
-;;; Query input:
-((great great great great great grandson) Adam ?who)
-
-;;; Query results:
-((great great great great great grandson) Adam Jubal)
-((great great great great great grandson) Adam Jabal)
-
-;;; Query input:
-(?rel Adam Jabal)
-
-;;; Query results:
-((great great great great great grandson) Adam Jabal) ") 
+  ;;; Query results:
+  ((great great great great great grandson) Adam Jabal)
+")
 
 (#%require "query-system-71.scm")
 (query-driver-loop)

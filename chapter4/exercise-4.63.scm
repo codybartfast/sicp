@@ -39,14 +39,45 @@
 Rules:
 ======
 
-  (rule (grandson ?gp ?gs)
-        (and (son-of ?p ?gs)
-             (son-of ?gp ?p)))
+  (rule (grandson ?grand-parent ?grand-son)
+        (and (son-of ?parent ?grand-son)
+             (son-of ?grand-parent ?parent)))
   
-  (rule (son-of ?p ?s)
-        (or (son ?p ?s)
-            (and (son ?m ?s)
-                 (wife ?p ?m))))
+  (rule (son-of ?parent ?son)
+        (or (son ?parent ?son)
+            (and (son ?mother ?son)
+                 (wife ?parent ?mother))))
+
+
+Using query system from section 4.4.4
+=====================================
+Paste the following in the prompt:
+
+  (assert! (son Adam Cain))
+  (assert! (son Cain Enoch))
+  (assert! (son Enoch Irad))
+  (assert! (son Irad Mehujael))
+  (assert! (son Mehujael Methushael))
+  (assert! (son Methushael Lamech))
+  (assert! (wife Lamech Ada))
+  (assert! (son Ada Jabal))
+  (assert! (son Ada Jubal))
+  (assert!
+    (rule (grandson ?grand-parent ?grand-son)
+          (and (son-of ?parent ?grand-son)
+               (son-of ?grand-parent ?parent))))
+  (assert!
+    (rule (son-of ?parent ?son)
+          (or (son ?parent ?son)
+              (and (son ?m ?son)
+                   (wife ?parent ?m)))))
+
+  (grandson Cain ?gs)
+
+  (son-of Lamech ?s)
+
+  (grandson Methushael ?gs)
+
 
 Output:
 =======
@@ -72,8 +103,8 @@ Output:
   (grandson Methushael Jabal)
 ")
 
-;(#%require "query-system-71.scm")
-;(query-driver-loop)
+(#%require "query-system-71.scm")
+(query-driver-loop)
 
 (--end-- "4.63")
 
