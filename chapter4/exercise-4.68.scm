@@ -20,11 +20,11 @@
 
 (println
  "
-  (rule (reverse '() '()))
+  (rule (reverse () ()))
   (rule (reverse (?a . ?b) ?x)
         (and
-         (append-to-form ?c (?a) ?x)
-         (reverse ?b ?c)))
-")  
+         (reverse ?b ?c)
+         (append-to-form ?c (?a) ?x)))
+")
 (--end-- "4.68")
 

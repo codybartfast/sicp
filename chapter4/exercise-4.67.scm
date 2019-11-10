@@ -37,12 +37,25 @@ for the same query to be nested in itself (but with an updated frame).
 
 As for the 'identity' of the query to use in the history, I suspect using
 the query object itself is probably best 'key' for the history table.  I.e.
-use 'eq?' for object equality.
+use 'equal?' for object equality.
 
-I don't know enought about how we're going to implement things yet, but I'm
-assuming the history can be passed around like the environment in a regular
-scheme interpretor. -tbc-
+Potential implementation:
+
+(define (qeval query frame-stream)
+  (let ((signature (get-signature query frame-stream)))
+    (cond ((history-contains? signature)
+           'loop-detected)
+          (else
+           (add-history signature)        
+           (let ((qproc (get (type query) 'qeval)))
+             (if qproc
+                 (qproc (contents query) frame-stream)
+                 (simple-query query frame-stream)))
+           (remove-history signature)))))
+
+For some reason, when running the query from Ex 4.64 using the query system
+from 4.4.4, I don't experience an infinite loop.  So not having a problem to
+fix it's not easy to verify whether is a solution.
 ")
-
 (--end-- "4.67")
 

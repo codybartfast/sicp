@@ -1,14 +1,13 @@
 #lang sicp
 
-;; Text's implementation of the Query System
+;; Text's implementation of the Query System (which preceds question 4.71 in
+;; the book).
 
 (#%require "ea-data-directed-71.scm")
 (#%require "query-evaluators.scm")
 
-;; 4.4.4.1  The Driver Loop and Instantiation
 
-;(define (handle-input input)
-  
+;; 4.4.4.1  The Driver Loop and Instantiation
 
 (define input-prompt ";;; Query input:")
 (define output-prompt ";;; Query results:")
@@ -446,4 +445,3 @@
              (stream-for-each proc (stream-cdr s)))))
 
 (#%provide (all-defined))
-
