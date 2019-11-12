@@ -33,7 +33,26 @@
 
 (-start- "4.71")
 
+(println
+ "
+I think I'm going to take a break from the Chapter 4 exercises.
 
+This is a great section for understanding the ideas of logic programming and
+I really enjoyed working on problems in the language. But a detailed
+understanding of how the language is implemented is a little too escoteric
+for me at the moment.
+
+I'm probably missing somehting, but the 'internet' says, and sometimes
+demonstrates, that the explicit delay is needed in this exercsie to prevent
+infinite loops.  But so far I don't see a great explanation of how.  Usually
+delay is used to make sure variable bindings happen at the right time, but I
+don't see how that comes into play in this case.  So I'm tempted to dive
+into this to better understand the nuts and bolts.  I might do that if there
+weren't a number of other questions in this section that look like they also
+require quite an investment of time - and I'm not feeling the usual love.
+Unlike so much of the book I don't feel like I'm learning something
+fundamental.
+")
 
 (--end-- "4.71")
 
