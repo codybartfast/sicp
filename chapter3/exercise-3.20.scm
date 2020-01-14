@@ -4,19 +4,19 @@
 
 ;   Exercise 3.20
 ;   =============
-;   
+;
 ;   Draw environment diagrams to illustrate the evaluation of the sequence
 ;   of expressions
-;   
+;
 ;   (define x (cons 1 2))
 ;   (define z (cons x x))
 ;   (set-car! (cdr z) 17)
 ;   (car x)
 ;   17
-;   
+;
 ;   using the procedural implementation of pairs given above.  (Compare
 ;   exercise [3.11].)
-;   
+;
 ;   ------------------------------------------------------------------------
 ;   [Exercise 3.20]: http://sicp-book.com/book-Z-H-22.html#%_thm_3.20
 ;   [Exercise 3.11]: http://sicp-book.com/book-Z-H-22.html#%_thm_3.11
@@ -85,39 +85,38 @@ global env ──┐   │   │              │   │        │   │        
  │          parameter: m                    │  parameter: v    parameter: v
  │   (define (dispatch m)                   │   (set! x v)      (set! y v)
  │        (cond ((eq? m 'car) x)            │
- │              ((eq? m 'cdr) y)            │
+ │              ((eq? m 'cdr) y)            ^
  │              ((eq? m 'set-car!) set-x!)  │
  │              ((eq? m 'set-cdr!) set-y!)  │
  │              (else ... )))               │
- │                                          │
- │                                          │
- │         ┌─────────────────────────────>──┘
- │         │
- │         │     call to cdr
- │      ┌───────────────────────────┐
- │      │z:┘                        │
- │ E3 ─>│                           ├─> global env
- │      │                           │
- │      └───────────────────────────┘
- │
- │
- │                     call to z (dispatch)
+ ^                                          │
+ │                                          └─────────┐
+ ├─────────┐                                          │
+ │         │   call set-car!                          │
+ │      ┌───────────────────────────┐                 │
+ │      │z:┘                        │                 ^
+ │ E3 ─>│new-value: 17              ├─> global env    │
+ │      │                           │                 │
+ │      └───────────────────────────┘                 │
+ │                                                    │
+ │                                        ┌───────────┘
+ │                         call to cdr    │
  │                ┌───────────────────────────┐
- │                │m: 'cdr                    │
- │           E4 ─>│                           ├─> E2
+ │                │z:─────────────────────┘   │
+ │           E4 ─>│                           ├─> global env
  │                │                           │
  │                └───────────────────────────┘
- │                 (returns 'x' (E1 dispatch))
+ │
+ │
+ │                               call to z (dispatch)
+ │                          ┌───────────────────────────┐
+ │                          │m: 'cdr                    │
+ │                     E5 ─>│                           ├─> E2
+ │                          │                           │
+ │                          └───────────────────────────┘
+ │                           (returns 'x' (E1 dispatch))
+ │
  ^
- │
- ├─────────┐
- │         │   call set-car!
- │      ┌───────────────────────────┐
- │      │z:┘                        │
- │ E5 ─>│new-value: 17              ├─> global env
- │      │                           │
- │      └───────────────────────────┘
- │
  │
  │                    call to z (dispatch)
  │                ┌───────────────────────────┐
@@ -153,7 +152,6 @@ global env ──┐   │   │              │   │        │   │        
                   └───────────────────────────┘
                          (returns 17)
 ")
-  
+
 (--end-- "3.20")
-   
-   
+
