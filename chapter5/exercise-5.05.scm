@@ -60,7 +60,7 @@ n=4 c=done v=24
 ----------------
 
 
-Fibomacci
+Fibonacci
 =========
 
 State for 4th Fibonacci at each label
