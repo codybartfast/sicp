@@ -15,6 +15,7 @@
 
 (-start- "5.7")
 
+(#%require "machine-07.scm")
 
 
 (--end-- "5.7")
