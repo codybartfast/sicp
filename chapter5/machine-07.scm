@@ -359,4 +359,6 @@
 
 (#%provide
  make-machine
- )
+ set-register-contents!
+ get-register-contents
+ start)
