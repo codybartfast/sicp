@@ -1,7 +1,8 @@
 #lang sicp
 
-;; Register Machine from Section 5.2 text for Exercise 7
-;; =====================================================
+;; Based on Machine 07
+;; ===================
+;;   - incorporates Ex 5.8 (check for duplicate labels in extract-labels)
 
 
 ;; 5.2.1 the Machine Model
@@ -136,14 +137,16 @@
       (extract-labels (cdr text)
        (lambda (insts labels)
          (let ((next-inst (car text)))
-           (if (symbol? next-inst)
-               (receive insts
-                        (cons (make-label-entry next-inst
-                                                insts)
-                              labels))
-               (receive (cons (make-instruction next-inst)
+           (cond ((symbol? next-inst)
+                  (if (assoc next-inst labels)
+                      (error "Duplicate label -- ASSEMBLE" next-inst))
+                  (receive insts
+                           (cons (make-label-entry next-inst
+                                                   insts)
+                                 labels)))
+                 (else (receive (cons (make-instruction next-inst)
                               insts)
-                        labels)))))))
+                        labels))))))))
 
 (define (update-insts! insts labels machine)
   (let ((pc (get-register machine 'pc))
