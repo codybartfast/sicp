@@ -2,8 +2,9 @@
 
 ;; Based on Machine 07
 ;; ===================
-;;   - incorporates Ex 5.8 (check for duplicate labels in extract-labels)
-;;   - Ex 5.9? 
+;; Incorporates
+;;   - Ex 5.8 check for duplicate labels in extract-labels
+;;   - Ex 5.9 check labels aren't passed to operations in make-operation-exp
 
 
 ;; 5.2.1 the Machine Model
@@ -336,7 +337,9 @@
   (let ((op (lookup-prim (operation-exp-op exp) operations))
         (aprocs
          (map (lambda (e)
-                (make-primitive-exp e machine labels))
+                (if (or (register-exp? e) (constant-exp? e))
+                    (make-primitive-exp e machine labels)
+                    (error "Invalid Argument for operation -- ASSEMBLE" e)))
               (operation-exp-operands exp))))
     (lambda ()
       (apply op (map (lambda (p) (p)) aprocs)))))
