@@ -3,6 +3,7 @@
 ;; Based on Machine 07
 ;; ===================
 ;;   - incorporates Ex 5.8 (check for duplicate labels in extract-labels)
+;;   - Ex 5.9? 
 
 
 ;; 5.2.1 the Machine Model
@@ -138,7 +139,7 @@
        (lambda (insts labels)
          (let ((next-inst (car text)))
            (cond ((symbol? next-inst)
-                  (if (assoc next-inst labels)
+                  (if (label-defined? labels next-inst)
                       (error "Duplicate label -- ASSEMBLE" next-inst))
                   (receive insts
                            (cons (make-label-entry next-inst
@@ -179,6 +180,11 @@
     (if val
         (cdr val)
         (error "Undefined label -- ASSEMBLE" label-name))))
+
+(define (label-defined? labels label-name)
+  (if (assoc label-name labels)
+      #true
+      #false))
 
 ;; 5.2.3 Generating Execution Procedures for Instructions
 ;; ======================================================

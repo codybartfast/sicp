@@ -68,8 +68,8 @@ Duplicates can be checked for in extract-labels:
          (lambda (insts labels)
            (let ((next-inst (car text)))
              (cond ((symbol? next-inst)
-                    (if (assoc next-inst labels)  ;; <-- DUPLICATE CHECK
-                        (error \"Duplicate label -- ASSEMBLE\" next-inst))
+                    (if (label-defined? labels next-inst)
+                        (error "Duplicate label -- ASSEMBLE" next-inst))
                     (receive insts
                              (cons (make-label-entry next-inst
                                                      insts)
@@ -77,6 +77,13 @@ Duplicates can be checked for in extract-labels:
                    (else (receive (cons (make-instruction next-inst)
                                 insts)
                           labels))))))))
+
+  (define (label-defined? labels label-name)
+    (if (assoc label-name labels)
+        #true
+        #false))
+
+This is implemented in machine-09.
 ")
 
 (--end-- "5.8")
