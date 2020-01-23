@@ -4,27 +4,27 @@
 
 ;   Exercise 5.11
 ;   =============
-;   
+;
 ;   When we introduced save and restore in section [5.1.4], we didn't
 ;   specify what would happen if you tried to restore a register that was
 ;   not the last one saved, as in the sequence
-;   
+;
 ;   (save y)
 ;   (save x)
 ;   (restore y)
-;   
+;
 ;   There are several reasonable possibilities for the meaning of restore:
-;   
+;
 ;   a.  (restore y) puts into y the last value saved on the stack,
 ;   regardless of what register that value came from.  This is the way our
 ;   simulator behaves.  Show how to take advantage of this behavior to
 ;   eliminate one instruction from the Fibonacci machine of section [5.1.4]
 ;   (figure [5.12]).
-;   
+;
 ;   b.  <snip>
 ;
 ;   c.  <snip>
-;   
+;
 ;   ------------------------------------------------------------------------
 ;   [Exercise 5.11]: http://sicp-book.com/book-Z-H-32.html#%_thm_5.11
 ;   [Section 5.1.4]: http://sicp-book.com/book-Z-H-31.html#%_sec_5.1.4
@@ -88,7 +88,7 @@ Evidence this works (fib 10): "
 ;                           (assign n (reg val))
 ;                           (restore val)
                            (restore continue)
-                           (assign val (op +) (reg val) (reg n)) 
+                           (assign val (op +) (reg val) (reg n))
                            (goto (reg continue))
                            immediate-answer
                            (assign val (reg n))

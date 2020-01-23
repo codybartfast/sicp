@@ -4,26 +4,26 @@
 
 ;   Exercise 5.11
 ;   =============
-;   
+;
 ;   When we introduced save and restore in section [5.1.4], we didn't
 ;   specify what would happen if you tried to restore a register that was
 ;   not the last one saved, as in the sequence
-;   
+;
 ;   (save y)
 ;   (save x)
 ;   (restore y)
-;   
+;
 ;   There are several reasonable possibilities for the meaning of restore:
-;   
+;
 ;   a.  <snip>
-;   
+;
 ;   b.  (restore y) puts into y the last value saved on the stack, but only
 ;   if that value was saved from y; otherwise, it signals an error.  Modify
 ;   the simulator to behave this way.  You will have to change save to put
 ;   the register name on the stack along with the value.
-;   
+;
 ;   c.  <snip>
-;   
+;
 ;   ------------------------------------------------------------------------
 ;   [Exercise 5.11]: http://sicp-book.com/book-Z-H-32.html#%_thm_5.11
 ;   [Section 5.1.4]: http://sicp-book.com/book-Z-H-31.html#%_sec_5.1.4
@@ -104,7 +104,7 @@ Original Fibonacci still works (fib 10): "
                            (assign n (reg val))
                            (restore val)
                            (restore continue)
-                           (assign val (op +) (reg val) (reg n)) 
+                           (assign val (op +) (reg val) (reg n))
                            (goto (reg continue))
                            immediate-answer
                            (assign val (reg n))
@@ -146,7 +146,7 @@ But with the optimization form Part A we now EXPECT an ERROR, (fib 10):
                   ;(assign n (reg val))
                   ;(restore val)
                   (restore continue)
-                  (assign val (op +) (reg val) (reg n)) 
+                  (assign val (op +) (reg val) (reg n))
                   (goto (reg continue))
                   immediate-answer
                   (assign val (reg n))
@@ -155,6 +155,6 @@ But with the optimization form Part A we now EXPECT an ERROR, (fib 10):
   (set-register-contents! machine 'n n)
   (start machine)
   (get-register-contents machine 'val))
-         
+
 (--end-- "5.11")
 
