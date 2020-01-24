@@ -1,8 +1,15 @@
 #lang sicp
 
-;; Based on Machine 07
+;; Todo:  remove path-info sets! from provide
+
+;; Based on Machine 09
 ;; ===================
-;; Incorporates
+;;
+;; For Ex 5.12:
+;;   - add make-path-info to store path data
+;;   - add path-info and accessor to make-new-machine
+;;
+;; Added in 09:
 ;;   - Ex 5.8 check for duplicate labels in extract-labels
 ;;   - Ex 5.9 check labels aren't passed to operations in make-operation-exp
 
@@ -73,7 +80,8 @@
   (let ((pc (make-register 'pc))
         (flag (make-register 'flag))
         (stack (make-stack))
-        (the-instruction-sequence '()))
+        (the-instruction-sequence '())
+        (path-info (make-path-info)))
     (let ((the-ops
            (list (list 'initialize-stack
                        (lambda () (stack 'initialize)))))
@@ -110,6 +118,9 @@
                (lambda (ops) (set! the-ops (append the-ops ops))))
               ((eq? message 'stack) stack)
               ((eq? message 'operations) the-ops)
+              ((eq? message 'get-path-info) path-info)
+              ((eq? message 'set-path-info)
+               (lambda (info) (set! path-info info)))
               (else (error "Unknown request -- MACHINE" message))))
       dispatch)))
 
@@ -123,6 +134,11 @@
 
 (define (get-register machine reg-name)
   ((machine 'get-register) reg-name))
+
+(define (get-path-info machine)
+  (machine 'get-path-info))
+(define (set-path-info! machine path-info)
+  ((machine 'set-path-info) path-info))
 
 ;; 5.2.2 The Assembler
 ;; ===================
@@ -367,10 +383,71 @@
       (eq? (car exp) tag)
       false))
 
+;; For Ex 5.12
+;; ===========
+
+(define (make-path-info)
+  (let ((insts '())
+        (regs '())
+        (stack-regs '())
+        (reg-sources '()))
+    (define (dispatch message)
+      (cond
+        ((eq? message 'get-insts) insts)
+        ((eq? message 'set-insts)
+         (lambda (value) (set! insts value)))
+
+        ((eq? message 'get-regs) regs)
+        ((eq? message 'set-regs)
+         (lambda (value) (set! regs value)))
+
+        ((eq? message 'get-stack-regs) stack-regs)
+        ((eq? message 'set-stack-regs)
+         (lambda (value) (set! stack-regs value)))
+
+        ((eq? message 'get-reg-sources) reg-sources)
+        ((eq? message 'set-reg-sources)
+         (lambda (value) (set! reg-sources value)))
+
+        (else
+             (error "Unknown request -- PATH-INFO" message))))
+    dispatch))
+
+(define (get-insts path-info)
+  (path-info 'get-insts))
+(define (set-insts! path-info value)
+  ((path-info 'set-insts) value))
+
+(define (get-regs path-info)
+  (path-info 'get-regs))
+(define (set-regs! path-info value)
+  ((path-info 'set-regs) value))
+
+(define (get-stack-regs path-info)
+  (path-info 'get-stack-regs))
+(define (set-stack-regs! path-info value)
+  ((path-info 'set-stack-regs) value))
+
+(define (get-reg-sources path-info)
+  (path-info 'get-reg-sources))
+(define (set-reg-sources! path-info value)
+  ((path-info 'set-reg-sources) value))
+
+
 ;; And finally...
 
 (#%provide
  make-machine
  set-register-contents!
  get-register-contents
+ set-path-info!
+ set-insts!
+ set-regs!
+ set-stack-regs!
+ set-reg-sources!
+ get-path-info
+ get-insts
+ get-regs
+ get-stack-regs
+ get-reg-sources
  start)

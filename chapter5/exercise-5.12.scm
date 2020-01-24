@@ -36,7 +36,59 @@
 
 (-start- "5.12")
 
+(#%require "machine-12.scm")
 
+(let ((n 10)
+      (machine (make-machine
+                '(n val continue)
+                (list
+                 (list '+ +)
+                 (list '- -)
+                 (list '< <))
+                '((assign continue (label fib-done))
+                  fib-loop
+                  (test (op <) (reg n) (const 2))
+                  (branch (label immediate-answer))
+                  (save continue)
+                  (assign continue (label afterfib-n-1))
+                  (save n)
+                  (assign n (op -) (reg n) (const 1))
+                  (goto (label fib-loop))
+                  afterfib-n-1
+                  (restore n)
+                  (restore continue)
+                  (assign n (op -) (reg n) (const 2))
+                  (save continue)
+                  (assign continue (label afterfib-n-2))
+                  (save val)
+                  (goto (label fib-loop))
+                  afterfib-n-2
+                  (assign n (reg val))
+                  (restore val)
+                  (restore continue)
+                  (assign val (op +) (reg val) (reg n))
+                  (goto (reg continue))
+                  immediate-answer
+                  (assign val (reg n))
+                  (goto (reg continue))
+                  fib-done))))
+  (set-register-contents! machine 'n n)
+  (start machine)
+  (println (get-register-contents machine 'val))
+  (let ((path-info (get-path-info machine)))
+    (set-insts! path-info '(do rest of question))
+    (set-regs! path-info '(birth marriage vehicle))
+    (set-stack-regs! path-info '(n val))
+    (set-reg-sources! path-info '(hp salad xo))
+    (set-path-info! machine path-info))
+
+  (let ((path-info (get-path-info machine)))
+    (println (get-insts path-info))
+    (println (get-regs path-info))
+    (println (get-stack-regs path-info))
+    (println (get-reg-sources path-info)))
+
+  )
 
 (--end-- "5.12")
 
