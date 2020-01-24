@@ -1,7 +1,5 @@
 #lang sicp
 
-;; Todo:  remove path-info sets! from provide
-
 ;; Based on Machine 09
 ;; ===================
 ;;
@@ -413,7 +411,7 @@
          (lambda (value) (set! reg-sources value)))
 
         (else
-             (error "Unknown request -- PATH-INFO" message))))
+         (error "Unknown request -- PATH-INFO" message))))
     dispatch))
 
 (define (get-insts path-info)
@@ -489,14 +487,15 @@
 (define (build-path-info machine)
   (let* ((raw-insts (get-instruction-sequence machine))
          (path-info (get-path-info machine))
-         (insts (raw-insts->insts raw-insts))
-         )
+         (insts (raw-insts->insts raw-insts)))
     (set-insts! path-info insts)
     (set-entry-regs! path-info (insts->entry-regs insts))
-    ))
+    (set-stack-regs! path-info (insts->stack-regs insts))
+    (set-reg-sources! path-info (insts->reg-sources insts))))
 
 (define (raw-insts->insts raw-insts)
-  (sort (lambda (inst) (symbol->string (car inst))) string<?
+  (sort (lambda (inst) (symbol->string (car inst)))
+        string<?
         (distinct
          (map car raw-insts))))
 
@@ -509,6 +508,32 @@
                    (eq? 'reg (car (cadr inst)))))
             insts))))
 
+(define (insts->stack-regs insts)
+  (distinct
+   (map cadr
+        (filter (lambda (inst)
+                  (or (eq? 'save (car inst))
+                      (eq? 'restore (car inst))))
+                insts))))
+
+(define (insts->reg-sources insts)
+  (let ((assign-insts
+         (filter (lambda (inst) (eq? 'assign (car inst)))
+                 insts)))
+    (define (reg-sources reg)
+      (distinct
+       (map
+        (lambda (inst)
+          (if (eq? 'op (caaddr inst))
+              (cddr inst)
+              (caddr inst)))
+        (filter (lambda (inst) (eq? reg (cadr inst)))
+                assign-insts))))
+    (map
+     (lambda (reg) (list reg (reg-sources reg)))
+     (distinct
+      (map cadr assign-insts)))))
+
 
 ;; And finally...
 ;; ==============
@@ -517,10 +542,6 @@
  make-machine
  set-register-contents!
  get-register-contents
- set-insts!
- set-entry-regs!
- set-stack-regs!
- set-reg-sources!
  get-path-info
  get-insts
  get-entry-regs
