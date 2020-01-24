@@ -1,13 +1,11 @@
 #lang sicp
 
-;; Based on Machine 09
-;; ===================
+
+;; Machine 13: Ex 5.13 add get-make-register to implicitly create registers
 ;;
-;; For Ex 5.12:
-;;   - add make-path-info to store path data
-;;   - add path-info and accessor to make-new-machine
+;; Machine 12: Ex 5.12 add build-path-info for analysis of data paths
 ;;
-;; Added in 09:
+;; Machine 09:
 ;;   - Ex 5.8 check for duplicate labels in extract-labels
 ;;   - Ex 5.9 check labels aren't passed to operations in make-operation-exp
 
@@ -15,11 +13,8 @@
 ;; 5.2.1 the Machine Model
 ;; =======================
 
-(define (make-machine register-names ops controller-text)
+(define (make-machine ops controller-text)
   (let ((machine (make-new-machine)))
-    (for-each (lambda (register-name)
-                ((machine 'allocate-register) register-name))
-              register-names)
     ((machine 'install-operations) ops)
     ((machine 'install-instruction-sequence)
      (assemble controller-text machine))
@@ -93,6 +88,8 @@
                   (cons (list name (make-register name))
                         register-table)))
         'register-allocated)
+      (define (contains-register? name)
+        (if (assoc name register-table) #t #f))
       (define (lookup-register name)
         (let ((val (assoc name register-table)))
           (if val
@@ -114,6 +111,7 @@
               ((eq? message 'install-instruction-sequence)
                (lambda (seq) (set! the-instruction-sequence seq)))
               ((eq? message 'allocate-register) allocate-register)
+              ((eq? message 'contains-register?) contains-register?)
               ((eq? message 'get-register) lookup-register)
               ((eq? message 'install-operations)
                (lambda (ops) (set! the-ops (append the-ops ops))))
@@ -133,6 +131,11 @@
 
 (define (get-register machine reg-name)
   ((machine 'get-register) reg-name))
+
+(define (get-make-register machine reg-name)
+  (if (not ((machine 'contains-register?) reg-name))
+      ((machine 'allocate-register) reg-name))
+  (get-register machine reg-name))
 
 (define (get-instruction-sequence machine)
   (machine 'get-instruction-sequence))
@@ -228,7 +231,7 @@
 
 (define (make-assign inst machine labels operations pc)
   (let ((target
-         (get-register machine (assign-reg-name inst)))
+         (get-make-register machine (assign-reg-name inst)))
         (value-exp (assign-value-exp inst)))
     (let ((value-proc
            (if (operation-exp? value-exp)
@@ -285,7 +288,7 @@
              (lambda () (set-contents! pc insts))))
           ((register-exp? dest)
            (let ((reg
-                  (get-register machine
+                  (get-make-register machine
                                 (register-exp-reg dest))))
              (lambda ()
                (set-contents! pc (get-contents reg)))))
@@ -297,13 +300,13 @@
 ;; Other Instructions
 
 (define (make-save inst machine stack pc)
-  (let ((reg (get-register machine
+  (let ((reg (get-make-register machine
                            (stack-inst-reg-name inst))))
     (lambda ()
       (push stack (get-contents reg))
       (advance-pc pc))))
 (define (make-restore inst machine stack pc)
-  (let ((reg (get-register machine
+  (let ((reg (get-make-register machine
                            (stack-inst-reg-name inst))))
     (lambda ()
       (set-contents! reg (pop stack))
@@ -335,7 +338,7 @@
                               (label-exp-label exp))))
            (lambda () insts)))
         ((register-exp? exp)
-         (let ((r (get-register machine
+         (let ((r (get-make-register machine
                                 (register-exp-reg exp))))
            (lambda () (get-contents r))))
         (else
