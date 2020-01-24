@@ -25,6 +25,7 @@
     ((machine 'install-operations) ops)
     ((machine 'install-instruction-sequence)
      (assemble controller-text machine))
+    (build-path-info machine)
     machine))
 
 ;; Registers
@@ -110,6 +111,8 @@
         (cond ((eq? message 'start)
                (set-contents! pc the-instruction-sequence)
                (execute))
+              ((eq? message 'get-instruction-sequence)
+               the-instruction-sequence)
               ((eq? message 'install-instruction-sequence)
                (lambda (seq) (set! the-instruction-sequence seq)))
               ((eq? message 'allocate-register) allocate-register)
@@ -119,8 +122,6 @@
               ((eq? message 'stack) stack)
               ((eq? message 'operations) the-ops)
               ((eq? message 'get-path-info) path-info)
-              ((eq? message 'set-path-info)
-               (lambda (info) (set! path-info info)))
               (else (error "Unknown request -- MACHINE" message))))
       dispatch)))
 
@@ -135,10 +136,10 @@
 (define (get-register machine reg-name)
   ((machine 'get-register) reg-name))
 
+(define (get-instruction-sequence machine)
+  (machine 'get-instruction-sequence))
 (define (get-path-info machine)
   (machine 'get-path-info))
-(define (set-path-info! machine path-info)
-  ((machine 'set-path-info) path-info))
 
 ;; 5.2.2 The Assembler
 ;; ===================
@@ -386,6 +387,8 @@
 ;; For Ex 5.12
 ;; ===========
 
+;; Path-info object
+
 (define (make-path-info)
   (let ((insts '())
         (regs '())
@@ -433,14 +436,70 @@
 (define (set-reg-sources! path-info value)
   ((path-info 'set-reg-sources) value))
 
+;; Build path-info lists
+;; =====================
 
+;; helpers
+
+(define (contains? list item)
+  (if (null? list)
+      #f
+      (if (equal? item (car list))
+          #t
+          (contains? (cdr list) item))))
+
+(define (distinct list)
+  (define (iter orig dist-list)
+    (if (null? orig)
+        dist-list
+        (if (contains? dist-list (car orig))
+            (iter (cdr orig) dist-list)
+            (iter (cdr orig) (cons (car orig) dist-list)))))
+  (iter list '()))
+
+(define (sort key less-than? items)
+  (define (combine left right)
+    (if (null? left)
+        right
+        (combine (cdr left) (cons (car left) right))))
+  (define (insert item sorted)
+    (define (iter item left right)
+      (if (null? right)
+          (combine left (list item))
+          (if (less-than? (key item) (key (car right)))
+              (combine left (cons item right))
+              (iter item (cons (car right) left) (cdr right)))))
+    (iter item '() sorted))
+  (define (iter orig sorted)
+    (if (null? orig)
+        sorted
+        (iter (cdr orig) (insert (car orig) sorted))))
+  (iter items '()))
+           
+        
+;; build path info
+
+(define (build-path-info machine)
+  (let ((raw-insts (get-instruction-sequence machine))
+        (path-info (get-path-info machine)))
+    (set-insts! path-info (raw-insts->insts raw-insts))
+
+    ))
+
+(define (raw-insts->insts raw-insts)
+  (sort (lambda (inst) (symbol->string (car inst))) string<? 
+        (distinct
+         (map car raw-insts)))
+  )
+
+  
 ;; And finally...
+;; ==============
 
 (#%provide
  make-machine
  set-register-contents!
  get-register-contents
- set-path-info!
  set-insts!
  set-regs!
  set-stack-regs!

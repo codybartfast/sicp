@@ -71,16 +71,16 @@
                   immediate-answer
                   (assign val (reg n))
                   (goto (reg continue))
-                  fib-done))))
+                  fib-done
+                  ))))
   (set-register-contents! machine 'n n)
   (start machine)
   (println (get-register-contents machine 'val))
   (let ((path-info (get-path-info machine)))
-    (set-insts! path-info '(do rest of question))
+    ;(set-insts! path-info '(do rest of question))
     (set-regs! path-info '(birth marriage vehicle))
     (set-stack-regs! path-info '(n val))
-    (set-reg-sources! path-info '(hp salad xo))
-    (set-path-info! machine path-info))
+    (set-reg-sources! path-info '(hp salad xo)))
 
   (let ((path-info (get-path-info machine)))
     (println (get-insts path-info))
