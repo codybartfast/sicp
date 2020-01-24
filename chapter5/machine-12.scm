@@ -391,7 +391,7 @@
 
 (define (make-path-info)
   (let ((insts '())
-        (regs '())
+        (entry-regs '())
         (stack-regs '())
         (reg-sources '()))
     (define (dispatch message)
@@ -400,9 +400,9 @@
         ((eq? message 'set-insts)
          (lambda (value) (set! insts value)))
 
-        ((eq? message 'get-regs) regs)
-        ((eq? message 'set-regs)
-         (lambda (value) (set! regs value)))
+        ((eq? message 'get-entry-regs) entry-regs)
+        ((eq? message 'set-entry-regs)
+         (lambda (value) (set! entry-regs value)))
 
         ((eq? message 'get-stack-regs) stack-regs)
         ((eq? message 'set-stack-regs)
@@ -421,10 +421,10 @@
 (define (set-insts! path-info value)
   ((path-info 'set-insts) value))
 
-(define (get-regs path-info)
-  (path-info 'get-regs))
-(define (set-regs! path-info value)
-  ((path-info 'set-regs) value))
+(define (get-entry-regs path-info)
+  (path-info 'get-entry-regs))
+(define (set-entry-regs! path-info value)
+  ((path-info 'set-entry-regs) value))
 
 (define (get-stack-regs path-info)
   (path-info 'get-stack-regs))
@@ -441,14 +441,13 @@
 
 ;; helpers
 
-(define (contains? list item)
-  (if (null? list)
-      #f
-      (if (equal? item (car list))
-          #t
-          (contains? (cdr list) item))))
-
 (define (distinct list)
+  (define (contains? list item)
+    (if (null? list)
+        #f
+        (if (equal? item (car list))
+            #t
+            (contains? (cdr list) item))))
   (define (iter orig dist-list)
     (if (null? orig)
         dist-list
@@ -475,24 +474,42 @@
         sorted
         (iter (cdr orig) (insert (car orig) sorted))))
   (iter items '()))
-           
-        
+
+(define (filter predicate? list)
+  (define (iter orig filtered)
+    (if (null? orig)
+        (reverse filtered)
+        (if (predicate? (car orig))
+            (iter (cdr orig) (cons (car orig) filtered))
+            (iter (cdr orig) filtered))))
+  (iter list '()))
+
 ;; build path info
 
 (define (build-path-info machine)
-  (let ((raw-insts (get-instruction-sequence machine))
-        (path-info (get-path-info machine)))
-    (set-insts! path-info (raw-insts->insts raw-insts))
-
+  (let* ((raw-insts (get-instruction-sequence machine))
+         (path-info (get-path-info machine))
+         (insts (raw-insts->insts raw-insts))
+         )
+    (set-insts! path-info insts)
+    (set-entry-regs! path-info (insts->entry-regs insts))
     ))
 
 (define (raw-insts->insts raw-insts)
-  (sort (lambda (inst) (symbol->string (car inst))) string<? 
+  (sort (lambda (inst) (symbol->string (car inst))) string<?
         (distinct
-         (map car raw-insts)))
-  )
+         (map car raw-insts))))
 
-  
+(define (insts->entry-regs insts)
+  (distinct
+   (map
+    (lambda (inst) (cadr (cadr inst)))
+    (filter (lambda (inst)
+              (and (eq? 'goto (car inst))
+                   (eq? 'reg (car (cadr inst)))))
+            insts))))
+
+
 ;; And finally...
 ;; ==============
 
@@ -501,12 +518,12 @@
  set-register-contents!
  get-register-contents
  set-insts!
- set-regs!
+ set-entry-regs!
  set-stack-regs!
  set-reg-sources!
  get-path-info
  get-insts
- get-regs
+ get-entry-regs
  get-stack-regs
  get-reg-sources
  start)
