@@ -4,7 +4,7 @@
 
 ;   Exercise 5.14
 ;   =============
-;   
+;
 ;   Measure the number of pushes and the maximum stack depth required to
 ;   compute n! for various small values of n using the factorial machine
 ;   shown in figure [5.11].  From your data determine formulas in terms of n
@@ -17,7 +17,7 @@
 ;   for n, computes the factorial, and prints the result (as we did for the
 ;   GCD machine in figure [5.4]), so that you will not have to repeatedly
 ;   invoke get-register-contents, set-register-contents!, and start.
-;   
+;
 ;   ------------------------------------------------------------------------
 ;   [Exercise 5.14]: http://sicp-book.com/book-Z-H-32.html#%_thm_5.14
 ;   [Figure 5.11]:   http://sicp-book.com/book-Z-H-31.html#%_fig_5.11
