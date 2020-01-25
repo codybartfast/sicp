@@ -1,5 +1,7 @@
 #lang sicp
 
+;; Machine 15: Ex 5.15 add instruction counting stats
+;;
 ;; Machine 14: Ex 5.14 update stack to include stack stats
 ;;
 ;; Machine 13: Ex 5.13 add get-make-register to implicitly create registers
@@ -90,12 +92,18 @@
         (flag (make-register 'flag))
         (stack (make-stack))
         (the-instruction-sequence '())
-        (path-info (make-path-info)))
+        (path-info (make-path-info))
+        (inst-count 0))
     (let ((the-ops
            (list (cons 'initialize-stack
                        (lambda () (stack 'initialize)))
                  (cons 'stack-stats
-                       (lambda () (stack 'stack-stats)))))
+                       (lambda () (stack 'stack-stats)))
+                 (cons 'machine-stats
+                       (lambda ()
+                         (let ((stats (list (list 'inst-count inst-count))))
+                           (set! inst-count 0)
+                           stats)))))
           (register-table
            (list (list 'pc pc) (list 'flag flag))))
       (define (allocate-register name)
@@ -118,6 +126,7 @@
               'done
               (begin
                 ((instruction-execution-proc (car insts)))
+                (set! inst-count (+ inst-count 1))
                 (execute)))))
       (define (dispatch message)
         (cond ((eq? message 'start)
@@ -167,6 +176,9 @@
 
 (define (stack-stats machine)
   ((operation machine 'stack-stats)))
+
+(define (machine-stats machine)
+  ((operation machine 'machine-stats)))
 
 
 ;; 5.2.2 The Assembler
@@ -579,4 +591,5 @@
  get-reg-sources
  initialize-stack!
  stack-stats
+ machine-stats
  start)
