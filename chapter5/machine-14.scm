@@ -1,6 +1,7 @@
 #lang sicp
 
-
+;; Machine 14: Ex 5.14 update stack to include stack stats
+;;
 ;; Machine 13: Ex 5.13 add get-make-register to implicitly create registers
 ;;
 ;; Machine 12: Ex 5.12 add build-path-info for analysis of data paths
@@ -42,24 +43,38 @@
 ;; The Stack
 
 (define (make-stack)
-  (let ((s '()))
+  (let ((s '())
+        (number-pushes 0)
+        (max-depth 0)
+        (current-depth 0))
     (define (push x)
-      (set! s (cons x s)))
+      (set! s (cons x s))
+      (set! number-pushes (+ 1 number-pushes))
+      (set! current-depth (+ 1 current-depth))
+      (set! max-depth (max current-depth max-depth)))
     (define (pop)
       (if (null? s)
           (error "Empty stack -- POP")
           (let ((top (car s)))
             (set! s (cdr s))
+            (set! current-depth (- current-depth 1))
             top)))
     (define (initialize)
       (set! s '())
+      (set! number-pushes 0)
+      (set! max-depth 0)
+      (set! current-depth 0)
       'done)
+    (define (stack-stats)
+      (list (list 'total-pushes number-pushes)
+            (list 'maximum-depth max-depth)))
     (define (dispatch message)
       (cond ((eq? message 'push) push)
             ((eq? message 'pop) (pop))
             ((eq? message 'initialize) (initialize))
-            (else (error "Unknown request -- STACK"
-                         message))))
+            ((eq? message 'stack-stats) (stack-stats))
+            (else
+             (error "Unknown request -- STACK" message))))
     dispatch))
 
 (define (pop stack)
@@ -77,8 +92,10 @@
         (the-instruction-sequence '())
         (path-info (make-path-info)))
     (let ((the-ops
-           (list (list 'initialize-stack
-                       (lambda () (stack 'initialize)))))
+           (list (cons 'initialize-stack
+                       (lambda () (stack 'initialize)))
+                 (cons 'stack-stats
+                       (lambda () (stack 'stack-stats)))))
           (register-table
            (list (list 'pc pc) (list 'flag flag))))
       (define (allocate-register name)
@@ -141,6 +158,16 @@
   (machine 'get-instruction-sequence))
 (define (get-path-info machine)
   (machine 'get-path-info))
+
+(define (operation machine name)
+  (cdr (assoc name (machine 'operations))))
+
+(define (initialize-stack! machine)
+  ((operation machine 'initialize-stack)))
+
+(define (stack-stats machine)
+  ((operation machine 'stack-stats)))
+
 
 ;; 5.2.2 The Assembler
 ;; ===================
@@ -550,4 +577,6 @@
  get-entry-regs
  get-stack-regs
  get-reg-sources
+ initialize-stack!
+ stack-stats
  start)

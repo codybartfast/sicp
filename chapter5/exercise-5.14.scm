@@ -27,7 +27,48 @@
 
 (-start- "5.14")
 
+(#%require "machine-14.scm")
 
+(define (fact-stack n)
+  (let ((machine (make-machine
+                  (list
+                   (list '= =)
+                   (list '- -)
+                   (list '* *))
+                  '((assign continue (label fact-done))
+                    fact-loop
+                    (test (op =) (reg n) (const 1))
+                    (branch (label base-case))
+                    (save continue)
+                    (save n)
+                    (assign n (op -) (reg n) (const 1))
+                    (assign continue (label after-fact))
+                    (goto (label fact-loop))
+                    after-fact
+                    (restore n)
+                    (restore continue)
+                    (assign val (op *) (reg n) (reg val))
+                    (goto (reg continue))
+                    base-case
+                    (assign val (const 1))
+                    (goto (reg continue))
+                    fact-done))))
+    (set-register-contents! machine 'n n)
+    (start machine)
+    (stack-stats machine)))
+
+(println
+ "
+fact  5: " (fact-stack 5) "
+fact 10: " (fact-stack 10) "
+fact 15: " (fact-stack 15) "
+fact 20: " (fact-stack 20) "
+fact 25: " (fact-stack 25) "
+
+The stats show total pushes and maximum depth are the same and for n! the
+number is (2 * n) - 2.  So if we're looking for a linear equation of the
+form an + b then a=2 and b=-2.
+")
 
 (--end-- "5.14")
 
