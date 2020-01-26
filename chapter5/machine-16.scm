@@ -1,16 +1,12 @@
 #lang sicp
 
+;; Machine 16: Ex 5.16 add instruction tracing
+;;
 ;; Machine 15: Ex 5.15 add instruction counting stats
 ;;
 ;; Machine 14: Ex 5.14 update stack to include stack stats
 ;;
-;; Machine 13: Ex 5.13 add get-make-register to implicitly create registers
-;;
-;; Machine 12: Ex 5.12 add build-path-info for analysis of data paths
-;;
-;; Machine 09:
-;;   - Ex 5.8 check for duplicate labels in extract-labels
-;;   - Ex 5.9 check labels aren't passed to operations in make-operation-exp
+;; <snip>
 
 
 ;; 5.2.1 the Machine Model
@@ -120,11 +116,18 @@
           (if val
               (cadr val)
               (error "Unknown register:" name))))
+      (define write-trace
+        (lambda (message) '()))
+      (define (trace-on sink)
+        (set! write-trace sink))
+      (define (trace-off)
+        (set! write-trace (lambda (message) '())))
       (define (execute)
         (let ((insts (get-contents pc)))
           (if (null? insts)
               'done
               (begin
+                (write-trace (caar insts))
                 ((instruction-execution-proc (car insts)))
                 (set! inst-count (+ inst-count 1))
                 (execute)))))
@@ -144,6 +147,8 @@
               ((eq? message 'stack) stack)
               ((eq? message 'operations) the-ops)
               ((eq? message 'get-path-info) path-info)
+              ((eq? message 'trace-on) trace-on)
+              ((eq? message 'trace-off) trace-off)
               (else (error "Unknown request -- MACHINE" message))))
       dispatch)))
 
@@ -180,6 +185,11 @@
 (define (machine-stats machine)
   ((operation machine 'machine-stats)))
 
+(define (trace-on! machine sink)
+  ((machine 'trace-on) sink))
+
+(define (trace-off! machine)
+  ((machine 'trace-off)))
 
 ;; 5.2.2 The Assembler
 ;; ===================
@@ -592,4 +602,6 @@
  initialize-stack!
  stack-stats
  machine-stats
+ trace-on!
+ trace-off!
  start)
