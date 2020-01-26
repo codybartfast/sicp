@@ -20,7 +20,7 @@
 
 (#%require "machine-15.scm")
 
-(define (fact-stack n)
+(define (fact-mach n)
   (let ((machine (make-machine
                   (list
                    (list '= =)
@@ -46,15 +46,15 @@
                     fact-done))))
     (set-register-contents! machine 'n n)
     (start machine)
-    (list (machine-stats machine))))
+    (machine-stats machine)))
 
 (println
  "
-fact  5: " (fact-stack 5) "
-fact 10: " (fact-stack 10) "
-fact 15: " (fact-stack 15) "
-fact 20: " (fact-stack 20) "
-fact 25: " (fact-stack 25) "
+fact  5: " (fact-mach 5) "
+fact 10: " (fact-mach 10) "
+fact 15: " (fact-mach 15) "
+fact 20: " (fact-mach 20) "
+fact 25: " (fact-mach 25) "
 
 The instruction count is (11 * n) - 6
 
