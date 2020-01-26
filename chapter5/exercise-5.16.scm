@@ -41,11 +41,9 @@ make-new-machine:
                 (set! inst-count (+ inst-count 1))
                 (execute)))))
 
-Demo:
+Demo (note - the instruction count, 97, matches the number of trace
+messages):
 ")
-
-(define (write-trace message)
-  (println "--trace--: " message))
 
 (define (fib-trace)
   (let ((machine (make-machine
@@ -85,10 +83,18 @@ Demo:
     (start machine)
     (println "(fib 3): " (machine-stats machine))
 
-    (trace-on! machine write-trace)
+    (println "
+Switching trace on ...
+")
+    (trace-on! machine
+               (lambda (message)
+                 (println "--trace--: " message)))
     (set-register-contents! machine 'n 4)
     (start machine)
     (println "(fib 4): " (machine-stats machine))
+    (println "
+Switching trace off ...
+")
     (trace-off! machine)
 
     (set-register-contents! machine 'n 5)
