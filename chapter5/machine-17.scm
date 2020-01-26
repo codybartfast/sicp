@@ -1,10 +1,10 @@
 #lang sicp
 
+;; Machine 17: Ex 5.17 add labels to instruction trace
+;;
 ;; Machine 16: Ex 5.16 add instruction tracing
 ;;
 ;; Machine 15: Ex 5.15 add instruction counting stats
-;;
-;; Machine 14: Ex 5.14 update stack to include stack stats
 ;;
 ;; <snip>
 
@@ -124,13 +124,17 @@
         (set! write-trace (lambda (message) '())))
       (define (execute)
         (let ((insts (get-contents pc)))
-          (if (null? insts)
-              'done
-              (begin
-                (write-trace (caar insts))
-                ((instruction-execution-proc (car insts)))
-                (set! inst-count (+ inst-count 1))
-                (execute)))))
+          (cond ((null? insts)
+                 'done)
+                ((symbol? (car insts))
+                 (write-trace (car insts))
+                 (advance-pc pc)
+                 (execute))
+                (else
+                 (write-trace (caar insts))
+                 ((instruction-execution-proc (car insts)))
+                 (set! inst-count (+ inst-count 1))
+                 (execute)))))
       (define (dispatch message)
         (cond ((eq? message 'start)
                (set-contents! pc the-instruction-sequence)
@@ -209,9 +213,9 @@
            (cond ((symbol? next-inst)
                   (if (label-defined? labels next-inst)
                       (error "Duplicate label -- ASSEMBLE" next-inst))
-                  (receive insts
+                  (receive (cons next-inst insts)
                            (cons (make-label-entry next-inst
-                                                   insts)
+                                                   (cons next-inst insts))
                                  labels)))
                  (else (receive (cons (make-instruction next-inst)
                               insts)
@@ -224,11 +228,12 @@
         (ops (machine 'operations)))
     (for-each
      (lambda (inst)
-       (set-instruction-execution-proc!
-        inst
-        (make-execution-procedure
-         (instruction-text inst) labels machine
-         pc flag stack ops)))
+       (if (not (symbol? inst))
+           (set-instruction-execution-proc!
+            inst
+            (make-execution-procedure
+             (instruction-text inst) labels machine
+             pc flag stack ops))))
      insts)))
 
 (define (make-instruction text)
@@ -549,7 +554,9 @@
   (sort (lambda (inst) (symbol->string (car inst)))
         string<?
         (distinct
-         (map car raw-insts))))
+         (map car
+              (filter (lambda (inst) (not (symbol? inst)))
+                      raw-insts)))))
 
 (define (insts->entry-regs insts)
   (distinct
