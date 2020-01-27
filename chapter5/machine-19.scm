@@ -1,10 +1,12 @@
 #lang sicp
 
+(#%require "common.scm")  ;; ToDo - remove this line
+
+;; Machine 19: Ex 5.19 add breakpoint support
+;;
 ;; Machine 18: Ex 5.18 add register tracing
 ;;
 ;; Machine 17: Ex 5.17 add labels to instruction trace
-;;
-;; Machine 16: Ex 5.16 add instruction tracing
 ;;
 ;; <snip>
 
@@ -15,8 +17,11 @@
 (define (make-machine ops controller-text)
   (let ((machine (make-new-machine)))
     ((machine 'install-operations) ops)
-    ((machine 'install-instruction-sequence)
-     (assemble controller-text machine))
+    (let ((assemble-result (assemble controller-text machine)))
+      ((machine 'install-instruction-sequence)
+       (assemble-instructions assemble-result))
+      ((machine 'install-breakpoint-controller)
+       (assemble-breakpoint-controller assemble-result)))
     (build-path-info machine)
     machine))
 
@@ -100,7 +105,8 @@
         (stack (make-stack))
         (the-instruction-sequence '())
         (path-info (make-path-info))
-        (inst-count 0))
+        (inst-count 0)
+        (breakpoint-controller '*unassigned*))
     (let ((the-ops
            (list (cons 'initialize-stack
                        (lambda () (stack 'initialize)))
@@ -163,6 +169,11 @@
               ((eq? message 'get-path-info) path-info)
               ((eq? message 'trace-on) trace-on)
               ((eq? message 'trace-off) trace-off)
+              ((eq? message 'get-breakpoint-controller)
+               breakpoint-controller)
+              ((eq? message 'install-breakpoint-controller)
+               (lambda (controller)
+                 (set! breakpoint-controller controller)))
               (else (error "Unknown request -- MACHINE" message))))
       dispatch)))
 
@@ -212,14 +223,20 @@
 (define (trace-off! machine)
   ((machine 'trace-off)))
 
+
 ;; 5.2.2 The Assembler
 ;; ===================
 
 (define (assemble controller-text machine)
   (extract-labels controller-text
     (lambda (insts labels)
-      (update-insts! insts labels machine)
-      insts)))
+       (update-insts! insts labels machine)
+      (cons
+       (make-breakpoint-controller labels)
+       insts))))
+
+(define assemble-instructions cdr)
+(define assemble-breakpoint-controller car)
 
 (define (extract-labels text receive)
   (if (null? text)
@@ -254,13 +271,15 @@
      insts)))
 
 (define (make-instruction text)
-  (cons text '()))
+  (cons (cons text '()) #false))
 (define (instruction-text inst)
-  (car inst))
+  (caar inst))
 (define (instruction-execution-proc inst)
-  (cdr inst))
+  (cdar inst))
 (define (set-instruction-execution-proc! inst proc)
-  (set-cdr! inst proc))
+  (set-car! inst (cons (caar inst) proc)))
+(define instruction-break? cdr)
+(define set-instruction-break! set-cdr!)
 
 (define (make-label-entry label-name insts)
   (cons label-name insts))
@@ -275,6 +294,7 @@
   (if (assoc label-name labels)
       #true
       #false))
+
 
 ;; 5.2.3 Generating Execution Procedures for Instructions
 ;; ======================================================
@@ -446,6 +466,7 @@
         (cadr val)
         (error "Unknown operation -- ASSEMBLE" symbol))))
 
+
 ;; From elsewhere
 ;; ==============
 
@@ -455,6 +476,7 @@
   (if (pair? exp)
       (eq? (car exp) tag)
       false))
+
 
 ;; For Ex 5.12
 ;; ===========
@@ -568,7 +590,7 @@
     (set-reg-sources! path-info (insts->reg-sources insts))))
 
 (define (raw-insts->insts raw-insts)
-  (sort (lambda (inst) (symbol->string (car inst)))
+  (sort (lambda (inst) (symbol->string (instruction-text inst)))
         string<?
         (distinct
          (map car
@@ -610,6 +632,25 @@
      (distinct
       (map cadr assign-insts)))))
 
+;; Ex 5.19 Breakpoints
+;; ===================
+
+(define (make-breakpoint-controller labels)
+  (define (set label offset)
+    (println (list-ref (lookup-label labels label) offset))
+    (set-instruction-break!
+     (list-ref (lookup-label labels label) offset) #t)
+    (println (list-ref (lookup-label labels label) offset))
+    )
+  (define (dispatch message)
+    (cond
+      ((eq? message 'set) set)
+      ))
+  dispatch)
+
+(define (set-breakpoint machine label offset)
+  (((machine 'get-breakpoint-controller) 'set) label offset))
+
 
 ;; And finally...
 ;; ==============
@@ -618,6 +659,7 @@
  make-machine
  set-register-contents!
  get-register-contents
+ get-instruction-sequence
  get-path-info
  get-insts
  get-entry-regs
@@ -630,4 +672,5 @@
  trace-off!
  reg-trace-on!
  reg-trace-off!
+ set-breakpoint
  start)

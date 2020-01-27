@@ -42,7 +42,93 @@
 
 (-start- "5.19")
 
+(println
+ "
+Breath
 
+Demo:
+")
+
+(#%require "machine-19.scm")
+
+(define (fib-trace)
+  (let ((machine (make-machine
+                  (list
+                   (list '+ +)
+                   (list '- -)
+                   (list '< <))
+                  '((assign continue (label fib-done))
+                    fib-loop
+                    (test (op <) (reg n) (const 2))
+                    (branch (label immediate-answer))
+                    (save continue)
+                    (assign continue (label afterfib-n-1))
+                    (save n)
+                    (assign n (op -) (reg n) (const 1))
+                    (goto (label fib-loop))
+                    afterfib-n-1
+                    (restore n)
+                    (restore continue)
+                    (assign n (op -) (reg n) (const 2))
+                    (save continue)
+                    (assign continue (label afterfib-n-2))
+                    (save val)
+                    (goto (label fib-loop))
+                    afterfib-n-2
+                    (assign n (reg val))
+                    (restore val)
+                    (restore continue)
+                    (assign val (op +) (reg val) (reg n))
+                    (goto (reg continue))
+                    immediate-answer
+                    (assign val (reg n))
+                    (goto (reg continue))
+                    fib-done))))
+
+    (set-register-contents! machine 'n 3)
+    (start machine)
+    
+    ;(set-breakpoint machine 'afterfib-n-2 4)
+    (println (set-breakpoint machine 'afterfib-n-2 4))
+    (println "(fib 3): " (machine-stats machine))
+
+;    (println "
+;Switching register tracing for 'val' ...
+;")
+;    (reg-trace-on! machine 'val
+;                   (lambda (reg before after)
+;                     (println "---reg---: " reg ": " before " -> " after)))
+;    (set-register-contents! machine 'n 4)
+;    (start machine)
+;    (println "(fib 4): " (machine-stats machine))
+;    (println "
+;Switching trace off ...
+;")
+;    (reg-trace-off! machine 'val)
+;
+;    (set-register-contents! machine 'n 5)
+;    (start machine)
+;    (println "(fib 5): " (machine-stats machine))
+;
+;    (set-register-contents! machine 'n 10)
+;    (start machine)
+;    (println "(fib 10): " (machine-stats machine))
+;
+;    (set-register-contents! machine 'n 15)
+;    (start machine)
+;    (println "(fib 15): " (machine-stats machine))
+;
+;    (set-register-contents! machine 'n 20)
+;    (start machine)
+;    (println "(fib 20): " (machine-stats machine))
+;
+;    (set-register-contents! machine 'n 25)
+;    (start machine)
+;    (println "(fib 25): " (machine-stats machine)))
+
+    ))
+
+(fib-trace)
 
 (--end-- "5.19")
 
