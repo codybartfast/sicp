@@ -1,10 +1,10 @@
 #lang sicp
 
+;; Machine 18: Ex 5.18 add register tracing
+;;
 ;; Machine 17: Ex 5.17 add labels to instruction trace
 ;;
 ;; Machine 16: Ex 5.16 add instruction tracing
-;;
-;; Machine 15: Ex 5.15 add instruction counting stats
 ;;
 ;; <snip>
 
@@ -22,12 +22,23 @@
 
 ;; Registers
 
+(define (write-null . message-parts) '())
+
 (define (make-register name)
   (let ((contents '*unassigned*))
+    (define write-trace write-null)
+    (define (trace-on sink)
+      (set! write-trace sink))
+    (define (trace-off)
+      (set! write-trace write-null)) 
     (define (dispatch message)
       (cond ((eq? message 'get) contents)
             ((eq? message 'set)
-             (lambda (value) (set! contents value)))
+             (lambda (value)
+               (write-trace name contents value)
+               (set! contents value)))
+            ((eq? message 'trace-on) trace-on)
+            ((eq? message 'trace-off) trace-off)
             (else
              (error "Unknown request -- REGISTER" message))))
     dispatch))
@@ -62,7 +73,7 @@
       (set! number-pushes 0)
       (set! max-depth 0)
       (set! current-depth 0)
-      'done)
+      'done)   
     (define (stack-stats)
       (list (list 'total-pushes number-pushes)
             (list 'maximum-depth max-depth)))
@@ -116,12 +127,11 @@
           (if val
               (cadr val)
               (error "Unknown register:" name))))
-      (define write-trace
-        (lambda (message) '()))
+      (define write-trace write-null)
       (define (trace-on sink)
         (set! write-trace sink))
       (define (trace-off)
-        (set! write-trace (lambda (message) '())))
+        (set! write-trace write-null))
       (define (execute)
         (let ((insts (get-contents pc)))
           (cond ((null? insts)
@@ -158,14 +168,21 @@
 
 (define (start machine)
   (machine 'start))
+
+(define (get-register machine reg-name)
+  ((machine 'get-register) reg-name))
+
 (define (get-register-contents machine register-name)
   (get-contents (get-register machine register-name)))
 (define (set-register-contents! machine register-name value)
   (set-contents! (get-register machine register-name) value)
   'done)
 
-(define (get-register machine reg-name)
-  ((machine 'get-register) reg-name))
+(define (reg-trace-on! machine reg-name sink)
+  (((get-register machine reg-name) 'trace-on) sink))
+
+(define (reg-trace-off! machine reg-name)
+  (((get-register machine reg-name) 'trace-off)))
 
 (define (get-make-register machine reg-name)
   (if (not ((machine 'contains-register?) reg-name))
@@ -611,4 +628,6 @@
  machine-stats
  trace-on!
  trace-off!
+ reg-trace-on!
+ reg-trace-off!
  start)
