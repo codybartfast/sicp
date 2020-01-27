@@ -86,11 +86,14 @@ Demo:
                     fib-done))))
 
     (set-register-contents! machine 'n 3)
-    (start machine)
-    
-    ;(set-breakpoint machine 'afterfib-n-2 4)
     (println (set-breakpoint machine 'afterfib-n-2 4))
+    (start machine)
     (println "(fib 3): " (machine-stats machine))
+    (proceed-machine machine)
+    (println "(fib 3): " (machine-stats machine))
+    (proceed-machine machine)
+    (println "(fib 3): " (machine-stats machine))
+    (println (get-register-contents machine 'val))
 
 ;    (println "
 ;Switching register tracing for 'val' ...

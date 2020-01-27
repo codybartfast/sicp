@@ -138,7 +138,7 @@
         (set! write-trace sink))
       (define (trace-off)
         (set! write-trace write-null))
-      (define (execute)
+      (define (execute-proceed check-break)
         (let ((insts (get-contents pc)))
           (cond ((null? insts)
                  'done)
@@ -146,11 +146,21 @@
                  (write-trace (car insts))
                  (advance-pc pc)
                  (execute))
+                ((and check-break (instruction-break? (car insts)))
+                 (let ((desc  (instruction-break-desc (car insts))))
+                   (display "--break--: ")
+                   (display (car desc))
+                   (display " ")
+                   (display (cdr desc))
+                   (newline)
+                   'stopped))
                 (else
                  (write-trace (caar insts))
                  ((instruction-execution-proc (car insts)))
                  (set! inst-count (+ inst-count 1))
                  (execute)))))
+      (define (proceed) (execute-proceed #false))
+      (define (execute) (execute-proceed #true))
       (define (dispatch message)
         (cond ((eq? message 'start)
                (set-contents! pc the-instruction-sequence)
@@ -174,6 +184,7 @@
               ((eq? message 'install-breakpoint-controller)
                (lambda (controller)
                  (set! breakpoint-controller controller)))
+              ((eq? message 'proceed) proceed)
               (else (error "Unknown request -- MACHINE" message))))
       dispatch)))
 
@@ -271,15 +282,17 @@
      insts)))
 
 (define (make-instruction text)
-  (cons (cons text '()) #false))
+  (cons (cons text '()) (cons #false '())))
 (define (instruction-text inst)
   (caar inst))
 (define (instruction-execution-proc inst)
   (cdar inst))
 (define (set-instruction-execution-proc! inst proc)
   (set-car! inst (cons (caar inst) proc)))
-(define instruction-break? cdr)
-(define set-instruction-break! set-cdr!)
+(define instruction-break? cadr)
+(define instruction-break-desc cddr)
+(define (set-instruction-break! inst val description)
+  (set-cdr! inst (cons val description)))
 
 (define (make-label-entry label-name insts)
   (cons label-name insts))
@@ -639,18 +652,41 @@
   (define (set label offset)
     (println (list-ref (lookup-label labels label) offset))
     (set-instruction-break!
-     (list-ref (lookup-label labels label) offset) #t)
+     (list-ref (lookup-label labels label) offset) #t (cons label offset))
+    (println (list-ref (lookup-label labels label) offset)))
+  (define (cancel label offset)
     (println (list-ref (lookup-label labels label) offset))
-    )
+    (set-instruction-break!
+     (list-ref (lookup-label labels label) offset) #f '())
+    (println (list-ref (lookup-label labels label) offset)))
+  (define (cancel-all)
+    (map
+     (lambda (label)
+       (map
+        (lambda (inst)
+          (set-instruction-break! inst #f '()))
+        (filter
+         (lambda (inst) (not (symbol? inst)))
+         (cdr label))))
+     labels))
   (define (dispatch message)
     (cond
       ((eq? message 'set) set)
-      ))
+      ((eq? message 'cancel) cancel)
+      ((eq? message 'cancel-all) cancel-all)))
   dispatch)
 
 (define (set-breakpoint machine label offset)
   (((machine 'get-breakpoint-controller) 'set) label offset))
 
+(define (cancel-breakpoint machine label offset)
+  (((machine 'get-breakpoint-controller) 'cancel) label offset))
+
+(define (cancel-all-breakpoints machine)
+  (((machine 'get-breakpoint-controller) 'cancel-all)))
+
+(define (proceed-machine machine)
+  ((machine 'proceed)))
 
 ;; And finally...
 ;; ==============
@@ -673,4 +709,7 @@
  reg-trace-on!
  reg-trace-off!
  set-breakpoint
+ cancel-breakpoint
+ cancel-all-breakpoints
+ proceed-machine
  start)
