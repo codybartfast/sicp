@@ -1,7 +1,5 @@
 #lang sicp
 
-(#%require "common.scm")  ;; ToDo - remove this line
-
 ;; Machine 19: Ex 5.19 add breakpoint support
 ;;
 ;; Machine 18: Ex 5.18 add register tracing
@@ -148,14 +146,14 @@
                  (execute))
                 ((and check-break (instruction-break? (car insts)))
                  (let ((desc  (instruction-break-desc (car insts))))
-                   (display "--break--: ")
+                   (display "--break--:  label: ")
                    (display (car desc))
-                   (display " ")
+                   (display " offset: ")
                    (display (cdr desc))
                    (newline)
                    'stopped))
                 (else
-                 (write-trace (caar insts))
+                 (write-trace (instruction-text (car insts)))
                  ((instruction-execution-proc (car insts)))
                  (set! inst-count (+ inst-count 1))
                  (execute)))))
@@ -650,15 +648,12 @@
 
 (define (make-breakpoint-controller labels)
   (define (set label offset)
-    (println (list-ref (lookup-label labels label) offset))
     (set-instruction-break!
-     (list-ref (lookup-label labels label) offset) #t (cons label offset))
-    (println (list-ref (lookup-label labels label) offset)))
+     (list-ref (lookup-label labels label) offset)
+     `#t (cons label offset)))
   (define (cancel label offset)
-    (println (list-ref (lookup-label labels label) offset))
     (set-instruction-break!
-     (list-ref (lookup-label labels label) offset) #f '())
-    (println (list-ref (lookup-label labels label) offset)))
+     (list-ref (lookup-label labels label) offset) #f '()))
   (define (cancel-all)
     (map
      (lambda (label)
@@ -712,4 +707,5 @@
  cancel-breakpoint
  cancel-all-breakpoints
  proceed-machine
+ assemble
  start)

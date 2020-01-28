@@ -44,9 +44,62 @@
 
 (println
  "
-Breath
+I updated the instruction object to maintain a bool to say if it is a
+breakpoint and, if so, the instruction's original location (label . offset).
 
-Demo:
+;; The breakpoint-controller then provides procedures for modifying this:
+
+  (define (make-breakpoint-controller labels)
+    (define (set label offset)
+      (set-instruction-break!
+       (list-ref (lookup-label labels label) offset)
+       #t (cons label offset)))
+    (define (cancel label offset)
+      (set-instruction-break!
+       (list-ref (lookup-label labels label) offset) #f '()))
+    (define (cancel-all)
+      (map
+       (lambda (label)
+         (map
+          (lambda (inst)
+            (set-instruction-break! inst #f '()))
+          (filter
+           (lambda (inst) (not (symbol? inst)))
+           (cdr label))))
+       labels))
+    (define (dispatch message)
+      (cond
+        ((eq? message 'set) set)
+        ((eq? message 'cancel) cancel)
+        ((eq? message 'cancel-all) cancel-all)))
+    dispatch)
+
+;; For proceed I renamed the main execute procuedure to execute-proceed
+;; this takes boolean indicating whether it should check for a breakpoint.
+;; Exectue calls this with #true but proceed calls it with false so the
+;; instruction with the breakpoin can be executed.
+
+  (define (execute-proceed check-break)
+    (let ((insts (get-contents pc)))
+      (cond ((null? insts)
+              ...
+            ((and check-break (instruction-break? (car insts)))
+             (let ((desc  (instruction-break-desc (car insts))))
+               (display \"--break--:  label: \")
+               (display (car desc))
+               (display \" offset: \")
+               (display (cdr desc))
+               (newline)
+               'stopped))
+            (else
+             (write-trace (instruction-text (car insts)))
+             ((instruction-execution-proc (car insts)))
+             (set! inst-count (+ inst-count 1))
+             (execute)))))
+  (define (proceed) (execute-proceed #false))
+  (define (execute) (execute-proceed #true))
+
+Demo (fib 3):
 ")
 
 (#%require "machine-19.scm")
@@ -86,50 +139,26 @@ Demo:
                     fib-done))))
 
     (set-register-contents! machine 'n 3)
-    (println (set-breakpoint machine 'afterfib-n-2 4))
+    (set-breakpoint machine 'afterfib-n-2 4)
+
+    (define total-inst-count 0)
+    (define (add-inst-count stats)
+      (set! total-inst-count
+            (+ total-inst-count
+               (cadar stats)))
+      total-inst-count)
+    (define (print-status machine)
+      (println
+       "inst-count: " (add-inst-count (machine-stats machine))
+       ", val:" (get-register-contents machine 'val))
+      (println ""))
+
     (start machine)
-    (println "(fib 3): " (machine-stats machine))
+    (print-status machine)
     (proceed-machine machine)
-    (println "(fib 3): " (machine-stats machine))
-    (proceed-machine machine)
-    (println "(fib 3): " (machine-stats machine))
-    (println (get-register-contents machine 'val))
-
-;    (println "
-;Switching register tracing for 'val' ...
-;")
-;    (reg-trace-on! machine 'val
-;                   (lambda (reg before after)
-;                     (println "---reg---: " reg ": " before " -> " after)))
-;    (set-register-contents! machine 'n 4)
-;    (start machine)
-;    (println "(fib 4): " (machine-stats machine))
-;    (println "
-;Switching trace off ...
-;")
-;    (reg-trace-off! machine 'val)
-;
-;    (set-register-contents! machine 'n 5)
-;    (start machine)
-;    (println "(fib 5): " (machine-stats machine))
-;
-;    (set-register-contents! machine 'n 10)
-;    (start machine)
-;    (println "(fib 10): " (machine-stats machine))
-;
-;    (set-register-contents! machine 'n 15)
-;    (start machine)
-;    (println "(fib 15): " (machine-stats machine))
-;
-;    (set-register-contents! machine 'n 20)
-;    (start machine)
-;    (println "(fib 20): " (machine-stats machine))
-;
-;    (set-register-contents! machine 'n 25)
-;    (start machine)
-;    (println "(fib 25): " (machine-stats machine)))
-
-    ))
+    (print-status machine)
+    (println (proceed-machine machine))
+    (print-status machine)))
 
 (fib-trace)
 
