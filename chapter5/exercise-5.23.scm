@@ -18,7 +18,22 @@
 
 (-start- "5.23")
 
+(println
+ "
+If we assume we have the conversion operations available, e.g., cond-if,
+then I would imagine that each would follow an identical pattern, something
+like:
 
+eval-dispatch
+  ...
+  (test (op cond?) (reg exp))
+  (branch (label ev-cond->if))
+  ...)
+
+ev-cond-if
+  (assign exp (cond->if) (reg exp))
+  (goto (label eval-dispatch))
+")
 
 (--end-- "5.23")
 
