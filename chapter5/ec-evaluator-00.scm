@@ -164,7 +164,7 @@
 (define eceval-operations
   (list
    (list 'self-evaluating? self-evaluating?)
-   (list 'variable? symbol?)        
+   (list 'variable? symbol?)
    (list 'quoted? (lambda (exp) (tagged-list? exp 'quote)))
    (list 'assignment? (lambda (exp) (tagged-list? exp 'set!)))
    (list 'definition? definition?)
@@ -224,7 +224,7 @@
   '(
     (assign continue (label eceval-done))
     (goto (label ev-begin))
-    
+
     ;; 5.4.1 The Core of the Evaluator
     ;; ===============================
 
@@ -319,7 +319,7 @@
     apply-dispatch
     (test (op primitive-procedure?) (reg proc))
     (branch (label primitive-apply))
-    (test (op compound-procedure?) (reg proc))  
+    (test (op compound-procedure?) (reg proc))
     (branch (label compound-apply))
     (goto (label unknown-procedure-type))
 
@@ -337,7 +337,7 @@
             (reg unev) (reg argl) (reg env))
     (assign unev (op procedure-body) (reg proc))
     (goto (label ev-sequence))
-    
+
     ;; 5.4.2 Sequence Evaluation and Tail Recursion
 
     ev-begin
@@ -362,7 +362,7 @@
     (restore continue)
     (goto (label eval-dispatch))
 
-  
+
     ;; 5.4.3 Conditionals, Assignments and Definitions
     ;; ===============================================
 
@@ -440,12 +440,12 @@
     (goto (label eceval-end))
 
     ;; extra
-    
+
     eceval-done
     (perform (op print) (const "eceval DONE - val: "))
     (perform (op println) (reg val))
     (goto (label eceval-end))
-    
+
     eceval-end
     ))
 
@@ -455,6 +455,6 @@
  eceval-operations
  the-global-environment
  )
- 
-  
-    
+
+
+

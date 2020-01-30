@@ -164,7 +164,7 @@
 (define eceval-operations
   (list
    (list 'self-evaluating? self-evaluating?)
-   (list 'variable? symbol?)        
+   (list 'variable? symbol?)
    (list 'quoted? (lambda (exp) (tagged-list? exp 'quote)))
    (list 'assignment? (lambda (exp) (tagged-list? exp 'set!)))
    (list 'definition? definition?)
@@ -211,7 +211,7 @@
    (list 'println (lambda (exp) (display exp) (newline)))
    ;; Ex 5.24
    (list 'cond-clauses cdr)
-   (list 'have-clauses? (lambda (exp) (not (null? exp))))
+   (list 'have-clause? (lambda (exp) (not (null? exp))))
    (list 'cond? (lambda (exp) (tagged-list? exp 'cond)))
    (list 'clauses-first car)
    (list 'clauses-rest cdr)
@@ -233,7 +233,7 @@
   '(
     (assign continue (label eceval-done))
     (goto (label ev-begin))
-    
+
     ;; 5.4.1 The Core of the Evaluator
     ;; ===============================
 
@@ -330,7 +330,7 @@
     apply-dispatch
     (test (op primitive-procedure?) (reg proc))
     (branch (label primitive-apply))
-    (test (op compound-procedure?) (reg proc))  
+    (test (op compound-procedure?) (reg proc))
     (branch (label compound-apply))
     (goto (label unknown-procedure-type))
 
@@ -348,7 +348,7 @@
             (reg unev) (reg argl) (reg env))
     (assign unev (op procedure-body) (reg proc))
     (goto (label ev-sequence))
-    
+
     ;; 5.4.2 Sequence Evaluation and Tail Recursion
 
     ev-begin
@@ -373,7 +373,7 @@
     (restore continue)
     (goto (label eval-dispatch))
 
-  
+
     ;; 5.4.3 Conditionals, Assignments and Definitions
     ;; ===============================================
 
@@ -448,7 +448,7 @@
     (perform (op print) (const "ERROR: "))
     (perform (op println) (reg val))
     (goto (label eceval-end))
-    
+
     eceval-done
     (perform (op print) (const "eceval DONE - val: "))
     (perform (op println) (reg val))
@@ -461,63 +461,56 @@
 ;; Ex 5.24 - cond
 ;; ==============
 
-    ev-cond
-    (save continue)
-    (assign exp (op cond-clauses) (reg exp))
-    ev-cond-have-clause?
-    (test (op have-clauses?) (reg exp))
-    (branch (label ev-cond-check-clause))
-    (goto (label ev-cond-no-clauses))
+  ev-cond
+    (save continue)                              ; save final destination
+    (assign exp (op cond-clauses) (reg exp))     ; drop cond label
+  ev-cond-have-clause?
+    (test (op have-clause?) (reg exp))           ; any clauses?
+    (branch (label ev-cond-check-clause))        ;      --> check clause
+    (goto (label ev-cond-no-clauses))            ; --> no clauses
 
-    ev-cond-check-clause
-    (save exp)                                   ;; clauses list
-    (assign exp (op clauses-first) (reg exp))
-    (save exp)                                   ;; clause
-    (test (op cond-else-clause?) (reg exp))
-    (branch (label ev-cond-else))
-    (save env)
-    (assign exp (op cond-predicate) (reg exp))   ;; predicate
+  ev-cond-check-clause
+    (save exp)                                   ; save clauses list
+    (assign exp (op clauses-first) (reg exp))    ; get first clause
+    (test (op cond-else-clause?) (reg exp))      ; else clause?
+    (branch (label ev-cond-else))                ;      --> else
+    (save exp)                                   ; save clause
+    (save env)                                   ; save env
+    (assign exp (op cond-predicate) (reg exp))   ; get predicate
     (assign continue (label ev-cond-after-predicate))
-    (goto (label eval-dispatch))
+    (goto (label eval-dispatch))                 ; --> eval predicate
 
-    ev-cond-after-predicate
-    (restore env)
-    (restore exp)                                ;; clause
-    (test (op true?) (reg val))
-    (branch (label ev-cond-actions))
-    (restore exp)                                ;; clauses list
-    (assign exp (op clauses-rest) (reg exp))     ;; rest of clauses
-    (goto (label ev-cond-have-clause?))
+  ev-cond-after-predicate
+    (restore env)                                ; restore env
+    (restore exp)                                ; restore clause
+    (test (op true?) (reg val))                  ; is predicate true?
+    (branch (label ev-cond-actions))             ;      --> actions
+    (restore exp)                                ; retore clauses list
+    (assign exp (op clauses-rest) (reg exp))     ; drop first clause
+    (goto (label ev-cond-have-clause?))          ; --> try-again
 
-    ev-cond-else
-    (restore exp)                                ;; clause
-    (assign unev (reg exp))
-    (restore exp)                                ;; clauses list
-    (assign val (op clauses-rest) (reg exp))
-    (test (op have-clauses?) (reg val))
-    (branch (label ev-cond-error-else-not-last))
-    (save exp)                                   ;; clauses list
-    (assign exp (reg unev))                      ;; clause
-    ev-cond-actions
-    (restore unev)                               ;; discard clauses list
-    (assign unev (op cond-actions) (reg exp))     ;; actions
-    (assign continue (label ev-cond-after-actions))  ;;; TAIL RECURSION??
-    (save continue)
-    (goto (label ev-sequence))
+  ev-cond-else
+    (assign unev (reg exp))                      ; put clause aside
+    (restore exp)                                ; restore clauses list
+    (assign val (op clauses-rest) (reg exp))     ; get clauses after else
+    (test (op have-clause?) (reg val))           ; any after else?
+    (branch (label ev-cond-error-else-not-last)) ;      --> prepare error
+    (save exp)                                   ; save clauses list
+    (assign exp (reg unev))                      ; recall the clause
+  ev-cond-actions
+    (restore unev)                               ; dump clauses list
+    (assign unev (op cond-actions) (reg exp))    ; store actions for ev-seq
+    (goto (label ev-sequence))                   ; --> ev-sequence
 
-    ev-cond-no-clauses
-    (assign val (const false)) ;; mimicing behavour of if w/o alternate.
-    ev-cond-after-actions
-    (restore continue)
-    (goto (reg continue))
+  ev-cond-no-clauses
+    (restore continue)                           ; restore continue
+    (assign exp (const false))                   ; name of false variable
+    (goto (label ev-variable))                   ; --> lookup false value
 
-    ev-cond-error-else-not-last
-    (restore (reg continue))
+  ev-cond-error-else-not-last
+    (restore (reg continue))                     ; assign continue
     (assign val (const else-not-last-clause--COND))
-    (goto (label signal-error))
-
-
-
+    (goto (label signal-error))                  ; --> raise error
 
 ;; The End =================================================================
     eceval-end
@@ -529,6 +522,6 @@
  eceval-operations
  the-global-environment
  )
- 
-  
-    
+
+
+
