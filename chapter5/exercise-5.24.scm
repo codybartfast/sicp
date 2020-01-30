@@ -17,68 +17,71 @@
 
 (-start- "5.24")
 
-(println
- "
-Untested Code:
+(#%require "machine-19.scm")
+(#%require "ec-evaluator-24.scm")
 
- (list
-  (list 'have-clauses? (lambda (exp) (not (null? exp))))
-  (list 'clauses-first car)
-  (list 'clauses-rest cdr)
-  (list 'error error))
+(println "")
 
- ((save continue)
-  (assign exp (op cond-clauses) (reg exp))
-  cond-have-clause?
-    (test (op have-clauses?) (reg exp))
-    (branch (label cond-check-clause))
-    (goto (label cond-no-clauses))
+(define prog-1
+  '(begin
+     (define (on-dice? n)
+       (if (< n 1)
+           false
+           (< n 7)))
+     (cond
+       ((on-dice? 1) "Hello from First Clause")
+       ((on-dice? 2) "Hello from Second Clause")
+       (else "Hello from Else Clause"))))
+     
+(define prog-2
+  '(begin
+     (define (on-dice? n)
+       (if (< n 1)
+           false
+           (< n 7)))
+     (cond
+       ((on-dice? 9) "Hello from First Clause")
+       ((on-dice? 2) "Hello from Second Clause")
+       (else "Hello from Else Clause"))))
+     
+(define prog-Else
+  '(begin
+     (define (on-dice? n)
+       (if (< n 1)
+           false
+           (< n 7)))
+     (cond
+       ((on-dice? 0) "Hello from First Clause")
+       ((on-dice? 7) "Hello from Second Clause")
+       (else "Hello from Else Clause"))))
+     
+(define prog-Error
+  '(begin
+     (define (on-dice? n)
+       (if (< n 1)
+           false
+           (< n 7)))
+     (cond
+       ((on-dice? 0) "Hello from First Clause")
+       (else "Hello from Else Clause")
+       ((on-dice? 2) "Hello from Third Clause"))))
+     
+(define (run prog)
+  (let ((eceval
+         (make-machine
+          eceval-operations
+          explicit-control-evaluator)))
 
-  cond-check-clause
-    (save exp)                                   ;; clauses list
-    (assign exp (op clauses-first) (reg exp))
-    (save exp)                                   ;; clause
-    (test (op cond-else-clause?) (reg exp))
-    (branch (label cond-else))
-    (save env)
-    (assign exp (op cond-predicate) (reg exp))   ;; predicate
-    (assign continue (label cond-after-predicate))
-    (goto (label eval-dispatch))
+    (set-register-contents! eceval 'exp prog)
+    (set-register-contents! eceval 'env the-global-environment)
+    (ignore (start eceval))))
 
-  cond-after-predicate
-    (restore env)
-    (restore exp)                                ;; clause
-    (test (op true?) (reg val))
-    (branch (label cond-actions))
-    (restore exp)                                ;; clauses list
-    (assign exp (op clauses-rest) (reg exp))     ;; rest of clauses
-    (goto (label cond-have-clause?))
+(run prog-1)
+(run prog-2)
+(run prog-Else)
+(run prog-Error)
 
-  cond-else
-    (restore exp)                                ;; clause
-    (assign unev (reg exp))
-    (restore exp)                                ;; clauses list
-    (assign val (op clauses-rest) (reg exp))
-    (test (op have-clauses?) (reg val))
-    (branch (label error-else-not-last))
-    (save exp)                                   ;; clauses list
-    (assign exp (reg unev))                      ;; clause
-  cond-actions
-    (assign exp (op cond-actions) (reg exp))     ;; actions
-    (assign continue (label cond-after-actions))
-    (goto (label ev-sequence))
-
-  cond-no-clauses
-    (assign val (const 'unspecified))
-  cond-after-actions
-    (restore continue)
-    (goto (reg continue))
-
-  error-else-not-last
-    (restore (reg continue))
-    (perform (op error) (const \"ELSE clause isn't last -- COND\")))
-"
-)
+(println "")
 
 (--end-- "5.24")
 
