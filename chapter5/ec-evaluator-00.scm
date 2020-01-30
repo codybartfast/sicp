@@ -1,78 +1,20 @@
 #lang sicp
 
-(define (println . parts)
-  (for-each display parts)
-  (newline))
-
+;; =========================================================================
+;; Primitive Operations
+;; =========================================================================
 ;;
+;; If I understand correctly, these would normally be implemented on the
+;; ecval machine, but are instead provided here to simplify the
+;; implementation of the machine, and to clarify its overall structure.
+;;
+;; Not to be confused with Primitive PROCEDURES, which are always
+;; implemented outside of the machine.
+;;
+;; Apart from reversing arguments in apply-primitive-procedure, and adding
+;; some extra primitve procedures this is just lifted from Section 4.1.
 
-(define (make-frame variables values)
-  (cons variables values))
-
-(define (frame-variables frame) (car frame))
-(define (frame-values frame) (cdr frame))
-
-(define (extend-environment vars vals base-env)
-  (if (= (length vars) (length vals))
-      (cons (make-frame vars vals) base-env)
-      (if (< (length vars) (length vals))
-          (error "Too many arguments supplied" vars vals)
-          (error "Too few arguments supplied" vars vals))))
-
-(define primitive-procedures
-  (list
-   (list 'car car)
-   (list 'cdr cdr)
-   (list 'cons cons)
-   (list 'null? null?)
-   (list '+ +)
-   (list '- -)
-   (list '* *)
-   (list '> >)
-   (list '= =)
-   (list 'eq? eq?)
-   ))
-
-(define (primitive-procedure-names)
-  (map car
-       primitive-procedures))
-
-(define (primitive-procedure-objects)
-  (map (lambda (proc) (list 'primitive (cadr proc)))
-       primitive-procedures))
-
-(define (primitive-procedure? proc)
-  (tagged-list? proc 'primitive))
-
-(define (primitive-implementation proc) (cadr proc))
-
-(define (apply-primitive-procedure proc args)
-  (apply
-   (primitive-implementation proc) (reverse args)))
-
-(define (add-binding-to-frame! var val frame)
-  (set-car! frame (cons var (car frame)))
-  (set-cdr! frame (cons val (cdr frame))))
-
-(define (define-variable! var val env)
-  (let ((frame (first-frame env)))
-    (define (scan vars vals)
-      (cond ((null? vars)
-             (add-binding-to-frame! var val frame))
-            ((eq? var (car vars))
-             (set-car! vals val))
-            (else (scan (cdr vars) (cdr vals)))))
-    (scan (frame-variables frame)
-          (frame-values frame))))
-
-(define (setup-environment)
-  (let ((initial-env
-         (extend-environment (primitive-procedure-names)
-                             (primitive-procedure-objects)
-                             the-empty-environment)))
-    (define-variable! 'true true initial-env)
-    (define-variable! 'false false initial-env)
-    initial-env))
+;; 4.1.2  Representing Expressions
 
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
@@ -84,19 +26,49 @@
       (eq? (car exp) tag)
       false))
 
-(define (quoted? exp)
-  (tagged-list? exp 'quote))
-
-(define (assignment? exp)
-  (tagged-list? exp 'set!))
-
 (define (definition? exp)
   (tagged-list? exp 'define))
+(define (definition-variable exp)
+  (if (symbol? (cadr exp))
+      (cadr exp)
+      (caadr exp)))
+(define (definition-value exp)
+  (if (symbol? (cadr exp))
+      (caddr exp)
+      (make-lambda (cdadr exp)
+                   (cddr exp))))
+
+(define (make-lambda parameters body)
+  (cons 'lambda (cons parameters body)))
+
+(define (if-alternative exp)
+  (if (not (null? (cdddr exp)))
+      (cadddr exp)
+      'false))
+
+;; 4.1.3  Evaluator Data Structures
+
+(define (make-procedure parameters body env)
+  (list 'procedure parameters body env))
 
 (define (enclosing-environment env) (cdr env))
 (define (first-frame env) (car env))
 (define the-empty-environment '())
-(define the-global-environment (setup-environment))
+
+(define (make-frame variables values)
+  (cons variables values))
+(define (frame-variables frame) (car frame))
+(define (frame-values frame) (cdr frame))
+(define (add-binding-to-frame! var val frame)
+  (set-car! frame (cons var (car frame)))
+  (set-cdr! frame (cons val (cdr frame))))
+
+(define (extend-environment vars vals base-env)
+  (if (= (length vars) (length vals))
+      (cons (make-frame vars vals) base-env)
+      (if (< (length vars) (length vals))
+          (error "Too many arguments supplied" vars vals)
+          (error "Too few arguments supplied" vars vals))))
 
 (define (lookup-variable-value var env)
   (define (env-loop env)
@@ -113,14 +85,6 @@
                 (frame-values frame)))))
   (env-loop env))
 
-(define (make-procedure parameters body env)
-  (list 'procedure parameters body env))
-
-(define (if-alternative exp)
-  (if (not (null? (cdddr exp)))
-      (cadddr exp)
-      'false))
-
 (define (set-variable-value! var val env)
   (define (env-loop env)
     (define (scan vars vals)
@@ -136,26 +100,73 @@
                 (frame-values frame)))))
   (env-loop env))
 
-(define (definition-variable exp)
-  (if (symbol? (cadr exp))
-      (cadr exp)
-      (caadr exp)))
+(define (define-variable! var val env)
+  (let ((frame (first-frame env)))
+    (define (scan vars vals)
+      (cond ((null? vars)
+             (add-binding-to-frame! var val frame))
+            ((eq? var (car vars))
+             (set-car! vals val))
+            (else (scan (cdr vars) (cdr vals)))))
+    (scan (frame-variables frame)
+          (frame-values frame))))
 
-(define (make-lambda parameters body)
-  (cons 'lambda (cons parameters body)))
+;; 4.1.4  Running the Evaluator as a Program
 
-(define (definition-value exp)
-  (if (symbol? (cadr exp))
-      (caddr exp)
-      (make-lambda (cdadr exp)
-                   (cddr exp))))
+(define (setup-environment)
+  (let ((initial-env
+         (extend-environment (primitive-procedure-names)
+                             (primitive-procedure-objects)
+                             the-empty-environment)))
+    (define-variable! 'true true initial-env)
+    (define-variable! 'false false initial-env)
+    initial-env))
+
+(define (primitive-procedure? proc)
+  (tagged-list? proc 'primitive))
+
+(define (primitive-implementation proc) (cadr proc))
+
+(define primitive-procedures
+  (list (list 'car car)
+        (list 'cdr cdr)
+        (list 'cons cons)
+        (list 'null? null?)
+        (list '+ +)
+        (list '- -)
+        (list '* *)
+        (list '< <)
+        (list '= =)
+        (list 'eq? eq?)
+        ))
+(define (primitive-procedure-names)
+  (map car
+       primitive-procedures))
+
+(define (primitive-procedure-objects)
+  (map (lambda (proc) (list 'primitive (cadr proc)))
+       primitive-procedures))
+
+(define (apply-primitive-procedure proc args)
+  (apply
+   (primitive-implementation proc)
+   (reverse args))) ;; <-- reverse arguments for eceval
+
+(define the-global-environment (setup-environment))
+
+
+;; Primitive Operations
+;; ====================
+;;
+;; Listed in the order that errors arose when trying to run the eceval
+;; machine without any primitive operations.
 
 (define eceval-operations
   (list
    (list 'self-evaluating? self-evaluating?)
    (list 'variable? symbol?)        
-   (list 'quoted? quoted?)
-   (list 'assignment? assignment?)
+   (list 'quoted? (lambda (exp) (tagged-list? exp 'quote)))
+   (list 'assignment? (lambda (exp) (tagged-list? exp 'set!)))
    (list 'definition? definition?)
    (list 'if? (lambda (exp) (tagged-list? exp 'if)))
    (list 'lambda? (lambda (exp) (tagged-list? exp 'lambda)))
@@ -198,8 +209,16 @@
    (list 'add-binding-to-frame! add-binding-to-frame!)
    (list 'print display)
    (list 'println (lambda (exp) (display exp) (newline)))
-   (list 'error error)
    ))
+
+
+;; =========================================================================
+;; Primitive Operations
+;; =========================================================================
+;;
+;; Copied from Section 5.4 The Explicit-Control Evaluator, with a few
+;; small changes (2 lines at the top, and a few at the bottom as I'm not
+;; running from a REPL.
 
 (define explicit-control-evaluator
   '(
@@ -414,17 +433,21 @@
     (assign val (const unknown-procedure-type-error))
     (goto (label signal-error))
     signal-error
-;    (perform (op user-print) (reg val))
-;    (goto (label read-eval-print-loop))
-    (perform (op error) (reg val))
+    ;    (perform (op user-print) (reg val))
+    ;    (goto (label read-eval-print-loop))
+    (perform (op print) (const "ERROR: "))
+    (perform (op println) (reg val))
+    (goto (label eceval-end))
 
-;; extra
+    ;; extra
     
     eceval-done
     (perform (op print) (const "eceval DONE - val: "))
     (perform (op println) (reg val))
-            
-  ))
+    (goto (label eceval-end))
+    
+    eceval-end
+    ))
 
 
 (#%provide
@@ -434,5 +457,4 @@
  )
  
   
-    
     
