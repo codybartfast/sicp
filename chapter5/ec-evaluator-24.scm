@@ -462,55 +462,50 @@
 ;; ==============
 
   ev-cond
-    (save continue)                              ; save final destination
-    (assign exp (op cond-clauses) (reg exp))     ; drop cond label
+    (save continue)                               ; save final destination
+    (assign exp (op cond-clauses) (reg exp))      ; drop cond label
   ev-cond-have-clause?
-    (test (op have-clause?) (reg exp))           ; any clauses?
-    (branch (label ev-cond-check-clause))        ;      --> check clause
-    (goto (label ev-cond-no-clauses))            ; --> no clauses
+    (test (op have-clause?) (reg exp))            ; any clauses?
+    (branch (label ev-cond-check-clause))         ;      --> check clause
+    (goto (label ev-cond-no-clauses))             ; --> no clauses
 
   ev-cond-check-clause
-    (save exp)                                   ; save clauses list
-    (assign exp (op clauses-first) (reg exp))    ; get first clause
-    (test (op cond-else-clause?) (reg exp))      ; else clause?
-    (branch (label ev-cond-else))                ;      --> else
-    (save exp)                                   ; save clause
-    (save env)                                   ; save env
-    (assign exp (op cond-predicate) (reg exp))   ; get predicate
+    (assign unev (op clauses-first) (reg exp))    ; get first clause
+    (test (op cond-else-clause?) (reg unev))      ; else clause?
+    (branch (label ev-cond-else))                 ;      --> else
+    (save exp)                                    ; save clauses list
+    (save unev)                                   ; save clause
+    (save env)                                    ; save env
+    (assign exp (op cond-predicate) (reg unev))   ; get predicate
     (assign continue (label ev-cond-after-predicate))
-    (goto (label eval-dispatch))                 ; --> eval predicate
+    (goto (label eval-dispatch))                  ; --> eval predicate
 
   ev-cond-after-predicate
-    (restore env)                                ; restore env
-    (restore exp)                                ; restore clause
-    (test (op true?) (reg val))                  ; is predicate true?
-    (branch (label ev-cond-actions))             ;      --> actions
-    (restore exp)                                ; retore clauses list
-    (assign exp (op clauses-rest) (reg exp))     ; drop first clause
-    (goto (label ev-cond-have-clause?))          ; --> try-again
+    (restore env)                                 ; restore env
+    (restore unev)                                ; restore clause
+    (restore exp)                                 ; restore clauses list
+    (test (op true?) (reg val))                   ; is predicate true?
+    (branch (label ev-cond-actions))              ;      --> actions
+    (assign exp (op clauses-rest) (reg exp))      ; drop first clause
+    (goto (label ev-cond-have-clause?))           ; --> try-again
 
   ev-cond-else
-    (assign unev (reg exp))                      ; put clause aside
-    (restore exp)                                ; restore clauses list
-    (assign val (op clauses-rest) (reg exp))     ; get clauses after else
-    (test (op have-clause?) (reg val))           ; any after else?
-    (branch (label ev-cond-error-else-not-last)) ;      --> prepare error
-    (save exp)                                   ; save clauses list
-    (assign exp (reg unev))                      ; recall the clause
+    (assign val (op clauses-rest) (reg exp))      ; get clauses after else
+    (test (op have-clause?) (reg val))            ; any clauses after else?
+    (branch (label ev-cond-error-else-not-last))  ;      --> prepare error
   ev-cond-actions
-    (restore unev)                               ; dump clauses list
-    (assign unev (op cond-actions) (reg exp))    ; store actions for ev-seq
-    (goto (label ev-sequence))                   ; --> ev-sequence
+    (assign unev (op cond-actions) (reg unev))    ; store actions for ev-seq
+    (goto (label ev-sequence))                    ; --> ev-sequence
 
   ev-cond-no-clauses
-    (restore continue)                           ; restore continue
-    (assign exp (const false))                   ; name of false variable
-    (goto (label ev-variable))                   ; --> lookup false value
+    (restore continue)                            ; restore continue
+    (assign exp (const false))                    ; name of false variable
+    (goto (label ev-variable))                    ; --> lookup false value
 
   ev-cond-error-else-not-last
-    (restore (reg continue))                     ; assign continue
+    (restore (reg continue))                      ; restore continue
     (assign val (const else-not-last-clause--COND))
-    (goto (label signal-error))                  ; --> raise error
+    (goto (label signal-error))                   ; --> raise error
 
 ;; The End =================================================================
     eceval-end
