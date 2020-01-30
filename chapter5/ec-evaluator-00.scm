@@ -1,24 +1,78 @@
 #lang sicp
 
-;(define (make-frame variables values)
-;  (cons variables values))
-;
-;(define (extend-environment vars vals base-env)
-;  (if (= (length vars) (length vals))
-;      (cons (make-frame vars vals) base-env)
-;      (if (< (length vars) (length vals))
-;          (error "Too many arguments supplied" vars vals)
-;          (error "Too few arguments supplied" vars vals))))
-;
-;(define (setup-environment)
-;  (let ((initial-env
-;         (extend-environment (primitive-procedure-names)
-;                             (primitive-procedure-objects)
-;                             the-empty-environment)))
-;    (define-variable! 'true true initial-env)
-;    (define-variable! 'false false initial-env)
-;    initial-env))
+(define (println . parts)
+  (for-each display parts)
+  (newline))
 
+;;
+
+(define (make-frame variables values)
+  (cons variables values))
+
+(define (frame-variables frame) (car frame))
+(define (frame-values frame) (cdr frame))
+
+(define (extend-environment vars vals base-env)
+  (if (= (length vars) (length vals))
+      (cons (make-frame vars vals) base-env)
+      (if (< (length vars) (length vals))
+          (error "Too many arguments supplied" vars vals)
+          (error "Too few arguments supplied" vars vals))))
+
+(define primitive-procedures
+  (list
+   (list 'car car)
+   (list 'cdr cdr)
+   (list 'cons cons)
+   (list 'null? null?)
+   (list '+ +)
+   (list '- -)
+   (list '* *)
+   (list '> >)
+   (list '= =)
+   (list 'eq? eq?)
+   ))
+
+(define (primitive-procedure-names)
+  (map car
+       primitive-procedures))
+
+(define (primitive-procedure-objects)
+  (map (lambda (proc) (list 'primitive (cadr proc)))
+       primitive-procedures))
+
+(define (primitive-procedure? proc)
+  (tagged-list? proc 'primitive))
+
+(define (primitive-implementation proc) (cadr proc))
+
+(define (apply-primitive-procedure proc args)
+  (apply
+   (primitive-implementation proc) (reverse args)))
+
+(define (add-binding-to-frame! var val frame)
+  (set-car! frame (cons var (car frame)))
+  (set-cdr! frame (cons val (cdr frame))))
+
+(define (define-variable! var val env)
+  (let ((frame (first-frame env)))
+    (define (scan vars vals)
+      (cond ((null? vars)
+             (add-binding-to-frame! var val frame))
+            ((eq? var (car vars))
+             (set-car! vals val))
+            (else (scan (cdr vars) (cdr vals)))))
+    (scan (frame-variables frame)
+          (frame-values frame))))
+
+(define (setup-environment)
+  (let ((initial-env
+         (extend-environment (primitive-procedure-names)
+                             (primitive-procedure-objects)
+                             the-empty-environment)))
+    (define-variable! 'true true initial-env)
+    (define-variable! 'false false initial-env)
+    initial-env))
 
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
@@ -42,26 +96,7 @@
 (define (enclosing-environment env) (cdr env))
 (define (first-frame env) (car env))
 (define the-empty-environment '())
-(define the-global-environment the-empty-environment)
-
-(define (make-frame variables values)
-  (cons variables values))
-;(define (frame-variables frame) (car frame))
-;(define (frame-values frame) (cdr frame))
-;(define (add-binding-to-frame! var val frame)
-;  (set-car! frame (cons var (car frame)))
-;  (set-cdr! frame (cons val (cdr frame))))
-
-(define (extend-environment vars vals base-env)
-  (if (= (length vars) (length vals))
-      (cons (make-frame vars vals) base-env)
-      (if (< (length vars) (length vals))
-          (error "Too many arguments supplied" vars vals)
-          (error "Too few arguments supplied" vars vals))))
-
-(define (frame-variables frame) (car frame))
-(define (frame-values frame) (cdr frame))
-
+(define the-global-environment (setup-environment))
 
 (define (lookup-variable-value var env)
   (define (env-loop env)
@@ -115,21 +150,6 @@
       (make-lambda (cdadr exp)
                    (cddr exp))))
 
-(define (define-variable! var val env)
-  (let ((frame (first-frame env)))
-    (define (scan vars vals)
-      (cond ((null? vars)
-             (add-binding-to-frame! var val frame))
-            ((eq? var (car vars))
-             (set-car! vals val))
-            (else (scan (cdr vars) (cdr vals)))))
-    (scan (frame-variables frame)
-          (frame-values frame))))
-
-(define (add-binding-to-frame! var val frame)
-  (set-car! frame (cons var (car frame)))
-  (set-cdr! frame (cons val (cdr frame))))
-
 (define eceval-operations
   (list
    (list 'self-evaluating? self-evaluating?)
@@ -154,11 +174,9 @@
    (list 'last-operand? (lambda (exp) (null? (cdr exp))))
    (list 'adjoin-arg cons)
    (list 'rest-operands cdr)
-   (list 'primitive-procedure?
-         (lambda (exp) (error "primitive-procedure?" exp)))
+   (list 'primitive-procedure? primitive-procedure?)
    (list 'compound-procedure? (lambda (exp) (tagged-list? exp 'procedure)))
-   (list 'apply-primitive-procedure
-         (lambda (exp) (error "apply-primitive-procedure" exp)))
+   (list 'apply-primitive-procedure apply-primitive-procedure)
    (list 'procedure-parameters cadr)
    (list 'procedure-environment cadddr)
    (list 'extend-environment extend-environment)
@@ -178,7 +196,8 @@
    (list 'definition-value definition-value)
    (list 'define-variable! define-variable!)
    (list 'add-binding-to-frame! add-binding-to-frame!)
-   (list 'user-print (lambda (exp) (display exp) (newline)))
+   (list 'print display)
+   (list 'println (lambda (exp) (display exp) (newline)))
    (list 'error error)
    ))
 
@@ -402,8 +421,8 @@
 ;; extra
     
     eceval-done
-    (perform (op user-print) (const "DONE - val:"))
-    (perform (op user-print) (reg val))
+    (perform (op print) (const "eceval DONE - val: "))
+    (perform (op println) (reg val))
             
   ))
 

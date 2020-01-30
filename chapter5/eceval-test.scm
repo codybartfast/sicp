@@ -6,7 +6,7 @@
 
 (define prog
   '(begin
-    123
+    (cons 8 5)
     
     ))
 
@@ -18,5 +18,6 @@
 (set-register-contents! eceval 'exp prog)
 (set-register-contents! eceval 'env the-global-environment)
 ;(trace-on! eceval (lambda (exp) (println "-trace-> " exp)))
+(get-register-contents eceval 'env)
 (start eceval)
-;(get-register-contents eceval 'val)
+
