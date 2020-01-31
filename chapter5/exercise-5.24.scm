@@ -25,56 +25,51 @@
 (define prog-1
   '(begin
      (define (on-dice? n)
-       (if (< n 1)
-           false
-           (< n 7)))
+       (cond ((< n 1) false)
+             (else (< n 7))))
      (cond
-       ((on-dice? 1) "Hello from First Clause")
-       ((on-dice? 2) "Hello from Second Clause")
-       (else "Hello from Else Clause"))))
+       ((on-dice? 1) "Hello from First clause")
+       ((on-dice? 2) "Hello from Second clause")
+       (else "Hello from Else clause"))))
 
 (define prog-2
   '(begin
      (define (on-dice? n)
-       (if (< n 1)
-           false
-           (< n 7)))
+       (cond ((< n 1) false)
+             (else (< n 7))))
      (cond
-       ((on-dice? 9) "Hello from First Clause")
-       ((on-dice? 2) "Hello from Second Clause")
-       (else "Hello from Else Clause"))))
+       ((on-dice? 9) "Hello from First clause")
+       ((on-dice? 2) "Hello from Second clause")
+       (else "Hello from Else clause"))))
 
 (define prog-Else
   '(begin
      (define (on-dice? n)
-       (if (< n 1)
-           false
-           (< n 7)))
+       (cond ((< n 1) false)
+             (else (< n 7))))
      (cond
-       ((on-dice? 0) "Hello from First Clause")
-       ((on-dice? 7) "Hello from Second Clause")
-       (else "Hello from Else Clause"))))
+       ((on-dice? 0) "Hello from First clause")
+       ((on-dice? 7) "Hello from Second clause")
+       (else "Hello from Else clause"))))
 
 (define prog-None
   '(begin
      (define (on-dice? n)
-       (if (< n 1)
-           false
-           (< n 7)))
+       (cond ((< n 1) false)
+             (else (< n 7))))
      (cond
-       ((on-dice? 0) "Hello from First Clause")
-       ((on-dice? 7) "Hello from Second Clause"))))
+       ((on-dice? 0) "Hello from First clause")
+       ((on-dice? 7) "Hello from Second clause"))))
 
 (define prog-Error
   '(begin
      (define (on-dice? n)
-       (if (< n 1)
-           false
-           (< n 7)))
+       (cond ((< n 1) false)
+             (else (< n 7))))
      (cond
-       ((on-dice? 0) "Hello from First Clause")
-       (else "Hello from Else Clause")
-       ((on-dice? 2) "Hello from Third Clause"))))
+       ((on-dice? 0) "Hello from First clause")
+       (else "Hello from Else clause")
+       ((on-dice? 2) "Hello from Third clause"))))
 
 (define (run prog)
   (let ((eceval
@@ -84,6 +79,7 @@
 
     (set-register-contents! eceval 'exp prog)
     (set-register-contents! eceval 'env the-global-environment)
+    ;(trace-on! eceval println)
     (ignore (start eceval))))
 
 (run prog-1)

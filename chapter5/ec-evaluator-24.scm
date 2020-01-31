@@ -1,5 +1,8 @@
 #lang sicp
 
+;; Based on ec-evaluator-00, extends primitive operations and implements
+;; cond for Ex 5.24
+
 ;; =========================================================================
 ;; Primitive Operations
 ;; =========================================================================
@@ -211,7 +214,7 @@
    (list 'println (lambda (exp) (display exp) (newline)))
    ;; Ex 5.24
    (list 'cond-clauses cdr)
-   (list 'have-clause? (lambda (exp) (not (null? exp))))
+   (list 'no-clauses? null?)
    (list 'cond? (lambda (exp) (tagged-list? exp 'cond)))
    (list 'clauses-first car)
    (list 'clauses-rest cdr)
@@ -465,11 +468,8 @@
     (save continue)                               ; save final destination
     (assign exp (op cond-clauses) (reg exp))      ; drop cond label
   ev-cond-have-clause?
-    (test (op have-clause?) (reg exp))            ; any clauses?
-    (branch (label ev-cond-check-clause))         ;      --> check clause
-    (goto (label ev-cond-no-clauses))             ; --> no clauses
-
-  ev-cond-check-clause
+    (test (op no-clauses?) (reg exp))             ; no clauses?
+    (branch (label ev-cond-no-clauses))           ;      --> no clauses
     (assign unev (op clauses-first) (reg exp))    ; get first clause
     (test (op cond-else-clause?) (reg unev))      ; else clause?
     (branch (label ev-cond-else))                 ;      --> else
@@ -491,8 +491,12 @@
 
   ev-cond-else
     (assign val (op clauses-rest) (reg exp))      ; get clauses after else
-    (test (op have-clause?) (reg val))            ; any clauses after else?
-    (branch (label ev-cond-error-else-not-last))  ;      --> prepare error
+    (test (op no-clauses?) (reg val))             ; no clauses after else?
+    (branch (label ev-cond-actions))              ;      --> actions
+    (restore (reg continue))                      ; restore continue
+    (assign val (const ELSE-clause-isnt-last--COND))
+    (goto (label signal-error))                   ; --> raise error
+
   ev-cond-actions
     (assign unev (op cond-actions) (reg unev))    ; store actions for ev-seq
     (goto (label ev-sequence))                    ; --> ev-sequence
@@ -502,11 +506,6 @@
     (assign exp (const false))                    ; name of false variable
     (goto (label ev-variable))                    ; --> lookup false value
 
-  ev-cond-error-else-not-last
-    (restore (reg continue))                      ; restore continue
-    (assign val (const else-not-last-clause--COND))
-    (goto (label signal-error))                   ; --> raise error
-
 ;; The End =================================================================
     eceval-end
     ))
@@ -515,8 +514,7 @@
 (#%provide
  explicit-control-evaluator
  eceval-operations
- the-global-environment
- )
+ the-global-environment)
 
 
 
