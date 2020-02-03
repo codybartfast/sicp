@@ -16,7 +16,31 @@
 
 (-start- "5.25")
 
+(#%require "machine-19.scm")
+(#%require "ec-evaluator-25.scm")
 
+(define prog-1
+  '(begin
+     (define (on-dice? n)
+       (if (< n 1)
+           false)
+           (< n (+ 1 1 2 3)))
+     (cond
+       ((on-dice? 1) "Hello from First clause")
+       ((on-dice? 2) "Hello from Second clause")
+       (else "Hello from Else clause"))))
 
+(define (run prog)
+  (let ((eceval
+         (make-machine
+          eceval-operations
+          explicit-control-evaluator)))
+
+    (set-register-contents! eceval 'exp prog)
+    (set-register-contents! eceval 'env the-global-environment)
+    ;(trace-on! eceval println)
+    (ignore (start eceval))))
+
+(run prog-1)
 (--end-- "5.25")
 

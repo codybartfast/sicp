@@ -223,6 +223,19 @@
    (list 'cond-else-clause? (lambda (exp) (eq? (car exp) 'else)))
    (list 'cond-predicate car)
    (list 'cond-actions cdr)
+   ;; Ex 5.25 (also see 4.2.2)
+   (list 'delay-it (lambda (exp env) (list 'thunk exp env)))
+   (list 'thunk? (lambda (exp) (tagged-list? exp 'thunk)))
+   (list 'thunk-exp cadr)
+   (list 'thunk-env caddr)
+   (list 'set-evaluated-thunk!
+         (lambda (exp result)
+           (set-car! exp 'evaluated-thunk)
+           (set-car! (cdr exp) result)
+           (set-cdr! (cdr exp) '())))
+   (list 'evaluated-thunk?
+         (lambda (exp) (tagged-list? exp 'evaluated-thunk)))
+   (list 'thunk-value cadr)
    ))
 
 
@@ -291,10 +304,10 @@
     (assign unev (op operands) (reg exp))
     (save unev)
     (assign exp (op operator) (reg exp))
-    (assign continue (label ev-appl-did-operator))
-    (goto (label eval-dispatch))
+    (assign continue (label ev-appl-did-operator-value))
+    (goto (label actual-value))
 
-    ev-appl-did-operator
+    ev-appl-did-operator-value
     (restore unev)                  ; the operands
     (restore env)
     (assign argl (op empty-arglist))
@@ -303,28 +316,28 @@
     (branch (label apply-dispatch))
     (save proc)
 
-    ev-appl-operand-loop
+    ev-appl-operand-loop-value
     (save argl)
     (assign exp (op first-operand) (reg unev))
     (test (op last-operand?) (reg unev))
-    (branch (label ev-appl-last-arg))
+    (branch (label ev-appl-last-arg-value))
     (save env)
     (save unev)
-    (assign continue (label ev-appl-accumulate-arg))
+    (assign continue (label ev-appl-accumulate-arg-value))
     (goto (label eval-dispatch))
 
-    ev-appl-accumulate-arg
+    ev-appl-accumulate-arg-value
     (restore unev)
     (restore env)
     (restore argl)
     (assign argl (op adjoin-arg) (reg val) (reg argl))
     (assign unev (op rest-operands) (reg unev))
-    (goto (label ev-appl-operand-loop))
+    (goto (label ev-appl-operand-loop-value))
 
-    ev-appl-last-arg
-    (assign continue (label ev-appl-accum-last-arg))
+    ev-appl-last-arg-value
+    (assign continue (label ev-appl-accum-last-arg-value))
     (goto (label eval-dispatch))
-    ev-appl-accum-last-arg
+    ev-appl-accum-last-arg-value
     (restore argl)
     (assign argl (op adjoin-arg) (reg val) (reg argl))
     (restore proc)
@@ -388,7 +401,7 @@
     (save continue)
     (assign continue (label ev-if-decide))
     (assign exp (op if-predicate) (reg exp))
-    (goto (label eval-dispatch))  ; evaluate the predicate
+    (goto (label actual-value))  ; evaluate the predicate
 
     ev-if-decide
     (restore continue)
@@ -507,6 +520,43 @@
     (restore continue)                            ; restore continue
     (assign exp (const false))                    ; name of false variable
     (goto (label ev-variable))                    ; --> lookup false value
+
+
+;; Ex 5.25 - extra bits for normal application
+;; ===========================================
+
+  actual-value
+    (save continue)
+    (assign continue (label force-it))
+    (goto (label eval-dispatch))
+
+  force-it
+    (test (op thunk?) (reg val))
+    (branch (label force-it-thunk))
+    (test (op evaluated-thunk?) (reg val))
+    (branch (label force-it-evaluated-thunk))
+    (restore continue)
+    (goto (reg continue))
+
+  force-it-thunk
+    (save val)
+    (assign exp (op thunk-exp) (reg val))
+    (assign env (op thunk-env) (reg val))
+    (assign continue (label force-it-result))
+    (goto (label actual-value))
+
+  force-it-result
+    (restore exp)                                 ; originally val
+    (restore continue)
+    (perform (op set-evaluated-thunk!) (reg exp) (reg val))
+    (restore continue)
+    (goto (reg continue))
+
+  force-it-evaluated-thunk
+    (assign val (op thunk-value) (reg val))
+    (restore continue)
+    (goto (reg continue))
+
 
 ;; The End =================================================================
     eceval-end
