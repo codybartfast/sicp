@@ -327,16 +327,13 @@
     ;; "list of delayed args"
 
     ev-appl-operand-loop-delayed
-;(perform (op println) (const "delayed"))
     (save argl)
     (assign exp (op first-operand) (reg unev))
     (test (op last-operand?) (reg unev))
     (branch (label ev-appl-last-arg-delayed))
     (save env)
     (save unev)
-    (assign continue (label ev-appl-accumulate-arg-delayed))
     (assign val (op delay-it) (reg exp) (reg env))
-    (goto (label ev-appl-accumulate-arg-delayed))
 
     ev-appl-accumulate-arg-delayed
     (restore unev)
@@ -347,9 +344,7 @@
     (goto (label ev-appl-operand-loop-delayed))
 
     ev-appl-last-arg-delayed
-    (assign continue (label ev-appl-accum-last-arg-delayed))
     (assign val (op delay-it) (reg exp) (reg env))
-    (goto (label ev-appl-accum-last-arg-delayed))
     ev-appl-accum-last-arg-delayed
     (restore argl)
     (assign argl (op adjoin-arg) (reg val) (reg argl))
@@ -359,7 +354,6 @@
     ;; "list of arg values"
     
     ev-appl-operand-loop-value
-;(perform (op println) (const "value"))
     (save argl)
     (assign exp (op first-operand) (reg unev))
     (test (op last-operand?) (reg unev))
@@ -512,6 +506,11 @@
 
     eceval-done
     (perform (op print) (const "eceval DONE - val: "))
+    (assign continue (label eceval-done-val))
+    (save continue)
+    (goto (label force-it))
+
+    eceval-done-val
     (perform (op println) (reg val))
     (goto (label eceval-end))
 
@@ -569,52 +568,35 @@
 ;; ===========================================
 
   actual-value
-;(perform (op print) (const "> actual-value, exp: "))
-;(perform (op println) (reg exp))
     (save continue)
     (assign continue (label force-it))
     (goto (label eval-dispatch))
 
   force-it
-    (restore continue)
     (test (op thunk?) (reg val))
     (branch (label force-it-thunk))
-;(perform (op print) (const "> actual-value, val: "))
-;(perform (op println) (reg val))
+    (test (op evaluated-thunk?) (reg val))
+    (branch (label force-it-evaluated-thunk))
+    (restore continue)
     (goto (reg continue))
 
   force-it-thunk
+    (save val)
     (assign exp (op thunk-exp) (reg val))
     (assign env (op thunk-env) (reg val))
+    (assign continue (label force-it-result))
     (goto (label actual-value))
-    
 
-;  force-it
-;    (test (op thunk?) (reg val))
-;    (branch (label force-it-thunk))
-;    (test (op evaluated-thunk?) (reg val))
-;    (branch (label force-it-evaluated-thunk))
-;    (restore continue)
-;    (goto (reg continue))
-;
-;  force-it-thunk
-;;    (save val)
-;    (assign exp (op thunk-exp) (reg val))
-;    (assign env (op thunk-env) (reg val))
-;    (assign continue (label force-it-result))
-;    (goto (label actual-value))
-;
-;  force-it-result
-; ;   (restore exp)                                 ; originally val
-;    (restore continue)
-;    (perform (op set-evaluated-thunk!) (reg exp) (reg val))
-;    ;(restore continue)
-;    (goto (reg continue))
-;
-;  force-it-evaluated-thunk
-;    (assign val (op thunk-value) (reg val))
-;    (restore continue)
-;    (goto (reg continue))
+  force-it-result
+    (restore exp)                                 ; originally val
+    (restore continue)
+    (perform (op set-evaluated-thunk!) (reg exp) (reg val))
+    (goto (reg continue))
+
+  force-it-evaluated-thunk
+    (assign val (op thunk-value) (reg val))
+    (restore continue)
+    (goto (reg continue))
 
 
 ;; The End =================================================================
