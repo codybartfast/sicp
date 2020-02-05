@@ -190,7 +190,12 @@
    (list 'apply-primitive-procedure apply-primitive-procedure)
    (list 'procedure-parameters cadr)
    (list 'procedure-environment cadddr)
-   (list 'extend-environment extend-environment)
+   (list 'extend-environment
+         (lambda (vars vals base-env)
+            (extend-environment
+             vars
+             (reverse vals)              ;; <-- reverse arguments
+             base-env)))
    (list 'procedure-body caddr)
    (list 'begin-actions cdr)
    (list 'first-exp car)
