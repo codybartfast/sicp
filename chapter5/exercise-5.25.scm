@@ -51,10 +51,11 @@
 ;    (reg-trace-on! eceval 'exp printReg)
 ;    (reg-trace-on! eceval 'proc printReg)
 ;    (reg-trace-on! eceval 'argl printReg)
+;    (reg-trace-on! eceval 'env printReg)
 ;    (reg-trace-on! eceval 'val printReg)
 ;    (reg-trace-on! eceval 'unev printReg)
     (ignore (start eceval))))
 
-(run prog-2)
+(run prog-1)
 (--end-- "5.25")
 

@@ -156,7 +156,7 @@
 (define (apply-primitive-procedure proc args)
   (apply
    (primitive-implementation proc)
-   (reverse args))) ;; <-- reverse arguments for eceval
+   (reverse args)))                      ;; <-- reverse arguments for eceval
 
 (define the-global-environment (setup-environment))
 
@@ -196,7 +196,12 @@
    (list 'apply-primitive-procedure apply-primitive-procedure)
    (list 'procedure-parameters cadr)
    (list 'procedure-environment cadddr)
-   (list 'extend-environment extend-environment)
+   (list 'extend-environment
+         (lambda (vars vals base-env)
+            (extend-environment
+             vars
+             (reverse vals)              ;; <-- reverse arguments
+             base-env)))
    (list 'procedure-body caddr)
    (list 'begin-actions cdr)
    (list 'first-exp car)
