@@ -139,6 +139,7 @@
         (list '- -)
         (list '* *)
         (list '< <)
+        (list '> >)
         (list '= =)
         (list 'eq? eq?)
         ))
