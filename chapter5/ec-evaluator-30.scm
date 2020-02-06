@@ -1,7 +1,7 @@
 #lang sicp
 
-;; Based on ec-evaluator-00, extends primitive operations and implements
-;; cond for Ex 5.24
+;; Based on ec-evaluator-24, for Ex 5.30, implements error signalling for
+;; variable lookup.
 
 ;; =========================================================================
 ;; Primitive Operations
@@ -82,7 +82,7 @@
              (car vals))
             (else (scan (cdr vars) (cdr vals)))))
     (if (eq? env the-empty-environment)
-        (error "Unbound variable" var)
+        (make-error "Unbound variable:" (list var))
         (let ((frame (first-frame env)))
           (scan (frame-variables frame)
                 (frame-values frame)))))
@@ -135,6 +135,7 @@
         (list 'cdr cdr)
         (list 'cons cons)
         (list 'null? null?)
+        (list 'list list)
         (list '+ +)
         (list '- -)
         (list '* *)
@@ -156,7 +157,28 @@
    (primitive-implementation proc)
    (reverse args))) ;; <-- reverse arguments for eceval
 
-(define the-global-environment (setup-environment))
+(define (the-global-environment) (setup-environment))
+
+
+;; Error handling for Ex 5.30
+;; ==========================
+
+(define error-obj
+  '(error-obj))
+(define (make-error message args)
+  (list error-obj message args))
+(define (is-error? val)
+  (display "val: ") (display val) (newline)
+  (and (pair? val)
+       (eq? (car val) error-obj)))
+(define (display-error error)
+  (display ": ")
+  (display (cadr error))
+  (map (lambda (arg)
+         (display " ")
+         (display arg))
+       (caddr error))
+  (newline))
 
 
 ;; Primitive Operations
@@ -216,8 +238,8 @@
    (list 'definition-value definition-value)
    (list 'define-variable! define-variable!)
    (list 'add-binding-to-frame! add-binding-to-frame!)
-   (list 'print display)
-   (list 'println (lambda (exp) (display exp) (newline)))
+   (list 'display display)
+   (list 'displayln (lambda (exp) (display exp) (newline)))
    ;; Ex 5.24
    (list 'cond-clauses cdr)
    (list 'no-clauses? null?)
@@ -227,6 +249,10 @@
    (list 'cond-else-clause? (lambda (exp) (eq? (car exp) 'else)))
    (list 'cond-predicate car)
    (list 'cond-actions cdr)
+   ; Ex 5.30
+   (list 'eq? eq?)
+   (list 'is-error? is-error?)
+   (list 'display-error display-error)
    ))
 
 
@@ -276,6 +302,8 @@
     (goto (reg continue))
     ev-variable
     (assign val (op lookup-variable-value) (reg exp) (reg env))
+    (test (op is-error?) (reg val))
+    (branch (label unbound-variable))
     (goto (reg continue))
     ev-quoted
     (assign val (op text-of-quotation) (reg exp))
@@ -454,13 +482,13 @@
     (goto (label signal-error))
     signal-error
     ;; These last 7 lines differ from book because not in REPL
-    (perform (op print) (const "ERROR: "))
-    (perform (op println) (reg val))
+    (perform (op display) (const "ERROR: "))
+    (perform (op displayln) (reg val))
     (goto (label eceval-end))
 
     eceval-done
-    (perform (op print) (const "eceval DONE - val: "))
-    (perform (op println) (reg val))
+    (perform (op display) (const "eceval DONE - val: "))
+    (perform (op displayln) (reg val))
     (goto (label eceval-end))
 
 ;; =========================================================================
@@ -511,6 +539,20 @@
     (restore continue)                            ; restore continue
     (assign exp (const false))                    ; name of false variable
     (goto (label ev-variable))                    ; --> lookup false value
+
+;; Ex 5.30
+;; =======
+
+  unbound-variable
+    (assign unev (reg val))
+    (assign val (const unbound-variable-error))
+    (goto (label signal-error-detail))
+
+  signal-error-detail
+    (perform (op display) (const "ERROR: "))
+    (perform (op display) (reg val))
+    (perform (op display-error) (reg unev))
+    (goto (label eceval-end))
 
 ;; The End =================================================================
     eceval-end
