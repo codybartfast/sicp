@@ -34,7 +34,126 @@
 
 (-start- "5.29")
 
+(println
+ "
+Results
+=======
 
+┌────┬───────────┬───────────────┬──────────────────┐
+│  n │ Fibonacci │ Maximum Depth │ Number of Pushes │
+├────┼───────────┼───────────────┼──────────────────┤
+│  1 │      1    │        8      │          22      │
+├────┼───────────┼───────────────┼──────────────────┤
+│  2 │      1    │       13      │          78      │
+├────┼───────────┼───────────────┼──────────────────┤
+│  3 │      2    │       18      │         134      │
+├────┼───────────┼───────────────┼──────────────────┤
+│  4 │      3    │       23      │         246      │
+├────┼───────────┼───────────────┼──────────────────┤
+│  5 │      5    │       28      │         414      │
+├────┼───────────┼───────────────┼──────────────────┤
+│  6 │      8    │       33      │         694      │
+├────┼───────────┼───────────────┼──────────────────┤
+│  7 │     13    │       38      │       1,142      │
+├────┼───────────┼───────────────┼──────────────────┤
+│  8 │     21    │       43      │       1,870      │
+├────┼───────────┼───────────────┼──────────────────┤
+│  9 │     34    │       48      │       3,046      │
+├────┼───────────┼───────────────┼──────────────────┤
+│ 10 │     55    │       53      │       4,950      │
+├────┼───────────┼───────────────┼──────────────────┤
+│ 11 │     89    │       58      │       8,030      │
+└────┴───────────┴───────────────┴──────────────────┘
+
+
+Part A
+======
+
+  Max pushes = 5n + 3
+
+
+Part B
+======
+
+Formula for Number of Pushes wrt previous values:
+
+  S(n) = S(n-1) + S(n-2) + 34
+
+Formula for Number of Pushes wrt next Fibonacci number:
+
+  S(n) = 56 Fib(n+1) + -34
+
+
+Calculation:
+============
+
+  S(2):  78 = a.2 + b
+  S(3): 134 = a.3 + b
+
+  S(3) - S(2):
+    (134 - 78) = (3a + b) - (2b + b)
+          56 = (3a - 2a) + (b - b)
+           a = 56
+
+  S(2):  78 = a.2 + b
+         78 = (56 * 2) + b
+   78 - 112 = b 
+          b = -34
+
+
+Without Tail Recursion:
+=======================
+
+  Max pushes = 8n + 6
+
+  S(n) = 60 Fib(n+1) + -34
+
+
+Output:
+=======
+")
+
+(#%require "machine-19.scm")
+(#%require "ec-evaluator-24.scm")
+
+(define (fib-prog n)
+  (let ((prog-start
+         '(begin
+            (define (fib n)
+              (if (< n 2)
+                  n
+                  (+ (fib (- n 1)) (fib (- n 2)))))
+         )))
+  (append prog-start (list (list 'fib n)))))
+
+(define (run prog)
+  (define (printReg reg before after)
+    (println "--reg--: " reg ": " before " --> " after))
+  (let ((eceval
+         (make-machine
+          eceval-operations
+          explicit-control-evaluator)))
+
+    (set-register-contents! eceval 'exp prog)
+    (set-register-contents! eceval 'env the-global-environment)
+;    (trace-on! eceval println)
+;    (reg-trace-on! eceval 'exp printReg)
+;    (reg-trace-on! eceval 'proc printReg)
+;    (reg-trace-on! eceval 'argl printReg)
+;    (reg-trace-on! eceval 'env printReg)
+;    (reg-trace-on! eceval 'val printReg)
+;    (reg-trace-on! eceval 'unev printReg)
+
+    (ignore (start eceval))
+    (println (stack-stats eceval))
+    ))
+
+(ignore
+ (map (lambda (n)
+        (println "")
+        (println n)
+        (run (fib-prog n)))
+      '(1 2 3 4 5 6 7 8 9 10 11)))
 
 (--end-- "5.29")
 
