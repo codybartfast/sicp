@@ -142,6 +142,7 @@
         (list '* *)
         (list '/ /)
         (list '< <)
+        (list '> >)
         (list '= =)
         (list 'eq? eq?)
         ))
@@ -566,6 +567,26 @@
 
 ;; Ex 5.25 - extra bits for normal application
 ;; ===========================================
+
+;; Non-memoizing:
+
+;  actual-value
+;    (save continue)
+;    (assign continue (label force-it))
+;    (goto (label eval-dispatch))
+;
+;  force-it
+;    (restore continue)
+;    (test (op thunk?) (reg val))
+;    (branch (label force-it-thunk))
+;    (goto (reg continue))
+;
+;  force-it-thunk
+;    (assign exp (op thunk-exp) (reg val))
+;    (assign env (op thunk-env) (reg val))
+;    (goto (label actual-value))
+
+; Memoizing:
 
   actual-value
     (save continue)

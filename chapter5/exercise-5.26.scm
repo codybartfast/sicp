@@ -48,10 +48,26 @@ i.e., a = 35, b = 35
 
 The constant bit is different from other interweb answers, probably because
 I made changes so as not to use a repl.
+
+The maximum depth is not constant with Normal application:
+
+┌───────────────────────┬──────────────────┬──────────────────┐
+│                       │   Maximum Depth  │ Number of Pushes │
+├───────────────────────┼──────────────────┼──────────────────┤
+│ Factorial Applicative │      0n + 10     │     35n + 35     │
+├───────────────────────┼──────────────────┼──────────────────┤
+│    Factorial Normal   │      6n +  3     │     50n + 48     │
+└───────────────────────┴──────────────────┴──────────────────┘
+
+The stack does not grow during the construction of the answer, instead the
+answer contains nested thunks.  So I think forcing the answer to an actual
+value causes recursive calls to actual-value, eval-dispatch, and force-it,
+which grows the stack.  Of course a better design than mine might eliminate
+this, especially if we didn't have memoization.
 ")
 
 (#%require "machine-19.scm")
-(#%require "ec-evaluator-24.scm")
+(#%require "ec-evaluator-25.scm")
 
 (define (prog n)
   (let ((prog-start
@@ -93,7 +109,7 @@ I made changes so as not to use a repl.
         (println "")
         (println n)
         (run (prog n)))
-      '(1 2 3 4 5 10 11)))
+      '(1 2 3 4 5 6 7 8 9)))
 
 (--end-- "5.26")
 
