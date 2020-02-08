@@ -168,17 +168,14 @@
 (define (make-error message args)
   (list error-obj message args))
 (define (is-error? val)
-  (display "val: ") (display val) (newline)
   (and (pair? val)
        (eq? (car val) error-obj)))
 (define (display-error error)
-  (display ": ")
   (display (cadr error))
   (map (lambda (arg)
          (display " ")
          (display arg))
-       (caddr error))
-  (newline))
+       (caddr error)))
 
 
 ;; Primitive Operations
@@ -483,11 +480,20 @@
     signal-error
     ;; These last 7 lines differ from book because not in REPL
     (perform (op display) (const "ERROR: "))
+    (test (op is-error?) (reg val))
+    (branch (label signal-error-with-error-obj))
     (perform (op displayln) (reg val))
     (goto (label eceval-end))
 
+  signal-error-with-error-obj
+    (perform (op display) (reg unev))
+    (perform (op display) (const ", "))
+    (perform (op display-error) (reg val))
+    (perform (op displayln) (const ""))
+    (goto (label eceval-end))
+
     eceval-done
-    (perform (op display) (const "eceval DONE - val: "))
+    (perform (op display) (const "DONE: "))
     (perform (op displayln) (reg val))
     (goto (label eceval-end))
 
@@ -544,9 +550,8 @@
 ;; =======
 
   unbound-variable
-    (assign unev (reg val))
-    (assign val (const unbound-variable-error))
-    (goto (label signal-error-detail))
+    (assign unev (const unbound-variable-error))
+    (goto (label signal-error))
 
   signal-error-detail
     (perform (op display) (const "ERROR: "))
