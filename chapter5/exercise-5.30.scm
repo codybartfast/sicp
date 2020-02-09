@@ -45,7 +45,7 @@
 
 (-start- "5.30")
 
-(println
+(ignore
  "
 Part A
 ======
@@ -136,21 +136,6 @@ Output:
 (#%require "machine-19.scm")
 (#%require "ec-evaluator-30.scm")
 
-(define prog1
-  '(begin
-     (define a 'apple)
-     (define b (list '(error-obj) "Unbound variable:" (list 'b)))
-     (define c 'cherry)
-     (cons a (cons b (cons c '())))
-     ))
-
-(define prog2
-  '(begin
-     (define a 'apple)
-     (define c 'cherry)
-     (cons a (cons b (cons c '())))
-     ))
-
 (define (run prog)
   (define (printReg reg before after)
     (println "--reg--: " reg ": " before " --> " after))
@@ -173,8 +158,29 @@ Output:
     ;(println (stack-stats eceval))
     ))
 
+(define prog1
+  '(begin
+     (define a 'apple)
+     (define b (list '(error-obj) "Unbound variable:" (list 'b)))
+     (define c 'cherry)
+     (list a b c )
+     ))
+
+(define prog2
+  '(begin
+     (define a 'apple)
+     (define c 'cherry)
+     (list a b c)
+     ))
+
+(define prog3
+  '(begin
+     (null? 'f 'f)
+     ))
+
 (run prog1)
 (run prog2)
+(run prog3)
 
 (--end-- "5.30")
 

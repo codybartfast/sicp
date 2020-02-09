@@ -82,7 +82,7 @@
              (car vals))
             (else (scan (cdr vars) (cdr vals)))))
     (if (eq? env the-empty-environment)
-        (make-error "Unbound variable:" (list var))
+        (make-error "unbound variable:" (list var))
         (let ((frame (first-frame env)))
           (scan (frame-variables frame)
                 (frame-values frame)))))
@@ -125,16 +125,62 @@
     (define-variable! 'false false initial-env)
     initial-env))
 
+;;
+
+(define (arg-length-not args len proc-name)
+  (if (not (= (length args) len))
+      (make-error
+       (string-append
+        proc-name " expected " (number->string len)
+        " args, but got " (number->string (length args))) args)
+      #f))
+
+(define (not-all-args-satisfy args check check-desc proc-name)
+  (define (iter args)
+    (if (null? args)
+        #f
+        (if (check (car args))
+            (iter (cdr args))
+            (make-error
+             (string-append
+              proc-name " requires " check-desc)
+             args))))
+  (iter args))
+
+  
+;;
+
+(define (checked-car . args)
+  (cond ((arg-length-not args 1 "car") => values)
+        ((not-all-args-satisfy args pair? "a pair " "car"))
+        (else (apply car args))))
+
+(define (checked-cdr . args)
+  (cond ((arg-length-not args 1 "cdr") => values)
+        ((not-all-args-satisfy args pair? "a pair " "cdr"))
+        (else (apply cdr args))))
+
+(define (checked-cons . args)
+  (cond ((arg-length-not args 2 "cons") => values)
+        (else (apply cons args))))
+
+(define (checked-null? . args)
+  (cond ((arg-length-not args 1 "null?") => values)
+        (else (apply null? args))))
+
+
+;; 
+
 (define (primitive-procedure? proc)
   (tagged-list? proc 'primitive))
 
 (define (primitive-implementation proc) (cadr proc))
 
 (define primitive-procedures
-  (list (list 'car car)
-        (list 'cdr cdr)
-        (list 'cons cons)
-        (list 'null? null?)
+  (list (list 'car checked-car)
+        (list 'cdr checked-cdr)
+        (list 'cons checked-cons)
+        (list 'null? checked-null?)
         (list 'list list)
         (list '+ +)
         (list '- -)
@@ -172,9 +218,11 @@
        (eq? (car val) error-obj)))
 (define (display-error error)
   (display (cadr error))
+  (display ". Args:")
   (map (lambda (arg)
-         (display " ")
-         (display arg))
+         (display " '")
+         (display arg)
+         (display "'"))       
        (caddr error)))
 
 
@@ -372,6 +420,8 @@
     (assign val (op apply-primitive-procedure)
             (reg proc)
             (reg argl))
+    (test (op is-error?) (reg val))
+    (branch (label primitive-procedure-error))
     (restore continue)
     (goto (reg continue))
 
@@ -551,6 +601,10 @@
 
   unbound-variable
     (assign unev (const unbound-variable-error))
+    (goto (label signal-error))
+
+  primitive-procedure-error
+    (assign unev (const primitive-procedure-error))
     (goto (label signal-error))
 
   signal-error-detail
