@@ -175,7 +175,7 @@ Output:
 
 (define prog3
   '(begin
-     (null? 'f 'f)
+     (* 3 'x3)
      ))
 
 (run prog1)

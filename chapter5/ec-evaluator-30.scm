@@ -135,7 +135,15 @@
         " args, but got " (number->string (length args))) args)
       #f))
 
-(define (not-all-args-satisfy args check check-desc proc-name)
+(define (arg-length-less-than args len proc-name)
+  (if (< (length args) len)
+      (make-error
+       (string-append
+        proc-name " expected at least " (number->string len)
+        " args, but got " (number->string (length args))) args)
+      #f))
+
+(define (not-all-args-satisfy all-args check check-desc proc-name)
   (define (iter args)
     (if (null? args)
         #f
@@ -144,20 +152,19 @@
             (make-error
              (string-append
               proc-name " requires " check-desc)
-             args))))
-  (iter args))
+             all-args))))
+  (iter all-args))
 
-  
 ;;
 
 (define (checked-car . args)
   (cond ((arg-length-not args 1 "car") => values)
-        ((not-all-args-satisfy args pair? "a pair " "car"))
+        ((not-all-args-satisfy args pair? "a pair" "car"))
         (else (apply car args))))
 
 (define (checked-cdr . args)
   (cond ((arg-length-not args 1 "cdr") => values)
-        ((not-all-args-satisfy args pair? "a pair " "cdr"))
+        ((not-all-args-satisfy args pair? "a pair" "cdr"))
         (else (apply cdr args))))
 
 (define (checked-cons . args)
@@ -168,8 +175,49 @@
   (cond ((arg-length-not args 1 "null?") => values)
         (else (apply null? args))))
 
+(define (checked-+ . args)
+  (cond ((not-all-args-satisfy args number? "numbers" "+"))
+        (else (apply + args))))
 
-;; 
+(define (checked-subtract . args)
+  (cond ((arg-length-less-than args 1 "-"))
+        ((not-all-args-satisfy args number? "numbers" "-"))
+        (else (apply - args))))
+
+(define (checked-* . args)
+  (cond ((not-all-args-satisfy args number? "numbers" "*"))
+        (else (apply * args))))
+
+(define (checked-/ . args)
+  (define (non-zero? n) (not (zero? n)))
+  (cond
+    ((arg-length-less-than args 1 "/"))
+    ((not-all-args-satisfy args number? "numbers" "/"))
+    ((not-all-args-satisfy (cdr args) non-zero? "non-zero divisors" "/"))
+    ((and (= (length args) 1)
+           (not-all-args-satisfy args non-zero? "non-zero divisors" "/")))
+     (else (apply / args))))
+
+(define (checked-< . args)
+  (cond ((arg-length-less-than args 1 "<"))
+        ((not-all-args-satisfy args real? "real numbers" "<"))
+        (else (apply < args))))
+
+(define (checked-> . args)
+  (cond ((arg-length-less-than args 1 ">"))
+        ((not-all-args-satisfy args real? "real numbers" ">"))
+        (else (apply > args))))
+
+(define (checked-= . args)
+  (cond ((arg-length-less-than args 1 "="))
+        ((not-all-args-satisfy args real? "numbers" "="))
+        (else (apply = args))))
+
+(define (checked-eq? . args)
+  (cond ((arg-length-not args 2 "eq?"))
+        (else (apply eq? args))))
+
+;;
 
 (define (primitive-procedure? proc)
   (tagged-list? proc 'primitive))
@@ -182,13 +230,14 @@
         (list 'cons checked-cons)
         (list 'null? checked-null?)
         (list 'list list)
-        (list '+ +)
-        (list '- -)
-        (list '* *)
-        (list '< <)
-        (list '> >)
-        (list '= =)
-        (list 'eq? eq?)
+        (list '+ checked-+)
+        (list '- checked-subtract)
+        (list '* checked-*)
+        (list '/ checked-/)
+        (list '< checked-<)
+        (list '> checked->)
+        (list '= checked-=)
+        (list 'eq? checked-eq?)
         ))
 (define (primitive-procedure-names)
   (map car
@@ -222,7 +271,7 @@
   (map (lambda (arg)
          (display " '")
          (display arg)
-         (display "'"))       
+         (display "'"))
        (caddr error)))
 
 
