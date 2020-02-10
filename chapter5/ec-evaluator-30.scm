@@ -366,7 +366,7 @@
     ;; 5.4.1 The Core of the Evaluator
     ;; ===============================
 
-    eval-dispatch
+  eval-dispatch
     (test (op self-evaluating?) (reg exp))
     (branch (label ev-self-eval))
     (test (op variable?) (reg exp))
@@ -391,18 +391,18 @@
 
     ;; Evaluating Simple Expressions
 
-    ev-self-eval
+  ev-self-eval
     (assign val (reg exp))
     (goto (reg continue))
-    ev-variable
+  ev-variable
     (assign val (op lookup-variable-value) (reg exp) (reg env))
     (test (op is-error?) (reg val))
     (branch (label unbound-variable))
     (goto (reg continue))
-    ev-quoted
+  ev-quoted
     (assign val (op text-of-quotation) (reg exp))
     (goto (reg continue))
-    ev-lambda
+  ev-lambda
     (assign unev (op lambda-parameters) (reg exp))
     (assign exp (op lambda-body) (reg exp))
     (assign val (op make-procedure)
@@ -411,7 +411,7 @@
 
     ;; Evaluating procedure applications
 
-    ev-application
+  ev-application
     (save continue)
     (save env)
     (assign unev (op operands) (reg exp))
@@ -420,7 +420,7 @@
     (assign continue (label ev-appl-did-operator))
     (goto (label eval-dispatch))
 
-    ev-appl-did-operator
+  ev-appl-did-operator
     (restore unev)                  ; the operands
     (restore env)
     (assign argl (op empty-arglist))
@@ -429,7 +429,7 @@
     (branch (label apply-dispatch))
     (save proc)
 
-    ev-appl-operand-loop
+  ev-appl-operand-loop
     (save argl)
     (assign exp (op first-operand) (reg unev))
     (test (op last-operand?) (reg unev))
@@ -439,7 +439,7 @@
     (assign continue (label ev-appl-accumulate-arg))
     (goto (label eval-dispatch))
 
-    ev-appl-accumulate-arg
+  ev-appl-accumulate-arg
     (restore unev)
     (restore env)
     (restore argl)
@@ -447,7 +447,7 @@
     (assign unev (op rest-operands) (reg unev))
     (goto (label ev-appl-operand-loop))
 
-    ev-appl-last-arg
+  ev-appl-last-arg
     (assign continue (label ev-appl-accum-last-arg))
     (goto (label eval-dispatch))
     ev-appl-accum-last-arg
@@ -458,14 +458,14 @@
 
     ;; Procedure application
 
-    apply-dispatch
+  apply-dispatch
     (test (op primitive-procedure?) (reg proc))
     (branch (label primitive-apply))
     (test (op compound-procedure?) (reg proc))
     (branch (label compound-apply))
     (goto (label unknown-procedure-type))
 
-    primitive-apply
+  primitive-apply
     (assign val (op apply-primitive-procedure)
             (reg proc)
             (reg argl))
@@ -474,7 +474,7 @@
     (restore continue)
     (goto (reg continue))
 
-    compound-apply
+  compound-apply
     (assign unev (op procedure-parameters) (reg proc))
     (assign env (op procedure-environment) (reg proc))
     (assign env (op extend-environment)
@@ -484,12 +484,12 @@
 
     ;; 5.4.2 Sequence Evaluation and Tail Recursion
 
-    ev-begin
+  ev-begin
     (assign unev (op begin-actions) (reg exp))
     (save continue)
     (goto (label ev-sequence))
 
-    ev-sequence
+  ev-sequence
     (assign exp (op first-exp) (reg unev))
     (test (op last-exp?) (reg unev))
     (branch (label ev-sequence-last-exp))
@@ -497,12 +497,12 @@
     (save env)
     (assign continue (label ev-sequence-continue))
     (goto (label eval-dispatch))
-    ev-sequence-continue
+  ev-sequence-continue
     (restore env)
     (restore unev)
     (assign unev (op rest-exps) (reg unev))
     (goto (label ev-sequence))
-    ev-sequence-last-exp
+  ev-sequence-last-exp
     (restore continue)
     (goto (label eval-dispatch))
 
@@ -510,7 +510,7 @@
     ;; 5.4.3 Conditionals, Assignments and Definitions
     ;; ===============================================
 
-    ev-if
+  ev-if
     (save exp)                    ; save expression for later
     (save env)
     (save continue)
@@ -518,24 +518,24 @@
     (assign exp (op if-predicate) (reg exp))
     (goto (label eval-dispatch))  ; evaluate the predicate
 
-    ev-if-decide
+  ev-if-decide
     (restore continue)
     (restore env)
     (restore exp)
     (test (op true?) (reg val))
     (branch (label ev-if-consequent))
 
-    ev-if-alternative
+  ev-if-alternative
     (assign exp (op if-alternative) (reg exp))
     (goto (label eval-dispatch))
-    ev-if-consequent
+  ev-if-consequent
     (assign exp (op if-consequent) (reg exp))
     (goto (label eval-dispatch))
 
     ;; Assignments and definitions
     ;; ===========================
 
-    ev-assignment
+  ev-assignment
     (assign unev (op assignment-variable) (reg exp))
     (save unev)                   ; save variable for later
     (assign exp (op assignment-value) (reg exp))
@@ -543,7 +543,7 @@
     (save continue)
     (assign continue (label ev-assignment-1))
     (goto (label eval-dispatch))  ; evaluate the assignment value
-    ev-assignment-1
+   ev-assignment-1
     (restore continue)
     (restore env)
     (restore unev)
@@ -552,7 +552,7 @@
     (assign val (const ok))
     (goto (reg continue))
 
-    ev-definition
+  ev-definition
     (assign unev (op definition-variable) (reg exp))
     (save unev)                   ; save variable for later
     (assign exp (op definition-value) (reg exp))
@@ -560,7 +560,7 @@
     (save continue)
     (assign continue (label ev-definition-1))
     (goto (label eval-dispatch))  ; evaluate the definition value
-    ev-definition-1
+  ev-definition-1
     (restore continue)
     (restore env)
     (restore unev)
@@ -569,14 +569,14 @@
     (assign val (const ok))
     (goto (reg continue))
 
-    unknown-expression-type
+  unknown-expression-type
     (assign val (const unknown-expression-type-error))
     (goto (label signal-error))
-    unknown-procedure-type
+  unknown-procedure-type
     (restore continue)    ; clean up stack (from apply-dispatch)
     (assign val (const unknown-procedure-type-error))
     (goto (label signal-error))
-    signal-error
+  signal-error
     ;; These last 7 lines differ from book because not in REPL
     (perform (op display) (const "ERROR: "))
     (test (op is-error?) (reg val))
@@ -591,7 +591,7 @@
     (perform (op displayln) (const ""))
     (goto (label eceval-end))
 
-    eceval-done
+  eceval-done
     (perform (op display) (const "DONE: "))
     (perform (op displayln) (reg val))
     (goto (label eceval-end))
@@ -658,8 +658,8 @@
 
 
 ;; The End =================================================================
-    eceval-end
-    ))
+  eceval-end
+  ))
 
 
 (#%provide
