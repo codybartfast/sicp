@@ -45,93 +45,111 @@
 
 (-start- "5.30")
 
-(ignore
+(println
  "
 Part A
 ======
 
-If we use an 'object' as the condition code then, even if a variable value
-is structurally identical, it will not have referential equality. E.g. we
-could use:
+We need to use an object other than a symbol to tag an error and then use
+referential equality, eq?, for comparison.  Otherwise it is possible to
+construct an variable value that could be mistken for an error (because
+symbols are interened).
 
-  (define lookup-variable-value-error-obj
-    '(lookup-variable-value-error-obj))
+  (eq? 'error 'error) is true, but
 
-And in lookup-variable-value we can return this instead of raising an error:
+  (eq? '(error) '(error)) is false.
+
+Hence:
+
+ (define error-obj
+   '(error-obj))
+
+To minimize changes in the ec-evaluator just two new primitive operations
+were needed:
+
+(define (is-error? val)
+  (and (pair? val)
+       (eq? (car val) error-obj)))
+
+(define (display-error error)
+  (display (cadr error))
+  (display \". Args:\")
+  (map (lambda (arg)
+         (display \" '\")
+         (display arg)
+         (display \"'\"))
+       (caddr error)))
+
+Then the ec-evaluator's signal-error can call display-error if val is an
+error.  E.g.
+
+Check if the response is an error:
+
+  ev-variable
+    (assign val (op lookup-variable-value) (reg exp) (reg env))
+    (test (op is-error?) (reg val))
+    (branch (label unbound-variable))
+    (goto (reg continue))
+
+In the error method put the error type in the unev instead of val:
+
+  unbound-variable
+    (assign unev (const unbound-variable-error))
+    (goto (label signal-error))
+
+Signal error then calls display-error if it's a tagged error otherwise it
+just displays the error type as usuaal:
+
+  signal-error
+    (perform (op display) (const \"ERROR: \"))
+    (test (op is-error?) (reg val))
+    (branch (label signal-error-with-error-obj))
+    (perform (op displayln) (reg val))
+    (goto (label eceval-end))
+
+  signal-error-with-error-obj
+    (perform (op display) (reg unev))
+    (perform (op display) (const \", \"))
+    (perform (op display-error) (reg val))
+    (perform (op displayln) (const \"\"))
+    (goto (label eceval-end))
+
+The primitive procedures and operations call a make-error method:
+
+  (define (make-error message args)
+    (list error-obj message args))
 
   (define (lookup-variable-value var env)
               ...
       (if (eq? env the-empty-environment)
-          lookup-variable-value-error-obj
-          ...
-
-We then make this object available to the ec-evaluator by adding an accessor
-to the list of primitive operations along with eq? to check reference
-equality:
-
-  (define eceval-operations
-     ...
-     (list 'eq? eq?)
-     (list 'lookup-variable-value-error-obj
-           (lambda () lookup-variable-value-error-obj))
-     ...
-
-Then in the ec-evaluator we can check if lookup-variable-value returns this
-specific object:
-
-  ev-variable
-    (assign val (op lookup-variable-value) (reg exp) (reg env))
-    (assign unev (op lookup-variable-value-error-obj))
-    (test (op eq?) (reg val) (reg unev))
-    (branch (label unbound-variable))
-    (goto (reg continue))
-
-And branches to unbound-variable:
-
-  unbound-variable
-    (assign val (const unbound-variable-error))
-    (assign unev (reg exp))
-    (goto (label signal-error-detail))
-
-in order to display both the type of error and the error detail (the
-unbound variable) I added signal-error-detail that also displays the
-contents of unev register:
-
-  signal-error-detail
-    (perform (op print) (const \"ERROR: \"))
-    (perform (op print) (reg val))
-    (perform (op print) (const \": \"))
-    (perform (op println) (reg unev))
-    (goto (label eceval-end))
+        (make-error \"unbound variable:\" (list var))
+        ...
 
 Demo
 ----
 
 This code assigns a structurally identical object to the variable b and then
-retrieves it successfully
+retrieves it successfully without it being considered an error:
 
   (define a 'apple)
-  (define b '(lookup-variable-value-error-obj))
+  (define b (list '(error-obj) \"Unbound variable:\" (list 'b)))
   (define c 'cherry)
-  (cons a (cons b (cons c '())))
+  (list a b c )
 
 Output:
 
-  eceval DONE - val: (apple (lookup-variable-value-error-obj) cherry)
+  DONE: (apple ((error-obj) Unbound variable: (b)) cherry)
 
-This tests the behaviour when a variable is unbound:
+This demonstrates the behaviour when a variable is unbound:
 
   (define a 'apple)
   (define c 'cherry)
-  (cons a (cons b (cons c '())))
+  (list a b c)
 
 Output:
 
-  ERROR: unbound-variable-error: b
-
-
- ")
-
+  ERROR: unbound-variable-error, unbound variable:. Args: 'b'
+")
 
 (#%require "machine-19.scm")
 (#%require "ec-evaluator-30.scm")
@@ -146,41 +164,92 @@ Output:
 
     (set-register-contents! eceval 'exp prog)
     (set-register-contents! eceval 'env (the-global-environment))
-;    (trace-on! eceval println)
-;    (reg-trace-on! eceval 'exp printReg)
-;    (reg-trace-on! eceval 'proc printReg)
-;    (reg-trace-on! eceval 'argl printReg)
-;    (reg-trace-on! eceval 'env printReg)
-;    (reg-trace-on! eceval 'val printReg)
-;    (reg-trace-on! eceval 'unev printReg)
-
-    (ignore (start eceval))
-    ;(println (stack-stats eceval))
-    ))
+    (ignore (start eceval))))
 
 (define prog1
   '(begin
      (define a 'apple)
      (define b (list '(error-obj) "Unbound variable:" (list 'b)))
      (define c 'cherry)
-     (list a b c )
-     ))
+     (list a b c )))
 
 (define prog2
   '(begin
      (define a 'apple)
      (define c 'cherry)
-     (list a b c)
-     ))
-
-(define prog3
-  '(begin
-     (* 3 'x3)
-     ))
+     (list a b c)))
 
 (run prog1)
 (run prog2)
+
+(println
+ "
+Part B
+======
+
+The same error handling can be used to check calls to primitive methods.
+Nearly all the checking of arguments to primitive procedure is checking the
+number of arguments and their type.  A few helper methods:
+
+  (define (arg-length-not args len proc-name)
+  (define (arg-length-less-than args len proc-name)
+  (define (not-all-args-satisfy all-args check check-desc proc-name)
+
+can then create relevant errors with detailed messages for a renge of
+'checked' primitive procedures (the above return #true when there's a
+problem).  E.g.:
+
+  (define (checked-subtract . args)
+    (cond ((arg-length-less-than args 1 \"-\"))
+          ((not-all-args-satisfy args number? \"numbers\" \"-\"))
+          (else (apply - args))))
+
+These checked procedures can then be installed in the global environment
+instead of the raw ones:
+
+  (define primitive-procedures
+    (list (list 'car checked-car)
+          (list 'cdr checked-cdr)
+          (list 'cons checked-cons)
+          (list 'null? checked-null?)
+          (list 'list list)
+          (list '+ checked-+)
+          (list '- checked-subtract)
+          (list '* checked-*)
+          (list '/ checked-/)
+          (list '< checked-<)
+          (list '> checked->)
+          (list '= checked-=)
+          (list 'eq? checked-eq?)
+
+Demo
+====
+
+  (- 'not-a-number)
+
+Output:
+
+  ERROR: primitive-procedure-error, - requires numbers. Args: 'not-a-number'
+
+and
+
+  (-)
+
+Output:
+
+  ERROR: primitive-procedure-error, - expected at least 1 args, but got 0.
+
+")
+
+(define prog3
+  '(begin
+     (- 'not-a-number)))
 (run prog3)
+
+(define prog4
+  '(begin
+     (-)))
+(run prog4)
 
 (--end-- "5.30")
 

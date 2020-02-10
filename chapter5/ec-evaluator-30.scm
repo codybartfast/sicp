@@ -125,7 +125,7 @@
     (define-variable! 'false false initial-env)
     initial-env))
 
-;;
+;; Ex 5.30 helper methods for checking primitive procedures
 
 (define (arg-length-not args len proc-name)
   (if (not (= (length args) len))
@@ -155,7 +155,7 @@
              all-args))))
   (iter all-args))
 
-;;
+;; Ex 5.30 checked versions of primitive procedures
 
 (define (checked-car . args)
   (cond ((arg-length-not args 1 "car") => values)
@@ -180,8 +180,8 @@
         (else (apply + args))))
 
 (define (checked-subtract . args)
-  (cond ((arg-length-less-than args 1 "-"))
-        ((not-all-args-satisfy args number? "numbers" "-"))
+  (cond ((arg-length-less-than args 1 "-") => values)
+        ((not-all-args-satisfy args number? "numbers" "-") => values)
         (else (apply - args))))
 
 (define (checked-* . args)
@@ -210,14 +210,14 @@
 
 (define (checked-= . args)
   (cond ((arg-length-less-than args 1 "="))
-        ((not-all-args-satisfy args real? "numbers" "="))
+        ((not-all-args-satisfy args number? "numbers" "="))
         (else (apply = args))))
 
 (define (checked-eq? . args)
   (cond ((arg-length-not args 2 "eq?"))
         (else (apply eq? args))))
 
-;;
+;; Ex 5.30 checked versions of methods installed
 
 (define (primitive-procedure? proc)
   (tagged-list? proc 'primitive))
@@ -656,11 +656,6 @@
     (assign unev (const primitive-procedure-error))
     (goto (label signal-error))
 
-  signal-error-detail
-    (perform (op display) (const "ERROR: "))
-    (perform (op display) (reg val))
-    (perform (op display-error) (reg unev))
-    (goto (label eceval-end))
 
 ;; The End =================================================================
     eceval-end
