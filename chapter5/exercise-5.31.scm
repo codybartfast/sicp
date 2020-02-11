@@ -29,7 +29,53 @@
 
 (-start- "5.31")
 
+(println
+ "
 
+┌──────────────────┬───────────┬───────────┬───────────┬───────────┐
+│                  │ operator  │ operands  │ operands  │ op'd seq  │
+│                  │ env       │ env       │ argl      │ proc      │
+├──────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ 1: (f 'x 'y)     │ eliminate │ eliminate │ eliminate │ eliminate │
+├──────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ 2: ((f) 'x 'y)   │ eliminate │ eliminate │ eliminate │ eliminate │
+├──────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ 3: (f (g 'x) y)  │ eliminate │           │           │           │
+├──────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ 4: (f (g 'x) 'y) │ eliminate │ eliminate │           │           │
+└──────────────────┴───────────┴───────────┴───────────┴───────────┘
+
+
+Operator Env
+============
+
+Only need to save/restore if env could change in evaluating the operator and
+we need env to evaluate the operands.  In the case of 2: the environment
+would be changed in evaluating (f) but the environment is not needed to
+evaluate symbols 'x and 'y.
+
+
+Operands Env
+============
+
+Only need to save/restore between operands if there's an operand expression
+that might change env and a subsequent operand that needs env for variable
+lookup.  This is only the case for 3:.
+
+
+Operands Argl
+=============
+
+We need to save/restore argl anytime there's an operand that might change
+the value of argl.  That's 3: and 4:.
+
+
+Operaand Sequence Proc
+======================
+
+We need to save/restore proc if there's any operand that might change the
+value of proc.  That's 3: and 4:.
+")
 
 (--end-- "5.31")
 
