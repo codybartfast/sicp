@@ -1,7 +1,7 @@
 #lang sicp
 
-;; Based on ec-evaluator-24, for Ex 5.30, implements error signalling for
-;; variable lookup.
+;; Based on ec-evaluator-30, for Ex 5.32, adds optimization for simple apply
+;; where where procedure expression is a symbol.
 
 ;; =========================================================================
 ;; Primitive Operations
@@ -413,18 +413,25 @@
 
   ev-application
     (save continue)
-    (save env)
     (assign unev (op operands) (reg exp))
-    (save unev)
     (assign exp (op operator) (reg exp))
-    (assign continue (label ev-appl-did-operator))
+    (test (op variable?) (reg exp))
+    (branch (label ev-appl-operator-lookup))
+    (save env)
+    (save unev)
+    (assign continue (label ev-appl-did-operator-eval))
     (goto (label eval-dispatch))
 
-  ev-appl-did-operator
-    (restore unev)                  ; the operands
+  ev-appl-operator-lookup
+    (assign continue (label ev-appl-did-operator-lookup))
+    (goto (label ev-variable))
+
+  ev-appl-did-operator-eval
+    (restore unev)
     (restore env)
+  ev-appl-did-operator-lookup
     (assign argl (op empty-arglist))
-    (assign proc (reg val))         ; the operator
+    (assign proc (reg val))
     (test (op no-operands?) (reg unev))
     (branch (label apply-dispatch))
     (save proc)
@@ -543,7 +550,7 @@
     (save continue)
     (assign continue (label ev-assignment-1))
     (goto (label eval-dispatch))  ; evaluate the assignment value
-   ev-assignment-1
+  ev-assignment-1
     (restore continue)
     (restore env)
     (restore unev)
