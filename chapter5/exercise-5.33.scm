@@ -24,7 +24,25 @@
 
 (-start- "5.33")
 
+(#%require "compiler-33.scm")
 
+(println
+ "
+I'll confess I thought factorial-alt would be more efficient because there
+is no need to preserve the env while evaluating the first argument.  This is
+the case, but it is balanced by the need to preserve the arg list when
+evaluating the second argument.
+
+factorial:
+  - Must save the env when evaluating first arg
+  - No need to save the argl when evaluating the second arg
+
+factorial-alt:
+  - No need to save the env when evaluating first arg
+  - Must save the argl when evaluating the second arg
+
+So I believe they are equally efficient.
+")
 
 (--end-- "5.33")
 
