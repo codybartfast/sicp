@@ -21,25 +21,68 @@
 
 (-start- "5.36")
 
+(define expression
+  '(define (f x)
+     (+ (g (+ 2 x)) x)))
+
 (println
  "
 Our compiler evaluates operands from right to left.  By evaluating the first
 arg last we can simply, efficiently cons it with the other args so it is the
-first time in argl.
+first item in argl.
 
 This is implemented in construct-arglist which is called from
-compile-application
+compile-application.  Specifically:
+
+  (define (construct-arglist operand-codes)
+    (let ((operand-codes (reverse operand-codes)))
+      ...
 
 So with our compiler we evaluate in reverse order so that we can efficiently
 construct a list in the correct order.  With the ec-evaluator this
-optimisaton wasn't available as we don't know beforehand how many arguments
-there are.  As a result primitive application and extend environment needed
-to be updated to deal with a 'reversed' argument list.
+optimisaton wasn't available as we didn't know beforehand how many arguments
+there were.  As a result primitive application and extend environment needed
+to deal with a 'reversed' argument list.
 
-Evaluating arguments left to right will result in work equivelant to
-'reverse' if the arguments are in their declared order in argl.  Even if the
-arguments were stored in revese order in argl then the work of reversing
-would effectivel have to be done by primitive apply or extend environment.
+To evaluate the arguments from left to right we need only remove the code
+that reverses the operand codes.  And rename code-to-get-last-arg to code-
+to-get-first-arg:
+
+  (define (construct-arglist operand-codes)
+    (if (null? operand-codes)
+        (make-instruction-sequence '() '(argl)
+         '((assign argl (const ()))))
+        (let ((code-to-get-first-arg
+               ...
+
+If we make this change then argl will contain aguments in the reverse order
+to their declaration.  We can either:
+
+  1) reverse this list which will certainly be less efficient, or
+
+  2) update primitive-apply and extend-environment to handle the 'reversed'
+     argl.  This may not have any overhead.  E.g. the formal arguments list
+     provided to extend-environmet could be reversed by the compiler, and I
+     don't see any inherent reason why primitive operations should be less
+     efficient because they take operands in the reverse order to source
+     code.
+
+Reversing the order of arguments in the expression from the previous
+question, and then having arguments evaluated left to right, results in the
+same code as in the previous question (the two reverses cancelling each
+other out).
+
+  " expression "
+
+produces the code from Ex 5.35:
 ")
+
+(#%require "compiler-36.scm")
+
+(compile
+ expression
+ 'val
+ 'next)
+
 (--end-- "5.36")
 

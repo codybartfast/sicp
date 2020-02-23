@@ -1,5 +1,9 @@
 #lang sicp
 
+;; Based on compiler-33, updated construct-arglist to evaluate args left to
+;; right
+
+
 ;; Compiler from book text, Section 5.5
 ;; ====================================
 
@@ -189,21 +193,19 @@
                             (compile-procedure-call target linkage)))))
 
 (define (construct-arglist operand-codes)
-  (let ((operand-codes (reverse operand-codes)))
-    (if (null? operand-codes)
-        (make-instruction-sequence
-         '() '(argl) '((assign argl (const ()))))
-        (let ((code-to-get-last-arg
-               (append-instruction-sequences
-                (car operand-codes)
-                (make-instruction-sequence
-                 '(val) '(argl) '((assign argl (op list) (reg val)))))))
-          (if (null? (cdr operand-codes))
-              code-to-get-last-arg
-              (preserving '(env)
-                          code-to-get-last-arg
-                          (code-to-get-rest-args
-                           (cdr operand-codes))))))))
+    (make-instruction-sequence
+     '() '(argl) '((assign argl (const ()))))
+    (let ((code-to-get-first-arg
+           (append-instruction-sequences
+            (car operand-codes)
+            (make-instruction-sequence
+             '(val) '(argl) '((assign argl (op list) (reg val)))))))
+      (if (null? (cdr operand-codes))
+          code-to-get-first-arg
+          (preserving '(env)
+                      code-to-get-first-arg
+                      (code-to-get-rest-args
+                       (cdr operand-codes))))))
 
 (define (code-to-get-rest-args operand-codes)
   (let ((code-for-next-arg
