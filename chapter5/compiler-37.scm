@@ -1,5 +1,7 @@
 #lang sicp
 
+;; Based on compiler-33, updated preserve that save all registers
+
 ;; Compiler from book text, Section 5.5
 ;; ====================================
 
@@ -321,22 +323,20 @@
                     (list-difference (cdr s1) s2)))))
 
 (define (preserving regs seq1 seq2)
-  (if (null? regs)
-      (append-instruction-sequences seq1 seq2)
-      (let ((first-reg (car regs)))
-        (if (and (needs-register? seq2 first-reg)
-                 (modifies-register? seq1 first-reg))
-            (preserving (cdr regs)
-                        (make-instruction-sequence
-                         (list-union (list first-reg)
-                                     (registers-needed seq1))
-                         (list-difference (registers-modified seq1)
-                                          (list first-reg))
-                         (append `((save ,first-reg))
-                                 (statements seq1)
-                                 `((restore ,first-reg))))
-                        seq2)
-            (preserving (cdr regs) seq1 seq2)))))
+  (let ((regs regs))
+    (if (null? regs)
+        (append-instruction-sequences seq1 seq2)
+        (let ((first-reg (car regs)))
+          (preserving (cdr regs)
+                      (make-instruction-sequence
+                       (list-union (list first-reg)
+                                   (registers-needed seq1))
+                       (list-difference (registers-modified seq1)
+                                        (list first-reg))
+                       (append `((save ,first-reg))
+                               (statements seq1)
+                               `((restore ,first-reg))))
+                      seq2)))))
 
 (define (tack-on-instruction-sequence seq body-seq)
   (make-instruction-sequence
