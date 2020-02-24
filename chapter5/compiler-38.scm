@@ -1,11 +1,71 @@
 #lang sicp
 
+;; Based on compiler-33.  Implements open-code application for some
+;; primitives
+
+;; Exercise 5.38
+;; =============
+
+;; Part A
+
+(define (spread-arguments operands)
+  (if (= 2 (length operands))
+      (preserving '(env)
+                  (compile (car operands) 'arg1 'next)
+                  (preserving '(arg1)
+                              (compile (cadr operands) 'arg2 'next)
+                              (make-instruction-sequence
+                               '(arg1) '() '())))
+      (error "Spread-arguments expects 2 arguments -- COMPILE" operands)))
+
+;; Part B
+
+(define (compile-2arg-open-code operator operands target linkage)
+  (end-with-linkage
+   linkage
+   (append-instruction-sequences
+    (spread-arguments operands)
+    (make-instruction-sequence
+     '(arg1 arg2)
+     `(,target)
+     `((assign ,target (op ,operator) (reg arg1) (reg arg2)))))))
+
+(define (=? exp) (tagged-list? exp '=))
+(define (compile-= exp target linkage)
+  (compile-2arg-open-code '= (operands exp) target linkage))
+
+(define (*? exp) (tagged-list? exp '*))
+(define (compile-* exp target linkage)
+  (compile-assoc-open-code '* (operands exp) target linkage '1))
+
+(define (-? exp) (tagged-list? exp '-))
+(define (compile-- exp target linkage)
+  (compile-2arg-open-code '- (operands exp) target linkage))
+
+(define (+? exp) (tagged-list? exp '+))
+(define (compile-+ exp target linkage)
+  (compile-assoc-open-code '+ (operands exp) target linkage '0))
+
+;; Part D
+
+(define (compile-assoc-open-code operator operands target linkage op-id)
+  (let ((operand-count (length operands)))
+    (cond ((= 0 operand-count) (compile op-id target linkage))
+          ((= 1 operand-count) (compile (car operands) target linkage))
+          ((= 2 operand-count)
+           (compile-2arg-open-code operator operands target linkage))
+          (else
+           (compile
+            (list operator (car operands) (cons operator (cdr operands)))
+            target
+            linkage)))))
+
+
 ;; Compiler from book text, Section 5.5
 ;; ====================================
 
 ;; 5.5.1  Structure of the Compiler
 ;; ================================
-
 (define (compile exp target linkage)
   (cond ((self-evaluating? exp)
          (compile-self-evaluating exp target linkage))
@@ -23,6 +83,10 @@
                            target
                            linkage))
         ((cond? exp) (compile (cond->if exp) target linkage))
+        ((=? exp) (compile-= exp target linkage))
+        ((*? exp) (compile-* exp target linkage))
+        ((-? exp) (compile-- exp target linkage))
+        ((+? exp) (compile-+ exp target linkage))
         ((application? exp)
          (compile-application exp target linkage))
         (else

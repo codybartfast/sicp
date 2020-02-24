@@ -74,7 +74,138 @@
 
 (-start- "5.38")
 
+(println
+ "
+Part A
+======
 
+  (define (spread-arguments operands)
+    (if (= 2 (length operands))
+        (preserving '(env)
+                    (compile (car operands) 'arg1 'next)
+                    (preserving '(arg1)
+                                (compile (cadr operands) 'arg2 'next)
+                                (make-instruction-sequence
+                                 '(arg1) '() '())))
+        (error \"Spread-arguments expects 2 args -- COMPILE\" operands)))
+
+
+Part B
+======
+
+(define (compile exp target linkage)
+  (cond ((self-evaluating? exp)
+        ...
+        ((=? exp) (compile-= exp target linkage))
+        ((*? exp) (compile-* exp target linkage))
+        ...
+        (else
+         (error \"Unknown expression type -- COMPILE\" exp))))
+
+  (define (=? exp) (tagged-list? exp '=))
+  (define (compile-= exp target linkage)
+    (compile-2arg-open-code '= (operands exp) target linkage))
+
+  (define (*? exp) (tagged-list? exp '*))
+  (define (compile-* exp target linkage)
+    (compile-2arg-open-code '* (operands exp) target linkage))
+
+  ...
+
+  (define (compile-2arg-open-code operator operands target linkage)
+    (end-with-linkage
+     linkage
+     (append-instruction-sequences
+      (spread-arguments operands)
+      (make-instruction-sequence
+       '(arg1 arg2)
+       `(,target)
+       `((assign ,target (op ,operator) (reg arg1) (reg arg2)))))))
+
+
+Part C
+======
+
+With these modifications there are half as many instructions in the lambda
+body than before (58 before, 29 after).  We could therefore expect it to run
+about twice as fast.
+
+
+Part D
+======
+
+  (define (*? exp) (tagged-list? exp '*))
+  (define (compile-* exp target linkage)
+    (compile-assoc-open-code '* (operands exp) target linkage '1))
+
+  (define (+? exp) (tagged-list? exp '+))
+  (define (compile-+ exp target linkage)
+    (compile-assoc-open-code '+ (operands exp) target linkage '0))
+
+  (define (compile-assoc-open-code operator operands target linkage op-id)
+    (let ((operand-count (length operands)))
+      (cond ((= 0 operand-count) (compile op-id target linkage))
+            ((= 1 operand-count) (compile (car operands) target linkage))
+            ((= 2 operand-count)
+             (compile-2arg-open-code operator operands target linkage))
+            (else
+             (compile
+              (list operator (car operands) (cons operator (cdr operands)))
+              target
+              linkage)))))
+
+Sample
+======
+
+(compile
+ '(= 24 (* (*) (+ 2) (+ 3 4 5)))
+ 'val
+ 'return)
+
+Output:
+=======
+
+((continue)
+ (arg1 arg2 val)
+ ((assign arg1 (const 24))
+  (save arg1)
+  (assign arg1 (const 1))
+  (save arg1)
+  (assign arg1 (const 2))
+  (save arg1)
+  (assign arg1 (const 3))
+  (save arg1)
+  (assign arg1 (const 4))
+  (assign arg2 (const 5))
+  (assign arg2 (op +) (reg arg1) (reg arg2))
+  (restore arg1)
+  (assign arg2 (op +) (reg arg1) (reg arg2))
+  (restore arg1)
+  (assign arg2 (op *) (reg arg1) (reg arg2))
+  (restore arg1)
+  (assign arg2 (op *) (reg arg1) (reg arg2))
+  (restore arg1)
+  (assign val (op =) (reg arg1) (reg arg2))
+  (goto (reg continue))))
+")
+
+(#%require "compiler-38.scm")
+
+
+(compile
+ '(= 24 (* (*) (+ 2) (+ 3 4 5)))
+ 'val
+ 'return)
+
+;(compile
+; '(define (factorial n)
+;    (if (= n 1)
+;        1
+;        (* (factorial (- n 1)) n)))
+; 'val
+; 'next)
+
+(println "")
 
 (--end-- "5.38")
 
