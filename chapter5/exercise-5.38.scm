@@ -93,22 +93,20 @@ Part A
 Part B
 ======
 
-(define (compile exp target linkage)
-  (cond ((self-evaluating? exp)
-        ...
-        ((=? exp) (compile-= exp target linkage))
-        ((*? exp) (compile-* exp target linkage))
-        ...
-        (else
-         (error \"Unknown expression type -- COMPILE\" exp))))
+  (define (compile exp target linkage)
+    (cond ((self-evaluating? exp)
+          ...
+          ((primitive-procedure? exp)
+           (compile-primitive-procedure exp target linkage))
+          ...
+          (else
+           (error \"Unknown expression type -- COMPILE\" exp))))
 
-  (define (=? exp) (tagged-list? exp '=))
   (define (compile-= exp target linkage)
     (compile-2arg-open-code '= (operands exp) target linkage))
 
-  (define (*? exp) (tagged-list? exp '*))
-  (define (compile-* exp target linkage)
-    (compile-2arg-open-code '* (operands exp) target linkage))
+  (define (compile-- exp target linkage)
+    (compile-2arg-open-code '- (operands exp) target linkage))
 
   ...
 
@@ -122,6 +120,24 @@ Part B
        `(,target)
        `((assign ,target (op ,operator) (reg arg1) (reg arg2)))))))
 
+  (define primitive-procedure-compilers
+    (list
+     (cons '= compile-=)
+     (cons '- compile--)
+     ...))
+
+  (define primitive-procedure-names
+    (map car primitive-procedure-compilers))
+  (define (primitive-procedure? exp)
+    (and (pair? exp)
+         (memq (car exp) primitive-procedure-names)))
+
+  (define (lookup-primitive-compiler prim-proc)
+    (lookup prim-proc primitive-procedure-compilers))
+
+  (define (compile-primitive-procedure exp target linkage)
+    ((lookup-primitive-compiler (car exp)) exp target linkage))
+
 
 Part C
 ======
@@ -134,11 +150,9 @@ about twice as fast.
 Part D
 ======
 
-  (define (*? exp) (tagged-list? exp '*))
   (define (compile-* exp target linkage)
     (compile-multi-arg-open-code '* (operands exp) target linkage '1))
 
-  (define (+? exp) (tagged-list? exp '+))
   (define (compile-+ exp target linkage)
     (compile-multi-arg-open-code '+ (operands exp) target linkage '0))
 

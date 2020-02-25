@@ -7,6 +7,7 @@
 ;; =============
 
 ;; Part A
+;; ------
 
 (define (spread-arguments operands)
   (if (= 2 (length operands))
@@ -19,6 +20,19 @@
       (error "Spread-arguments expects 2 arguments -- COMPILE" operands)))
 
 ;; Part B
+;; ------
+
+(define (compile-= exp target linkage)
+  (compile-2arg-open-code '= (operands exp) target linkage))
+
+(define (compile-* exp target linkage)
+  (compile-multi-arg-open '* (operands exp) target linkage '1))
+
+(define (compile-- exp target linkage)
+  (compile-2arg-open-code '- (operands exp) target linkage))
+
+(define (compile-+ exp target linkage)
+  (compile-multi-arg-open '+ (operands exp) target linkage '0))
 
 (define (compile-2arg-open-code operator operands target linkage)
   (end-with-linkage
@@ -30,23 +44,28 @@
      `(,target)
      `((assign ,target (op ,operator) (reg arg1) (reg arg2)))))))
 
-(define (=? exp) (tagged-list? exp '=))
-(define (compile-= exp target linkage)
-  (compile-2arg-open-code '= (operands exp) target linkage))
+(define primitive-procedure-compilers
+  (list
+   (cons '= compile-=)
+   (cons '* compile-*)
+   (cons '- compile--)
+   (cons '+ compile-+)))
 
-(define (*? exp) (tagged-list? exp '*))
-(define (compile-* exp target linkage)
-  (compile-multi-arg-open '* (operands exp) target linkage '1))
+(define primitive-procedure-names
+  (map car primitive-procedure-compilers))
+(define (primitive-procedure? exp)
+  (and (pair? exp)
+       (memq (car exp) primitive-procedure-names)))
 
-(define (-? exp) (tagged-list? exp '-))
-(define (compile-- exp target linkage)
-  (compile-2arg-open-code '- (operands exp) target linkage))
+(define (lookup-primitive-compiler prim-proc)
+  (lookup prim-proc primitive-procedure-compilers))
 
-(define (+? exp) (tagged-list? exp '+))
-(define (compile-+ exp target linkage)
-  (compile-multi-arg-open '+ (operands exp) target linkage '0))
+(define (compile-primitive-procedure exp target linkage)
+  ((lookup-primitive-compiler (car exp)) exp target linkage))
+
 
 ;; Part D
+;; ------
 
 (define (compile-multi-arg-open operator operands target linkage op-id)
   (let ((operand-count (length operands)))
@@ -102,10 +121,8 @@
                            target
                            linkage))
         ((cond? exp) (compile (cond->if exp) target linkage))
-        ((=? exp) (compile-= exp target linkage))
-        ((*? exp) (compile-* exp target linkage))
-        ((-? exp) (compile-- exp target linkage))
-        ((+? exp) (compile-+ exp target linkage))
+        ((primitive-procedure? exp)
+         (compile-primitive-procedure exp target linkage))
         ((application? exp)
          (compile-application exp target linkage))
         (else
@@ -529,6 +546,10 @@
                      (sequence->exp (cond-actions first))
                      (expand-clauses rest))))))
 
+
+;; From Footers
+;; ============
+
 ;; footer 37
 (define label-counter 0)
 
@@ -540,7 +561,6 @@
   (string->symbol
    (string-append (symbol->string name)
                   (number->string (new-label-number)))))
-
 ;; footer 38
 
 (define (make-compiled-procedure entry env)
@@ -557,6 +577,21 @@
 
 (define all-regs '(env proc val argl continue))
 
-;; and finally
+
+;; Old Friends
+;; ===========
+
+(define (lookup key table)
+  (let ((record (assoc key (cdr table))))
+    (if record
+        (cdr record)
+        false)))
+(define (assoc key records)
+  (cond ((null? records) false)
+        ((equal? key (caar records)) (car records))
+        (else (assoc key (cdr records)))))
+
+;; And Finally
+;; ===========
 
 (#%provide compile)
