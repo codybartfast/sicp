@@ -1,6 +1,35 @@
 #lang sicp
 
-;; Compiler from book text, Section 5.5
+;; Based on compiler-33.  Adds lexical-address-lookup.
+
+
+;; Exercise 5.39
+;; =============
+
+(define (skip lst n)
+  (if (= n 0)
+      lst
+      (skip (cdr lst) (- n 1))))
+
+(define (frame-values frame) (cdr frame))
+
+(define (lex-frame-number addr) (car addr))
+(define (lex-displacement addr) (cdr addr))
+
+(define (lexical-address-lookup addr env)
+  (let ((frame (list-ref env (lex-frame-number addr))))
+    (let ((value (list-ref (frame-values frame) (lex-displacement addr))))
+      (if (= value '*unassigned*)
+          (error "Unassigned lex-address:" addr)
+          value))))
+
+(define (lexical-address-set! addr value env)
+  (let ((frame (list-ref env (lex-frame-number addr))))
+    (let ((value-head (skip (frame-values frame) (lex-displacement addr))))
+      (set-car! value-head value))))
+
+
+; Compiler from book text, Section 5.5
 ;; ====================================
 
 ;; 5.5.1  Structure of the Compiler
