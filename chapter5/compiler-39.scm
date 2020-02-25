@@ -1,7 +1,7 @@
 #lang sicp
 
 ;; Based on compiler-33.  Adds lexical-address-lookup.
-
+;; Ex 5.39 - Ex 5.4?
 
 ;; Exercise 5.39
 ;; =============
@@ -29,31 +29,43 @@
       (set-car! value-head value))))
 
 
+;; Exercise 5.40
+;; =============
+
+(define empty-ctenv '())
+
+(define (extend-ctenv ctenv vars)
+  (cons vars ctenv))
+
+
+
+
 ; Compiler from book text, Section 5.5
 ;; ====================================
 
 ;; 5.5.1  Structure of the Compiler
 ;; ================================
 
-(define (compile exp target linkage)
+(define (compile exp ctenv target linkage)
   (cond ((self-evaluating? exp)
-         (compile-self-evaluating exp target linkage))
-        ((quoted? exp) (compile-quoted exp target linkage))
+         (compile-self-evaluating exp ctenv target linkage))
+        ((quoted? exp) (compile-quoted exp ctenv target linkage))
         ((variable? exp)
-         (compile-variable exp target linkage))
+         (compile-variable exp ctenv target linkage))
         ((assignment? exp)
-         (compile-assignment exp target linkage))
+         (compile-assignment exp ctenv target linkage))
         ((definition? exp)
-         (compile-definition exp target linkage))
-        ((if? exp) (compile-if exp target linkage))
-        ((lambda? exp) (compile-lambda exp target linkage))
+         (compile-definition exp ctenv target linkage))
+        ((if? exp) (compile-if exp ctenv target linkage))
+        ((lambda? exp) (compile-lambda exp ctenv target linkage))
         ((begin? exp)
          (compile-sequence (begin-actions exp)
+                           ctenv
                            target
                            linkage))
-        ((cond? exp) (compile (cond->if exp) target linkage))
+        ((cond? exp) (compile (cond->if exp) ctenv target linkage))
         ((application? exp)
-         (compile-application exp target linkage))
+         (compile-application exp ctenv target linkage))
         (else
          (error "Unknown expression type -- COMPILE" exp))))
 
@@ -86,15 +98,15 @@
 
 ;; Compiling simple expressions
 
-(define (compile-self-evaluating exp target linkage)
+(define (compile-self-evaluating exp ctenv target linkage)
   (end-with-linkage linkage
    (make-instruction-sequence '() (list target)
     `((assign ,target (const ,exp))))))
-(define (compile-quoted exp target linkage)
+(define (compile-quoted exp ctenv target linkage)
   (end-with-linkage linkage
    (make-instruction-sequence '() (list target)
     `((assign ,target (const ,(text-of-quotation exp)))))))
-(define (compile-variable exp target linkage)
+(define (compile-variable exp ctenv target linkage)
   (end-with-linkage linkage
    (make-instruction-sequence '(env) (list target)
     `((assign ,target
@@ -102,10 +114,10 @@
               (const ,exp)
               (reg env))))))
 
-(define (compile-assignment exp target linkage)
+(define (compile-assignment exp ctenv target linkage)
   (let ((var (assignment-variable exp))
         (get-value-code
-         (compile (assignment-value exp) 'val 'next)))
+         (compile (assignment-value exp) ctenv 'val 'next)))
     (end-with-linkage
      linkage
      (preserving '(env)
@@ -117,10 +129,10 @@
                              (reg val)
                              (reg env))
                     (assign ,target (const ok))))))))
-(define (compile-definition exp target linkage)
+(define (compile-definition exp ctenv target linkage)
   (let ((var (definition-variable exp))
         (get-value-code
-         (compile (definition-value exp) 'val 'next)))
+         (compile (definition-value exp) ctenv 'val 'next)))
     (end-with-linkage
      linkage
      (preserving '(env)
@@ -135,18 +147,18 @@
 
 ;; Compiling conditional expressions
 
-(define (compile-if exp target linkage)
+(define (compile-if exp ctenv target linkage)
   (let ((t-branch (make-label 'true-branch))
         (f-branch (make-label 'false-branch))
         (after-if (make-label 'after-if)))
     (let ((consequent-linkage
            (if (eq? linkage 'next) after-if linkage)))
-      (let ((p-code (compile (if-predicate exp) 'val 'next))
+      (let ((p-code (compile (if-predicate exp) ctenv 'val 'next))
             (c-code
              (compile
-              (if-consequent exp) target consequent-linkage))
+              (if-consequent exp) ctenv target consequent-linkage))
             (a-code
-             (compile (if-alternative exp) target linkage)))
+             (compile (if-alternative exp) ctenv target linkage)))
         (preserving '(env continue)
                     p-code
                     (append-instruction-sequences
@@ -161,16 +173,16 @@
 
 ;; Compiling sequences
 
-(define (compile-sequence seq target linkage)
+(define (compile-sequence seq ctenv target linkage)
   (if (last-exp? seq)
-      (compile (first-exp seq) target linkage)
+      (compile (first-exp seq) ctenv target linkage)
       (preserving '(env continue)
-                  (compile (first-exp seq) target 'next)
-                  (compile-sequence (rest-exps seq) target linkage))))
+                  (compile (first-exp seq) ctenv target 'next)
+                  (compile-sequence (rest-exps seq) ctenv target linkage))))
 
 ;; Compiling lambda expressions
 
-(define (compile-lambda exp target linkage)
+(define (compile-lambda exp ctenv target linkage)
   (let ((proc-entry (make-label 'entry))
         (after-lambda (make-label 'after-lambda)))
     (let ((lambda-linkage
@@ -185,11 +197,12 @@
                                      (op make-compiled-procedure)
                                      (label ,proc-entry)
                                      (reg env)))))
-        (compile-lambda-body exp proc-entry))
+        (compile-lambda-body exp ctenv proc-entry))
        after-lambda))))
 
-(define (compile-lambda-body exp proc-entry)
-  (let ((formals (lambda-parameters exp)))
+(define (compile-lambda-body exp ctenv proc-entry)
+  (let* ((formals (lambda-parameters exp))
+         (ctenv (extend-ctenv ctenv formals)))
     (append-instruction-sequences
      (make-instruction-sequence
       '(env proc argl) '(env)
@@ -200,16 +213,16 @@
                 (const ,formals)
                 (reg argl)
                 (reg env))))
-     (compile-sequence (lambda-body exp) 'val 'return))))
+     (compile-sequence (lambda-body exp) ctenv 'val 'return))))
 
 
 ;; 5.5.3  Compiling Combinations
 ;; =============================
 
-(define (compile-application exp target linkage)
-  (let ((proc-code (compile (operator exp) 'proc 'next))
+(define (compile-application exp ctenv target linkage)
+  (let ((proc-code (compile (operator exp) ctenv 'proc 'next))
         (operand-codes
-         (map (lambda (operand) (compile operand 'val 'next))
+         (map (lambda (operand) (compile operand ctenv 'val 'next))
               (operands exp))))
     (preserving '(env continue)
                 proc-code
@@ -505,4 +518,6 @@
 
 ;; and finally
 
-(#%provide compile)
+(#%provide
+ compile
+ empty-ctenv)
