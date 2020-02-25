@@ -14,7 +14,7 @@
 (define (frame-values frame) (cdr frame))
 
 (define (lex-frame-number addr) (car addr))
-(define (lex-displacement addr) (cdr addr))
+(define (lex-displacement addr) (cadr addr))
 
 (define (lexical-address-lookup addr env)
   (let ((frame (list-ref env (lex-frame-number addr))))
@@ -38,7 +38,32 @@
   (cons vars ctenv))
 
 
+;; Exercise 5.41
+;; =============
 
+(define (make-lex-addr frame-number displacement)
+  (list frame-number displacement))
+
+(define (index-of item list)
+  (define (iter l n)
+    (if (pair? l)
+        (if (eq? item (car l))
+            n
+            (iter (cdr l) (+ n 1)))
+        #f))
+  (iter list 0))
+
+(define (find-variable var ctenv)
+  (define (iter env frame-number)
+    (if (pair? env)
+        (let ((vars (car env)))
+          (cond ((index-of var vars)
+                 => (lambda (displacement)
+                      (make-lex-addr frame-number displacement)))
+                (else (iter (cdr env) (+ frame-number 1)))))
+          'not-found))
+  (iter ctenv 0))
+                       
 
 ; Compiler from book text, Section 5.5
 ;; ====================================

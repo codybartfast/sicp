@@ -28,7 +28,31 @@
 
 (-start- "5.41")
 
+(println
+ "
+  (define (make-lex-addr frame-number displacement)
+    (list frame-number displacement))
 
+  (define (index-of item list)
+    (define (iter l n)
+      (if (pair? l)
+          (if (eq? item (car l))
+              n
+              (iter (cdr l) (+ n 1)))
+          #f))
+    (iter list 0))
+
+  (define (find-variable var ctenv)
+    (define (iter env frame-number)
+      (if (pair? env)
+          (let ((vars (car env)))
+            (cond ((index-of var vars)
+                   => (lambda (displacement)
+                        (make-lex-addr frame-number displacement)))
+                  (else (iter (cdr env) (+ frame-number 1)))))
+            'not-found))
+    (iter ctenv 0))
+")
 
 (--end-- "5.41")
 
