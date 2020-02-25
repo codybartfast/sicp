@@ -36,7 +36,7 @@
 
 (define (*? exp) (tagged-list? exp '*))
 (define (compile-* exp target linkage)
-  (compile-assoc-open-code '* (operands exp) target linkage '1))
+  (compile-multi-arg-open '* (operands exp) target linkage '1))
 
 (define (-? exp) (tagged-list? exp '-))
 (define (compile-- exp target linkage)
@@ -44,21 +44,40 @@
 
 (define (+? exp) (tagged-list? exp '+))
 (define (compile-+ exp target linkage)
-  (compile-assoc-open-code '+ (operands exp) target linkage '0))
+  (compile-multi-arg-open '+ (operands exp) target linkage '0))
 
 ;; Part D
 
-(define (compile-assoc-open-code operator operands target linkage op-id)
+(define (compile-multi-arg-open operator operands target linkage op-id)
   (let ((operand-count (length operands)))
-    (cond ((= 0 operand-count) (compile op-id target linkage))
-          ((= 1 operand-count) (compile (car operands) target linkage))
-          ((= 2 operand-count)
-           (compile-2arg-open-code operator operands target linkage))
-          (else
-           (compile
-            (list operator (car operands) (cons operator (cdr operands)))
-            target
-            linkage)))))
+    (cond
+      ((= 0 operand-count) (compile op-id target linkage))
+      ((= 1 operand-count) (compile (car operands) target linkage))
+      (else
+       (end-with-linkage
+        linkage
+        (preserving
+         '(env)
+         (compile (car operands) 'arg1 'next)
+         (compile-open-code-reduce operator (cdr operands) target)))))))
+
+(define (compile-open-code-reduce operator operands target)
+  (let* ((is-last-operand (null? (cdr operands)))
+         (trgt (if is-last-operand target 'arg1))
+         (open-code-apply
+          (preserving '(arg1)
+                      (compile (car operands) 'arg2 'next)
+                      (make-instruction-sequence
+                       '(arg1 arg2)
+                       `(,trgt)
+                       `((assign ,trgt (op ,operator)
+                                 (reg arg1) (reg arg2)))))))
+    (if is-last-operand
+        open-code-apply
+        (preserving
+         '(env)
+         open-code-apply
+         (compile-open-code-reduce operator (cdr operands) target)))))
 
 
 ;; Compiler from book text, Section 5.5

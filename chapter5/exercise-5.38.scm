@@ -136,66 +136,117 @@ Part D
 
   (define (*? exp) (tagged-list? exp '*))
   (define (compile-* exp target linkage)
-    (compile-assoc-open-code '* (operands exp) target linkage '1))
+    (compile-multi-arg-open-code '* (operands exp) target linkage '1))
 
   (define (+? exp) (tagged-list? exp '+))
   (define (compile-+ exp target linkage)
-    (compile-assoc-open-code '+ (operands exp) target linkage '0))
+    (compile-multi-arg-open-code '+ (operands exp) target linkage '0))
 
-  (define (compile-assoc-open-code operator operands target linkage op-id)
+  (define (compile-multi-arg-open operator operands target linkage op-id)
     (let ((operand-count (length operands)))
-      (cond ((= 0 operand-count) (compile op-id target linkage))
-            ((= 1 operand-count) (compile (car operands) target linkage))
-            ((= 2 operand-count)
-             (compile-2arg-open-code operator operands target linkage))
-            (else
-             (compile
-              (list operator (car operands) (cons operator (cdr operands)))
-              target
-              linkage)))))
+      (cond
+        ((= 0 operand-count) (compile op-id target linkage))
+        ((= 1 operand-count) (compile (car operands) target linkage))
+        (else
+         (end-with-linkage
+          linkage
+          (preserving
+           '(env)
+           (compile (car operands) 'arg1 'next)
+           (compile-open-code-reduce operator (cdr operands) target)))))))
 
-Sample
-======
+  (define (compile-open-code-reduce operator operands target)
+    (let* ((is-last-operand (null? (cdr operands)))
+           (trgt (if is-last-operand target 'arg1))
+           (open-code-apply
+            (preserving '(arg1)
+                        (compile (car operands) 'arg2 'next)
+                        (make-instruction-sequence
+                         '(arg1 arg2)
+                         `(,trgt)
+                         `((assign ,trgt (op ,operator)
+                                   (reg arg1) (reg arg2)))))))
+      (if is-last-operand
+          open-code-apply
+          (preserving
+           '(env)
+           open-code-apply
+           (compile-open-code-reduce operator (cdr operands) target)))))
 
-(compile
- '(= 24 (* (*) (+ 2) (+ 3 4 5)))
- 'val
- 'return)
+
+Simple Example
+==============
+
+  (compile
+   '(+ 1 2 3 4 5)
+   'val
+   'next)
 
 Output:
-=======
+-------
 
-((continue)
- (arg1 arg2 val)
- ((assign arg1 (const 24))
-  (save arg1)
-  (assign arg1 (const 1))
-  (save arg1)
-  (assign arg1 (const 2))
-  (save arg1)
-  (assign arg1 (const 3))
-  (save arg1)
-  (assign arg1 (const 4))
-  (assign arg2 (const 5))
-  (assign arg2 (op +) (reg arg1) (reg arg2))
-  (restore arg1)
-  (assign arg2 (op +) (reg arg1) (reg arg2))
-  (restore arg1)
-  (assign arg2 (op *) (reg arg1) (reg arg2))
-  (restore arg1)
-  (assign arg2 (op *) (reg arg1) (reg arg2))
-  (restore arg1)
-  (assign val (op =) (reg arg1) (reg arg2))
-  (goto (reg continue))))
+  (()
+   (arg1 arg2 val)
+   ((assign arg1 (const 1))
+    (assign arg2 (const 2))
+    (assign arg1 (op +) (reg arg1) (reg arg2))
+    (assign arg2 (const 3))
+    (assign arg1 (op +) (reg arg1) (reg arg2))
+    (assign arg2 (const 4))
+    (assign arg1 (op +) (reg arg1) (reg arg2))
+    (assign arg2 (const 5))
+    (assign val (op +) (reg arg1) (reg arg2))))
+
+
+More Complex Example
+====================
+
+  (compile
+   '(* (*) (* 2) (values 3) (* 4 five))
+   'val
+   'return)
+
+Output:
+-------
+
+  ((env continue)
+   (proc argl arg1 arg2 val)
+   ((save continue)
+    (assign arg1 (const 1))
+    (assign arg2 (const 2))
+    (assign arg1 (op *) (reg arg1) (reg arg2))
+    (save env)
+    (assign proc (op lookup-variable-value) (const values) (reg env))
+    (assign val (const 3))
+    (assign argl (op list) (reg val))
+    (test (op primitive-procedure?) (reg proc))
+    (branch (label primitive-branch1))
+    compiled-branch2
+    (assign continue (label proc-return4))
+    (assign val (op compiled-procedure-entry) (reg proc))
+    (goto (reg val))
+    proc-return4
+    (assign arg2 (reg val))
+    (goto (label after-call3))
+    primitive-branch1
+    (assign arg2 (op apply-primitive-procedure) (reg proc) (reg argl))
+    after-call3
+    (assign arg1 (op *) (reg arg1) (reg arg2))
+    (restore env)
+    (save arg1)
+    (assign arg1 (const 4))
+    (assign arg2 (op lookup-variable-value) (const five) (reg env))
+    (assign arg2 (op *) (reg arg1) (reg arg2))
+    (restore arg1)
+    (assign val (op *) (reg arg1) (reg arg2))
+    (restore continue)
+    (goto (reg continue))))
+
+Demo
+====
 ")
 
 (#%require "compiler-38.scm")
-
-
-(compile
- '(= 24 (* (*) (+ 2) (+ 3 4 5)))
- 'val
- 'return)
 
 ;(compile
 ; '(define (factorial n)
@@ -204,6 +255,18 @@ Output:
 ;        (* (factorial (- n 1)) n)))
 ; 'val
 ; 'next)
+
+(compile
+ '(+ 1 2 3 4 5)
+ 'val
+ 'next)
+
+(println "")
+
+(compile
+ '(* (*) (* 2) (values 3) (* 4 five))
+ 'val
+ 'return)
 
 (println "")
 
