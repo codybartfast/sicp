@@ -63,9 +63,109 @@
                 (else (iter (cdr env) (+ frame-number 1)))))
           'not-found))
   (iter ctenv 0))
-                       
 
-; Compiler from book text, Section 5.5
+
+;; Exercise 5.38
+;; =============
+
+;; Part A
+;; ------
+
+(define (spread-arguments operands ctenv)
+  (if (= 2 (length operands))
+      (preserving '(env)
+                  (compile (car operands) ctenv 'arg1 'next)
+                  (preserving '(arg1)
+                              (compile (cadr operands) ctenv 'arg2 'next)
+                              (make-instruction-sequence
+                               '(arg1) '() '())))
+      (error "Spread-arguments expects 2 arguments -- COMPILE" operands)))
+
+;; Part B
+;; ------
+
+(define (compile-= exp ctenv target linkage)
+  (compile-2arg-open-code '= (operands exp) ctenv target linkage))
+
+(define (compile-* exp ctenv target linkage)
+  (compile-multi-arg-open '* (operands exp) ctenv target linkage '1))
+
+(define (compile-- exp ctenv target linkage)
+  (compile-2arg-open-code '- (operands exp )ctenv target linkage))
+
+(define (compile-+ exp ctenv target linkage)
+  (compile-multi-arg-open '+ (operands exp) ctenv target linkage '0))
+
+(define (compile-2arg-open-code operator ctenv operands target linkage)
+  (end-with-linkage
+   linkage
+   (append-instruction-sequences
+    (spread-arguments operands ctenv) ;; <<---
+    (make-instruction-sequence
+     '(arg1 arg2)
+     `(,target)
+     `((assign ,target (op ,operator) (reg arg1) (reg arg2)))))))
+
+(define primitive-procedure-compilers
+  (list
+   (cons '= compile-=)
+   (cons '* compile-*)
+   (cons '- compile--)
+   (cons '+ compile-+)))
+
+(define primitive-procedure-names
+  (map car primitive-procedure-compilers))
+(define (primitive-procedure? exp)
+  (and (pair? exp)
+       (memq (car exp) primitive-procedure-names)))
+
+(define (lookup-primitive-compiler prim-proc)
+  (lookup prim-proc primitive-procedure-compilers))
+
+(define (compile-primitive-procedure exp ctenv target linkage)
+  ((lookup-primitive-compiler (car exp)) exp ctenv target linkage))
+
+
+;; Part D
+;; ------
+
+(define (compile-multi-arg-open
+         operator operands ctenv target linkage op-id)
+  (let ((operand-count (length operands)))
+    (cond
+      ((= 0 operand-count) (compile op-id ctenv target linkage))
+      ((= 1 operand-count) (compile (car operands) ctenv target linkage))
+      (else
+       (end-with-linkage
+        linkage
+        (preserving
+         '(env)
+         (compile (car operands) ctenv 'arg1 'next)
+         (compile-open-code-reduce operator
+                                   (cdr operands)
+                                   ctenv
+                                   target)))))))
+
+(define (compile-open-code-reduce operator operands ctenv target)
+  (let* ((is-last-operand (null? (cdr operands)))
+         (trgt (if is-last-operand target 'arg1))
+         (open-code-apply
+          (preserving '(arg1)
+                      (compile (car operands) ctenv 'arg2 'next)
+                      (make-instruction-sequence
+                       '(arg1 arg2)
+                       `(,trgt)
+                       `((assign ,trgt (op ,operator)
+                                 (reg arg1) (reg arg2)))))))
+    (if is-last-operand
+        open-code-apply
+        (preserving
+         '(env)
+         open-code-apply
+         (compile-open-code-reduce operator (cdr operands) ctenv target)))))
+
+
+;; Compiler from book text, Section 5.5
 ;; ====================================
 
 ;; 5.5.1  Structure of the Compiler
@@ -89,6 +189,8 @@
                            target
                            linkage))
         ((cond? exp) (compile (cond->if exp) ctenv target linkage))
+        ((primitive-procedure? exp)
+         (compile-primitive-procedure exp ctenv target linkage))
         ((application? exp)
          (compile-application exp ctenv target linkage))
         (else
@@ -513,6 +615,10 @@
                      (sequence->exp (cond-actions first))
                      (expand-clauses rest))))))
 
+
+;; From Footers
+;; ============
+
 ;; footer 37
 (define label-counter 0)
 
@@ -524,7 +630,6 @@
   (string->symbol
    (string-append (symbol->string name)
                   (number->string (new-label-number)))))
-
 ;; footer 38
 
 (define (make-compiled-procedure entry env)
@@ -541,7 +646,23 @@
 
 (define all-regs '(env proc val argl continue))
 
-;; and finally
+
+;; Old Friends
+;; ===========
+
+(define (lookup key table)
+  (let ((record (assoc key (cdr table))))
+    (if record
+        (cdr record)
+        false)))
+(define (assoc key records)
+  (cond ((null? records) false)
+        ((equal? key (caar records)) (car records))
+        (else (assoc key (cdr records)))))
+
+
+;; And Finally
+;; ===========
 
 (#%provide
  compile
