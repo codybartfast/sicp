@@ -29,6 +29,24 @@
 
 (-start- "5.42")
 
+(#%require "compiler-39.scm")
+
+(define exp
+  '(((lambda (x y)
+       (lambda (a b c d e)
+         ((lambda (y z) 'expression-1)
+          'expression-2
+          (+ c d x))))
+     3
+     4)))
+
+(compile
+ exp
+ empty-ctenv
+ 'val
+ 'next)
+
+
 
 
 (--end-- "5.42")

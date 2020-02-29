@@ -1,7 +1,7 @@
 #lang sicp
 
-;; Based on compiler-33.  Adds lexical-address-lookup.
-;; Ex 5.39 - Ex 5.4?
+;; Based on compiler-33.  Adds lexical-address-lookup, (Ex 5.39 - Ex 5.44).
+;; And re-adds open-code application of primitive procedures (Ex 5.38).
 
 ;; Exercise 5.39
 ;; =============
@@ -65,8 +65,21 @@
   (iter ctenv 0))
 
 
-;; Exercise 5.38
+;; Exercise 5.42
 ;; =============
+
+(define (compile-variable exp ctenv target linkage)
+  (end-with-linkage linkage
+   (make-instruction-sequence '(env) (list target)
+    `((assign ,target
+              (op lookup-variable-value)
+              (const ,exp)
+              (reg env))))))
+
+
+;; =========================================
+;; Exercise 5.38 (open-code primitive apply)
+;; =========================================
 
 ;; Part A
 ;; ------
@@ -100,7 +113,7 @@
   (end-with-linkage
    linkage
    (append-instruction-sequences
-    (spread-arguments operands ctenv) ;; <<---
+    (spread-arguments operands ctenv)
     (make-instruction-sequence
      '(arg1 arg2)
      `(,target)
@@ -233,13 +246,8 @@
   (end-with-linkage linkage
    (make-instruction-sequence '() (list target)
     `((assign ,target (const ,(text-of-quotation exp)))))))
-(define (compile-variable exp ctenv target linkage)
-  (end-with-linkage linkage
-   (make-instruction-sequence '(env) (list target)
-    `((assign ,target
-              (op lookup-variable-value)
-              (const ,exp)
-              (reg env))))))
+;; Compile-varaible moved to "Exercsie 5.42" above
+
 
 (define (compile-assignment exp ctenv target linkage)
   (let ((var (assignment-variable exp))
