@@ -69,13 +69,58 @@
 ;; =============
 
 (define (compile-variable exp ctenv target linkage)
-  (end-with-linkage linkage
-   (make-instruction-sequence '(env) (list target)
-    `((assign ,target
-              (op lookup-variable-value)
-              (const ,exp)
-              (reg env))))))
+  (let ((lex-addr (find-variable exp ctenv)))
+    (let ((lookup-code
+           (if (eq? lex-addr 'not-found)
+               ;; put global-env into target to preserve env
+               `((assign ,target
+                         (op get-global-environment))
+                 (assign ,target
+                         (op lookup-variable-value)
+                         (const ,exp)
+                         (reg ,target)))
+               `((assign ,target
+                         (op lookup-lex-addr)
+                         (const ,lex-addr)
+                         (reg env))))))
+      (end-with-linkage
+       linkage
+       (make-instruction-sequence
+        '(env) (list target)
+        lookup-code)))))
 
+(define (compile-assignment exp ctenv target linkage)
+  (display exp)
+  (let ((var (assignment-variable exp))
+        (get-value-code
+         (compile (assignment-value exp) ctenv 'val 'next)))
+    (let ((lex-addr (find-variable var ctenv)))
+      (let ((assignment-seq
+             (if (eq? lex-addr 'not-found)
+                 (make-instruction-sequence
+                  '(env val)
+                  (list 'env target)  ;; we're modifying env
+                  ;; target could be val so can't put global-env there
+                  `((assign env (op get-global-environment))
+                    (perform (op set-variable-value!)
+                             (const ,var)
+                             (reg val)
+                             (reg env))
+                    (assign ,target (const ok))))
+                 (make-instruction-sequence
+                  '(env val)
+                  (list target)
+                  `((perform (op set-lex-addr!)
+                             (const ,lex-addr)
+                             (reg val)
+                             (reg env))
+                    (assign ,target (const ok)))))))
+        (end-with-linkage
+         linkage
+         (preserving
+          '(env)
+          get-value-code
+          assignment-seq))))))
 
 ;; =========================================
 ;; Exercise 5.38 (open-code primitive apply)
@@ -248,22 +293,8 @@
     `((assign ,target (const ,(text-of-quotation exp)))))))
 ;; Compile-varaible moved to "Exercsie 5.42" above
 
+;; Compile-assignment moved to "Exercise 5.42" above
 
-(define (compile-assignment exp ctenv target linkage)
-  (let ((var (assignment-variable exp))
-        (get-value-code
-         (compile (assignment-value exp) ctenv 'val 'next)))
-    (end-with-linkage
-     linkage
-     (preserving '(env)
-                 get-value-code
-                 (make-instruction-sequence
-                  '(env val) (list target)
-                  `((perform (op set-variable-value!)
-                             (const ,var)
-                             (reg val)
-                             (reg env))
-                    (assign ,target (const ok))))))))
 (define (compile-definition exp ctenv target linkage)
   (let ((var (definition-variable exp))
         (get-value-code

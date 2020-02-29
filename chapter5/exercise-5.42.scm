@@ -31,23 +31,96 @@
 
 (#%require "compiler-39.scm")
 
-(define exp
+(define expression
   '(((lambda (x y)
        (lambda (a b c d e)
-         ((lambda (y z) 'expression-1)
+         ((lambda (y z)
+            'expression-1
+            (set! e (+ c x w)))
           'expression-2
-          (+ c d x))))
+          )))
      3
      4)))
 
+(println
+ "
+(define (compile-variable exp ctenv target linkage)
+  (let ((lex-addr (find-variable exp ctenv)))
+    (let ((lookup-code
+           (if (eq? lex-addr 'not-found)
+               ;; put global-env into target to preserve env
+               `((assign ,target
+                         (op get-global-environment))
+                 (assign ,target
+                         (op lookup-variable-value)
+                         (const ,exp)
+                         (reg ,target)))
+               `((assign ,target
+                         (op lookup-lex-addr)
+                         (const ,lex-addr)
+                         (reg env))))))
+      (end-with-linkage
+       linkage
+       (make-instruction-sequence
+        '(env) (list target)
+        lookup-code)))))
+
+(define (compile-assignment exp ctenv target linkage)
+  (display exp)
+  (let ((var (assignment-variable exp))
+        (get-value-code
+         (compile (assignment-value exp) ctenv 'val 'next)))
+    (let ((lex-addr (find-variable var ctenv)))
+      (let ((assignment-seq
+             (if (eq? lex-addr 'not-found)
+                 (make-instruction-sequence
+                  '(env val)
+                  (list 'env target)  ;; we're modifying env
+                  ;; target could be val so can't put global-env there
+                  `((assign env (op get-global-environment))
+                    (perform (op set-variable-value!)
+                             (const ,var)
+                             (reg val)
+                             (reg env))
+                    (assign ,target (const ok))))
+                 (make-instruction-sequence
+                  '(env val)
+                  (list target)
+                  `((perform (op set-lex-addr!)
+                             (const ,lex-addr)
+                             (reg val)
+                             (reg env))
+                    (assign ,target (const ok)))))))
+        (end-with-linkage
+         linkage
+         (preserving
+          '(env)
+          get-value-code
+          assignment-seq))))))
+
+Using the a variation on the suggested lambda:
+
+" expression "
+
+We (at least) get some of the statements we would expect:
+
+  (assign arg1 (op lookup-lex-addr) (const (1 2)) (reg env))
+  (assign arg2 (op lookup-lex-addr) (const (2 0)) (reg env))
+  (assign arg1 (op +) (reg arg1) (reg arg2))
+  (assign arg2 (op get-global-environment))
+  (assign arg2 (op lookup-variable-value) (const w) (reg arg2))
+  (assign val (op +) (reg arg1) (reg arg2))
+  (perform (op set-lex-addr!) (const (1 4)) (reg val) (reg env))
+
+Result of compilation:
+======================
+")
+
 (compile
- exp
+ expression
  empty-ctenv
  'val
  'next)
-
-
-
 
 (--end-- "5.42")
 
