@@ -10,8 +10,7 @@
 ;; Exercise 5.44
 ;; =============
 
-(define (primitive-procedure? exp ctenv)
-  (println exp)
+(define (primitive-name? exp ctenv)
   (and (pair? exp)
        (memq (car exp) primitive-procedure-names)
        (eq? 'not-found (find-variable (car exp) ctenv))))
@@ -192,12 +191,12 @@
   (compile-multi-arg-open '* (operands exp) ctenv target linkage '1))
 
 (define (compile-- exp ctenv target linkage)
-  (compile-2arg-open-code '- (operands exp )ctenv target linkage))
+  (compile-2arg-open-code '- (operands exp) ctenv target linkage))
 
 (define (compile-+ exp ctenv target linkage)
   (compile-multi-arg-open '+ (operands exp) ctenv target linkage '0))
 
-(define (compile-2arg-open-code operator ctenv operands target linkage)
+(define (compile-2arg-open-code operator operands ctenv target linkage)
   (end-with-linkage
    linkage
    (append-instruction-sequences
@@ -288,7 +287,7 @@
                            target
                            linkage))
         ((cond? exp) (compile (cond->if exp) ctenv target linkage))
-        ((primitive-procedure? exp ctenv)
+        ((primitive-name? exp ctenv)
          (compile-primitive-procedure exp ctenv target linkage))
         ((application? exp)
          (compile-application exp ctenv target linkage))
@@ -747,4 +746,5 @@
 
 (#%provide
  compile
- empty-ctenv)
+ empty-ctenv
+ statements)
