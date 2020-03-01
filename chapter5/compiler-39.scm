@@ -90,7 +90,6 @@
         lookup-code)))))
 
 (define (compile-assignment exp ctenv target linkage)
-  (display exp)
   (let ((var (assignment-variable exp))
         (get-value-code
          (compile (assignment-value exp) ctenv 'val 'next)))
@@ -121,6 +120,36 @@
           '(env)
           get-value-code
           assignment-seq))))))
+
+
+;; Exercise 5.43 - scan out definitions
+;; ====================================
+
+(define (make-call proc args) (cons proc args))
+
+(define (scan-out-defines exp)
+  (define (scan exp new-members vars)
+    (if (null? exp)
+        (cons new-members vars)
+        (let ((member (car exp)))
+          (if (definition? member)
+              (scan (cdr exp)
+                    (cons
+                     (list 'set!
+                           (definition-variable member)
+                           (definition-value member))
+                     new-members)
+                    (cons (definition-variable member) vars))
+              (scan (cdr exp)
+                    (cons member new-members)
+                    vars)))))
+  (let ((scan-rslt (scan exp '() '())))
+    (let ((new-body (reverse (car scan-rslt)))
+          (vars (reverse (cdr scan-rslt))))
+      (let ((vals (map (lambda (var) ''*unassigned*) vars)))
+        (if (null? vars)
+            exp
+            (make-call (make-lambda vars new-body) vals))))))
 
 ;; =========================================
 ;; Exercise 5.38 (open-code primitive apply)
@@ -367,19 +396,20 @@
        after-lambda))))
 
 (define (compile-lambda-body exp ctenv proc-entry)
-  (let* ((formals (lambda-parameters exp))
-         (ctenv (extend-ctenv ctenv formals)))
-    (append-instruction-sequences
-     (make-instruction-sequence
-      '(env proc argl) '(env)
-      `(,proc-entry
-        (assign env (op compiled-procedure-env) (reg proc))
-        (assign env
-                (op extend-environment)
-                (const ,formals)
-                (reg argl)
-                (reg env))))
-     (compile-sequence (lambda-body exp) ctenv 'val 'return))))
+  (let ((formals (lambda-parameters exp))
+        (body-exp (scan-out-defines (lambda-body exp))))
+    (let ((ctenv (extend-ctenv ctenv formals)))
+      (append-instruction-sequences
+       (make-instruction-sequence
+        '(env proc argl) '(env)
+        `(,proc-entry
+          (assign env (op compiled-procedure-env) (reg proc))
+          (assign env
+                  (op extend-environment)
+                  (const ,formals)
+                  (reg argl)
+                  (reg env))))
+       (compile-sequence body-exp ctenv 'val 'return)))))
 
 
 ;; 5.5.3  Compiling Combinations
