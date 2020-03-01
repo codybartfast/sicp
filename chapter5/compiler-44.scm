@@ -1,7 +1,21 @@
 #lang sicp
 
-;; Based on compiler-33.  Adds lexical-address-lookup, (Ex 5.39 - Ex 5.44).
-;; And re-adds open-code application of primitive procedures (Ex 5.38).
+;; Based on compiler-39 for ex 5.44.  Add correct handling of local use of
+;; 'primitive' symbols.
+
+(define (println . bits)
+  (map display bits)
+  (newline))
+
+;; Exercise 5.44
+;; =============
+
+(define (primitive-procedure? exp ctenv)
+  (println exp)
+  (and (pair? exp)
+       (memq (car exp) primitive-procedure-names)
+       (eq? 'not-found (find-variable (car exp) ctenv))))
+
 
 ;; Exercise 5.39
 ;; =============
@@ -200,11 +214,9 @@
    (cons '- compile--)
    (cons '+ compile-+)))
 
-(define primitive-procedure-names
-  (map car primitive-procedure-compilers))
-(define (primitive-procedure? exp)
-  (and (pair? exp)
-       (memq (car exp) primitive-procedure-names)))
+(define primitive-procedure-names  (map car primitive-procedure-compilers))
+
+;; primitive-procedure? moved to Exercise 5.44 abovce
 
 (define (lookup-primitive-compiler prim-proc)
   (lookup prim-proc primitive-procedure-compilers))
@@ -276,7 +288,7 @@
                            target
                            linkage))
         ((cond? exp) (compile (cond->if exp) ctenv target linkage))
-        ((primitive-procedure? exp)
+        ((primitive-procedure? exp ctenv)
          (compile-primitive-procedure exp ctenv target linkage))
         ((application? exp)
          (compile-application exp ctenv target linkage))
