@@ -1,5 +1,9 @@
 #lang sicp
 
+;(define (println . bits)
+;  (map display bits)
+;  (newline))
+
 ;; Based on ec-evaluator-30, for Ex 5.32, adds optimization for simple apply
 ;; where where procedure expression is a symbol.
 
@@ -252,7 +256,7 @@
    (primitive-implementation proc)
    (reverse args))) ;; <-- reverse arguments for eceval
 
-(define (the-global-environment) (setup-environment))
+(define the-global-environment (setup-environment))
 
 
 ;; Error handling for Ex 5.30
@@ -275,30 +279,13 @@
        (caddr error)))
 
 
-;; Compiler Stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Primitive Operation for Evaluator (Section 5.4)
+;; ===============================================
 
-;; footer 38
-
-(define (make-compiled-procedure entry env)
-  (list 'compiled-procedure entry env))
-
-(define (compiled-procedure? proc)
-  (tagged-list? proc 'compiled-procedure))
-
-(define (compiled-procedure-entry c-proc) (cadr c-proc))
-
-(define (compiled-procedure-env c-proc) (caddr c-proc))
-
-
-
-
-;; Primitive Operations
-;; ====================
-;;
 ;; Listed in the order that errors arose when trying to run the eceval
 ;; machine without any primitive operations.
 
-(define eceval-operations
+(define evaluator-operations
   (list
    (list 'self-evaluating? self-evaluating?)
    (list 'variable? symbol?)
@@ -363,9 +350,75 @@
    ; Ex 5.30
    (list 'eq? eq?)
    (list 'is-error? is-error?)
-   (list 'display-error display-error)
+   (list 'display-error display-error)))
+
+
+;; Primitive Operations to Support Compiled Code (Section 5.5)
+;; ===========================================================
+
+;; Footer 38 - Data Structures for Compiled Procedures
+
+(define (make-compiled-procedure entry env)
+  (list 'compiled-procedure entry env))
+
+(define (compiled-procedure? proc)
+  (tagged-list? proc 'compiled-procedure))
+
+(define (compiled-procedure-entry c-proc) (cadr c-proc))
+
+(define (compiled-procedure-env c-proc) (caddr c-proc))
+
+;; Exercise 5.39
+
+(define (skip lst n)
+  (if (= n 0)
+      lst
+      (skip (cdr lst) (- n 1))))
+
+;(define (frame-values frame) (cdr frame))
+
+(define (lex-frame-number addr) (car addr))
+(define (lex-displacement addr) (cadr addr))
+
+(define (lexical-address-lookup addr env)
+  (let ((frame (list-ref env (lex-frame-number addr))))
+    (let ((value (list-ref (frame-values frame) (lex-displacement addr))))
+      (if (= value '*unassigned*)
+          (error "Unassigned lex-address:" addr)
+          value))))
+
+(define (lexical-address-set! addr value env)
+  (let ((frame (list-ref env (lex-frame-number addr))))
+    (let ((value-head (skip (frame-values frame) (lex-displacement addr))))
+      (set-car! value-head value))))
+
+;; Compiled Code Operations List
+
+(define compiled-code-operations
+  (list   
    (list 'make-compiled-procedure make-compiled-procedure)
+   (list 'compiled-procedure? compiled-procedure?)
+   (list 'compiled-procedure-entry compiled-procedure-entry)
+   (list 'compiled-procedure-env compiled-procedure-env)
+   (list 'lexical-address-lookup lexical-address-lookup)
+   (list '= =)
+   (list '* *)
+   (list '- -)
+   (list '+ +) ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Use checked?
+   (list 'false? (lambda (exp) (eq? exp #false)))
+   (list 'get-global-environment (lambda () the-global-environment))
+   (list 'list list)
+   (list 'cons cons)
    ))
+
+;; Combined Primitive Operations
+;; =============================
+;;
+
+(define eceval-operations
+  (append evaluator-operations compiled-code-operations))
+
+
 
 
 ;; =========================================================================
@@ -492,9 +545,16 @@
   apply-dispatch
     (test (op primitive-procedure?) (reg proc))
     (branch (label primitive-apply))
-    (test (op compound-procedure?) (reg proc))
+    (test (op compound-procedure?) (reg proc))  
     (branch (label compound-apply))
+    (test (op compiled-procedure?) (reg proc))  
+    (branch (label compiled-apply))
     (goto (label unknown-procedure-type))
+
+  compiled-apply
+    (restore continue)
+    (assign val (op compiled-procedure-entry) (reg proc))
+    (goto (reg val))
 
   primitive-apply
     (assign val (op apply-primitive-procedure)

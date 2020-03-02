@@ -64,31 +64,34 @@
    explicit-control-evaluator))
 
 (define sts (statements (compile source empty-ctenv 'val 'return)))
-;sts
-(assemble sts eceval)
+(define insts (assemble sts eceval))
 
-;(define (compile-and-go source script)
-;  (let* ((eceval
-;          (make-machine
-;           eceval-operations
-;           explicit-control-evaluator))
-;         (instructions
-;          (assemble (statements
-;                     (compile source empty-ctenv 'val 'return))
-;                    eceval)))
-;    ;(set! the-global-environment (setup-environment))
-;    (set-register-contents! eceval 'val instructions)
-;    (set-register-contents! eceval 'exp script)
-;    (set-register-contents! eceval 'flag true)
-;    (start eceval)))
-;
-;(compile-and-go
-; '(define (factorial n)
-;    (if (= n 1)
-;        1
-;        (* (factorial (- n 1)) n)))
-; '(factorial 5))
-;
+
+
+(define (compile-and-go source script)
+  (let* ((eceval
+          (make-machine
+           eceval-operations
+           explicit-control-evaluator))
+         (instructions
+          (assemble-instructions
+           (assemble (statements
+                      (compile source empty-ctenv 'val 'return))
+                     eceval))))
+    ;(set! the-global-environment (setup-environment))
+    (set-register-contents! eceval 'val instructions)
+    (set-register-contents! eceval 'exp script)
+    (set-register-contents! eceval 'flag true)
+    (trace-on! eceval println)
+    (set-breakpoint eceval 'after-lambda11 1)
+    (start eceval)))
+(compile-and-go
+ '(define (factorial n)
+    (if (= n 1)
+        1
+        (* (factorial (- n 1)) n)))
+ '(factorial 5))
+
 
 ;(define (run prog)
 ;  (define (printReg reg before after)

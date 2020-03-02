@@ -8,6 +8,9 @@
 ;;
 ;; <snip>
 
+(define (println . bits)
+  (map display bits)
+  (newline))
 
 ;; 5.2.1 the Machine Model
 ;; =======================
@@ -472,6 +475,7 @@
   (cdr operation-exp))
 
 (define (lookup-prim symbol operations)
+  ;(println symbol)
   (let ((val (assoc symbol operations)))
     (if val
         (cadr val)
@@ -708,4 +712,6 @@
  cancel-all-breakpoints
  proceed-machine
  assemble
+ assemble-instructions
+ assemble-breakpoint-controller
  start)
