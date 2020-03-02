@@ -3,9 +3,9 @@
 ;; Based on compiler-39 for ex 5.44.  Add correct handling of local use of
 ;; 'primitive' symbols.
 
-(define (println . bits)
-  (map display bits)
-  (newline))
+;(define (println . bits)
+;  (map display bits)
+;  (newline))
 
 ;; Exercise 5.44
 ;; =============
@@ -191,12 +191,12 @@
   (compile-multi-arg-open '* (operands exp) ctenv target linkage '1))
 
 (define (compile-- exp ctenv target linkage)
-  (compile-2arg-open-code '- (operands exp )ctenv target linkage))
+  (compile-2arg-open-code '- (operands exp) ctenv target linkage))
 
 (define (compile-+ exp ctenv target linkage)
   (compile-multi-arg-open '+ (operands exp) ctenv target linkage '0))
 
-(define (compile-2arg-open-code operator ctenv operands target linkage)
+(define (compile-2arg-open-code operator operands ctenv target linkage)
   (end-with-linkage
    linkage
    (append-instruction-sequences
@@ -208,12 +208,13 @@
 
 (define primitive-procedure-compilers
   (list
+   '*table*
    (cons '= compile-=)
    (cons '* compile-*)
    (cons '- compile--)
    (cons '+ compile-+)))
 
-(define primitive-procedure-names  (map car primitive-procedure-compilers))
+(define primitive-procedure-names  (map car (cdr primitive-procedure-compilers)))
 
 ;; primitive-procedure? moved to Exercise 5.44 abovce
 
@@ -710,17 +711,6 @@
   (string->symbol
    (string-append (symbol->string name)
                   (number->string (new-label-number)))))
-;; footer 38
-
-(define (make-compiled-procedure entry env)
-  (list 'compiled-procedure entry env))
-
-(define (compiled-procedure? proc)
-  (tagged-list? proc 'compiled-procedure))
-
-(define (compiled-procedure-entry c-proc) (cadr c-proc))
-
-(define (compiled-procedure-env c-proc) (caddr c-proc))
 
 ;; footer 41
 

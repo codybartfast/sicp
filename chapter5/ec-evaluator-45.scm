@@ -275,6 +275,23 @@
        (caddr error)))
 
 
+;; Compiler Stuff ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; footer 38
+
+(define (make-compiled-procedure entry env)
+  (list 'compiled-procedure entry env))
+
+(define (compiled-procedure? proc)
+  (tagged-list? proc 'compiled-procedure))
+
+(define (compiled-procedure-entry c-proc) (cadr c-proc))
+
+(define (compiled-procedure-env c-proc) (caddr c-proc))
+
+
+
+
 ;; Primitive Operations
 ;; ====================
 ;;
@@ -347,6 +364,7 @@
    (list 'eq? eq?)
    (list 'is-error? is-error?)
    (list 'display-error display-error)
+   (list 'make-compiled-procedure make-compiled-procedure)
    ))
 
 
@@ -361,7 +379,13 @@
 (define explicit-control-evaluator
   '(
     (assign continue (label eceval-done))
+    (branch (label external-entry))
     (goto (label ev-begin))
+
+  external-entry
+    ;(perform (op initialize-stack))
+    ;(assign env (op get-global-environment))
+    (goto (reg val))
 
     ;; 5.4.1 The Core of the Evaluator
     ;; ===============================

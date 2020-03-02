@@ -48,7 +48,68 @@
 
 (-start- "5.45")
 
+(#%require "machine-45.scm")
+(#%require "compiler-45.scm")
+(#%require "ec-evaluator-45.scm")
 
+(define source
+  '(define (factorial n)
+    (if (= n 1)
+        1
+        (* (factorial (- n 1)) n))))
 
+(define eceval
+  (make-machine
+   eceval-operations
+   explicit-control-evaluator))
+
+(define sts (statements (compile source empty-ctenv 'val 'return)))
+;sts
+(assemble sts eceval)
+
+;(define (compile-and-go source script)
+;  (let* ((eceval
+;          (make-machine
+;           eceval-operations
+;           explicit-control-evaluator))
+;         (instructions
+;          (assemble (statements
+;                     (compile source empty-ctenv 'val 'return))
+;                    eceval)))
+;    ;(set! the-global-environment (setup-environment))
+;    (set-register-contents! eceval 'val instructions)
+;    (set-register-contents! eceval 'exp script)
+;    (set-register-contents! eceval 'flag true)
+;    (start eceval)))
+;
+;(compile-and-go
+; '(define (factorial n)
+;    (if (= n 1)
+;        1
+;        (* (factorial (- n 1)) n)))
+; '(factorial 5))
+;
+
+;(define (run prog)
+;  (define (printReg reg before after)
+;    (println "--reg--: " reg ": " before " --> " after))
+;  (let ((eceval
+;         (make-machine
+;          eceval-operations
+;          explicit-control-evaluator)))
+;
+;    (set-register-contents! eceval 'exp prog)
+;    (set-register-contents! eceval 'env (the-global-environment))
+;    (set-register-contents! eceval 'flag #f)
+;    ;(trace-on! eceval println)
+;    (ignore (start eceval))))
+;
+;(define prog1
+;  '(begin
+;     (* 3 ((lambda (a b) (+ a b)) 1 3))
+;     ))
+;
+;(run prog1)
+;
 (--end-- "5.45")
 

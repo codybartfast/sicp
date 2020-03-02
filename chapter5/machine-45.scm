@@ -457,7 +457,7 @@
   (let ((op (lookup-prim (operation-exp-op exp) operations))
         (aprocs
          (map (lambda (e)
-                (if (or (register-exp? e) (constant-exp? e))
+                (if (or (register-exp? e) (constant-exp? e) (label-exp? e))
                     (make-primitive-exp e machine labels)
                     (error "Invalid Argument for operation -- ASSEMBLE" e)))
               (operation-exp-operands exp))))
