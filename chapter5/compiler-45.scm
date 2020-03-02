@@ -3,10 +3,6 @@
 ;; Based on compiler-39 for ex 5.44.  Add correct handling of local use of
 ;; 'primitive' symbols.
 
-;(define (println . bits)
-;  (map display bits)
-;  (newline))
-
 ;; Exercise 5.44
 ;; =============
 
@@ -714,7 +710,7 @@
 
 ;; footer 41
 
-(define all-regs '(env proc val argl continue))
+(define all-regs '(env proc val argl arg1 arg2 continue))
 
 
 ;; Old Friends

@@ -58,39 +58,56 @@
         1
         (* (factorial (- n 1)) n))))
 
+(define commands
+  '(factorial 5))
+  ;'(+ 2 2))
+
 (define eceval
   (make-machine
    eceval-operations
    explicit-control-evaluator))
 
 (define sts (statements (compile source empty-ctenv 'val 'return)))
-(define insts (assemble sts eceval))
+(define insts (assemble-instructions (assemble sts eceval)))
+
+;(set-register-contents! eceval 'env the-global-environment)
+(set-register-contents! eceval 'val insts)
+(set-register-contents! eceval 'exp commands)
+(set-register-contents! eceval 'flag true)
+
+;(trace-on! eceval println)
+;(reg-trace-on! eceval 'env (lambda (reg before after)
+;                             (println "")
+;                             (println reg )
+;                             (println before)
+;                             (println "----")
+;                             (println after)))
+;(set-breakpoint eceval 'after-lambda2 1)
+(start eceval)
+
+;(println (get-register-contents eceval 'flag))
 
 
-
-(define (compile-and-go source script)
-  (let* ((eceval
-          (make-machine
-           eceval-operations
-           explicit-control-evaluator))
-         (instructions
-          (assemble-instructions
-           (assemble (statements
-                      (compile source empty-ctenv 'val 'return))
-                     eceval))))
-    ;(set! the-global-environment (setup-environment))
-    (set-register-contents! eceval 'val instructions)
-    (set-register-contents! eceval 'exp script)
-    (set-register-contents! eceval 'flag true)
-    (trace-on! eceval println)
-    (set-breakpoint eceval 'after-lambda11 1)
-    (start eceval)))
-(compile-and-go
- '(define (factorial n)
-    (if (= n 1)
-        1
-        (* (factorial (- n 1)) n)))
- '(factorial 5))
+;(define (compile-and-go source script)
+;  (let* ((eceval
+;          (make-machine
+;           eceval-operations
+;           explicit-control-evaluator))
+;         (instructions
+;          (assemble-instructions
+;           (assemble (statements
+;                      (compile source empty-ctenv 'val 'return))
+;                     eceval))))
+;    ;(set! the-global-environment (setup-environment))
+;    (set-register-contents! eceval 'val instructions)
+;    (set-register-contents! eceval 'exp script)
+;    (set-register-contents! eceval 'flag true)
+;    (trace-on! eceval println)
+;    ;(set-breakpoint eceval 'external-entry 1)
+;    (start eceval)))
+;(compile-and-go
+; source
+; '(factorial 5))
 
 
 ;(define (run prog)

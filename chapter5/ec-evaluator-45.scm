@@ -1,9 +1,5 @@
 #lang sicp
 
-;(define (println . bits)
-;  (map display bits)
-;  (newline))
-
 ;; Based on ec-evaluator-30, for Ex 5.32, adds optimization for simple apply
 ;; where where procedure expression is a symbol.
 
@@ -294,7 +290,7 @@
    (list 'definition? definition?)
    (list 'if? (lambda (exp) (tagged-list? exp 'if)))
    (list 'lambda? (lambda (exp) (tagged-list? exp 'lambda)))
-   (list 'begin? (lambda (exp) (tagged-list? exp 'begin?)))
+   (list 'begin? (lambda (exp) (tagged-list? exp 'begin)))
    (list 'application? pair?)
    (list 'lookup-variable-value lookup-variable-value)
    (list 'text-of-quotation cadr)
@@ -381,9 +377,11 @@
 (define (lex-displacement addr) (cadr addr))
 
 (define (lexical-address-lookup addr env)
+;  (println addr)
+;  (println env)
   (let ((frame (list-ref env (lex-frame-number addr))))
     (let ((value (list-ref (frame-values frame) (lex-displacement addr))))
-      (if (= value '*unassigned*)
+      (if (eq? value '*unassigned*)
           (error "Unassigned lex-address:" addr)
           value))))
 
@@ -404,21 +402,18 @@
    (list '= =)
    (list '* *)
    (list '- -)
-   (list '+ +) ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Use checked?
+   (list '+ +)
    (list 'false? (lambda (exp) (eq? exp #false)))
    (list 'get-global-environment (lambda () the-global-environment))
    (list 'list list)
-   (list 'cons cons)
-   ))
+   (list 'cons cons)))
 
 ;; Combined Primitive Operations
 ;; =============================
-;;
+
 
 (define eceval-operations
   (append evaluator-operations compiled-code-operations))
-
-
 
 
 ;; =========================================================================
@@ -431,14 +426,19 @@
 
 (define explicit-control-evaluator
   '(
-    (assign continue (label eceval-done))
+    ;(perform (op initialize-stack))
+    (assign env (op get-global-environment))
     (branch (label external-entry))
+    (assign continue (label eceval-done))
     (goto (label ev-begin))
 
   external-entry
-    ;(perform (op initialize-stack))
-    ;(assign env (op get-global-environment))
+    (assign continue (label external-commands))
     (goto (reg val))
+
+  external-commands
+    (assign continue (label eceval-done))
+    (goto (label eval-dispatch))
 
     ;; 5.4.1 The Core of the Evaluator
     ;; ===============================
