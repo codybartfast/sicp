@@ -1,7 +1,6 @@
 #lang sicp
 
-;; Based on ec-evaluator-30, for Ex 5.32, adds optimization for simple apply
-;; where where procedure expression is a symbol.
+;; Based on ec-evaluator-32, for Ex 5.45.  Add support for compiled code.
 
 ;; =========================================================================
 ;; Primitive Operations

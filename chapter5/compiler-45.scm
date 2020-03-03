@@ -1,7 +1,7 @@
 #lang sicp
 
-;; Based on compiler-39 for ex 5.44.  Add correct handling of local use of
-;; 'primitive' symbols.
+;; Based on compiler-44 for ex 5.45.  Fixes and mods to get it working with
+;; the ec-evaluator.
 
 ;; Exercise 5.44
 ;; =============
@@ -436,21 +436,22 @@
                             (compile-procedure-call target linkage)))))
 
 (define (construct-arglist operand-codes)
-  (let ((operand-codes (reverse operand-codes)))
-    (if (null? operand-codes)
-        (make-instruction-sequence
-         '() '(argl) '((assign argl (const ()))))
-        (let ((code-to-get-last-arg
-               (append-instruction-sequences
-                (car operand-codes)
-                (make-instruction-sequence
-                 '(val) '(argl) '((assign argl (op list) (reg val)))))))
-          (if (null? (cdr operand-codes))
-              code-to-get-last-arg
-              (preserving '(env)
-                          code-to-get-last-arg
-                          (code-to-get-rest-args
-                           (cdr operand-codes))))))))
+  ;; Removed reversal of operand-codes.
+  ;; Argl now in reverse order the same as the evaluator's argl
+  (if (null? operand-codes)
+      (make-instruction-sequence
+       '() '(argl) '((assign argl (const ()))))
+      (let ((code-to-get-last-arg
+             (append-instruction-sequences
+              (car operand-codes)
+              (make-instruction-sequence
+               '(val) '(argl) '((assign argl (op list) (reg val)))))))
+        (if (null? (cdr operand-codes))
+            code-to-get-last-arg
+            (preserving '(env)
+                        code-to-get-last-arg
+                        (code-to-get-rest-args
+                         (cdr operand-codes)))))))
 
 (define (code-to-get-rest-args operand-codes)
   (let ((code-for-next-arg

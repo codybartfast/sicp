@@ -58,6 +58,8 @@ Part A
 ├─────────────────────┼──────────────────┼──────────────────┤
 │  Recursive Compiled │      2n +  1     │      2n +  -2    │
 ├─────────────────────┼──────────────────┼──────────────────┤
+│  Iterative Compiled │      0n +  5     │      2n +  11    │
+├─────────────────────┼──────────────────┼──────────────────┤
 │   Recursive Machine │      2n + -2     │      2n +  -2    │
 ├─────────────────────┼──────────────────┼──────────────────┤
 │ Recursive Evaluator │      5n +  3     │     32n + -10    │
@@ -77,18 +79,35 @@ tailored version.  Presumeably because the compiler implements the
 optimizations from this section such as open-code application of primitives.
 
 
-Demo:
-=====")
+Demo - Recursive:
+=================")
 
 (#%require "machine-45.scm")
 (#%require "compiler-45.scm")
 (#%require "ec-evaluator-45.scm")
 
-(define source
+(define source-rec
   '(define (factorial n)
      (if (= n 1)
          1
          (* (factorial (- n 1)) n))))
+
+(define (factorial-rec n)
+  (let ((commands `(factorial ,n)))
+    (compile-and-go source-rec commands)))
+
+(define source-itr
+  '(define (factorial n count product)
+     (if (> count n)
+         product
+         (factorial n (+ count 1) (* product count)))))
+
+(define (factorial-itr n)
+  (let ((commands `(factorial ,n 1 1)))
+    (compile-and-go source-itr commands)))
+
+(define (print-reg reg before after)
+  (println "REG: " reg "  " before " ---> " after))
 
 (define (compile-and-go source commands)
   (let* ((eceval
@@ -104,21 +123,28 @@ Demo:
     (set-register-contents! eceval 'exp commands)
     (set-register-contents! eceval 'flag true)
     ;(trace-on! eceval println)
+    ;(reg-trace-on! eceval 'argl print-reg)
     ;(set-breakpoint eceval 'external-entry 1)
     (start eceval)
     (println (stack-stats eceval))))
-
-(define (factorial n)
-  (let ((commands `(factorial ,n)))
-    (compile-and-go source commands)))
 
 (ignore
  (map (lambda (n)
         (println "")
         (println n)
-        (factorial n))
+        (factorial-rec n))
       '(1 2 3 4 5 10 11)))
 
-(println "")
+(println "
+
+Demo - Iterative:
+=================")
+
+(ignore
+ (map (lambda (n)
+        (println "")
+        (println n)
+        (factorial-itr n))
+      '(1 2 3 4 5 10 11)))
 
 (--end-- "5.45")
