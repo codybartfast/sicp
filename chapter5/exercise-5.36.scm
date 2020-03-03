@@ -58,14 +58,14 @@ to-get-first-arg:
 If we make this change then argl will contain aguments in the reverse order
 to their declaration.  We can either:
 
-  1) reverse this list which will certainly be less efficient, or
+  1) reverse this list which will certainly be less efficient, and require
+     new or updated extend-environment and apply-primitive-procedure as they
+     these expecte argl in 'reverse' order.
 
-  2) update primitive-apply and extend-environment to handle the 'reversed'
-     argl.  This may not have any overhead.  E.g. the formal arguments list
-     provided to extend-environmet could be reversed by the compiler, and I
-     don't see any inherent reason why primitive operations should be less
-     efficient because they take operands in the reverse order to source
-     code.
+  2) Do nothing.  Argl is only used by extend-environment and apply-
+     primitive-procedure.  These already expect arguments in 'reverse' order
+     because this is how they are provided by evaluator.  This would have no
+     effect on the efficiency of constructing argl.
 
 Reversing the order of arguments in the expression from the previous
 question, and then having arguments evaluated left to right, results in the
