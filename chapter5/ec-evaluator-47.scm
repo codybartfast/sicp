@@ -429,6 +429,7 @@
   '(
     ;(perform (op initialize-stack))
     (assign env (op get-global-environment))
+    (assign compapp (label compound-apply))
     (branch (label external-entry))
     (assign continue (label eceval-done))
     (goto (label ev-begin))

@@ -712,7 +712,7 @@
 
 ;; footer 41
 
-(define all-regs '(env proc val argl arg1 arg2 continue))
+(define all-regs '(env proc val argl arg1 arg2 continue compapp))
 
 
 ;; Old Friends
