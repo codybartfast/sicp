@@ -118,7 +118,7 @@
                  (make-instruction-sequence
                   '(env val)
                   (list target)
-                  `((perform (op set-lex-addr!)
+                  `((perform (op lexical-address-set!)
                              (const ,lex-addr)
                              (reg val)
                              (reg env))
@@ -210,7 +210,8 @@
    (cons '- compile--)
    (cons '+ compile-+)))
 
-(define primitive-procedure-names  (map car (cdr primitive-procedure-compilers)))
+(define primitive-procedure-names
+  (map car (cdr primitive-procedure-compilers)))
 
 ;; primitive-procedure? moved to Exercise 5.44 abovce
 
