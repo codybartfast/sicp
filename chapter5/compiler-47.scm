@@ -1,7 +1,7 @@
 #lang sicp
 
-;; Based on compiler-44 for ex 5.45.  Fixes and mods to get it working with
-;; the ec-evaluator.
+;; Based on compiler-45 for ex 5.47.  Addd support for compiled code to call
+;; interpreted (compound) proceduress.
 
 ;; Exercise 5.44
 ;; =============

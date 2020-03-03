@@ -36,6 +36,46 @@
 
 (-start- "5.47")
 
+(#%require "machine-45.scm")
+(#%require "compiler-45.scm")
+(#%require "ec-evaluator-45.scm")
+
+(define source
+  '(define (selfie op val)
+     (op val val)))
+
+(define (selfie n)
+  (let ((commands
+         `(begin
+            (define operation *)
+            (define (operation a b) (* a b))
+            (operation ,n ,n)
+            (selfie operation ,n)
+            )))
+    (compile-and-go source commands)))
+
+(define (print-reg reg before after)
+  (println "REG: " reg "  " before " ---> " after))
+
+(define (compile-and-go source commands)
+  (let* ((eceval
+          (make-machine
+           eceval-operations
+           explicit-control-evaluator))
+         (instructions
+          (assemble-instructions
+           (assemble (statements
+                      (compile source empty-ctenv 'val 'return))
+                     eceval))))
+    (set-register-contents! eceval 'val instructions)
+    (set-register-contents! eceval 'exp commands)
+    (set-register-contents! eceval 'flag true)
+    ;(trace-on! eceval println)
+    ;(reg-trace-on! eceval 'argl print-reg)
+    ;(set-breakpoint eceval 'external-entry 1)
+    (start eceval)))
+
+(selfie 3)
 
 
 (--end-- "5.47")

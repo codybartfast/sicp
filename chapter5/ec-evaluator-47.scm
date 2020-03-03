@@ -1,6 +1,7 @@
 #lang sicp
 
-;; Based on ec-evaluator-32, for Ex 5.45.  Add support for compiled code.
+;; Based on ec-evaluator-45, for Ex 5.47.  Addd support for compiled code to
+;; call interpreted (compound) proceduress.
 
 ;; =========================================================================
 ;; Primitive Operations
