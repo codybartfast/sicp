@@ -37,18 +37,19 @@
 (-start- "5.47")
 
 (#%require "machine-45.scm")
-(#%require "compiler-45.scm")
-(#%require "ec-evaluator-45.scm")
+(#%require "compiler-47.scm")
+(#%require "ec-evaluator-47.scm")
 
 (define source
   '(define (selfie op val)
-     (op val val)))
+     (op (op val val) (op val val))))
 
 (define (selfie n)
   (let ((commands
          `(begin
-            (define operation *)
-            (define (operation a b) (* a b))
+;            (define operation *)
+            (define (operation a b)
+              (* a b))
             (operation ,n ,n)
             (selfie operation ,n)
             )))
