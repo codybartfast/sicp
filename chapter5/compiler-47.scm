@@ -513,13 +513,12 @@
                       (branch (label ,compound-branch))
                       ))
        (parallel-instruction-sequences
-        (parallel-instruction-sequences
-         (append-instruction-sequences
-          compiled-branch
-          (compile-compiled-proc-appl target compiled-linkage))
-         (append-instruction-sequences
-          compound-branch
-          (compile-compound-proc-appl target compiled-linkage)))
+        (append-instruction-sequences
+         compiled-branch
+         (compile-compiled-proc-appl target compiled-linkage))
+        (append-instruction-sequences
+         compound-branch
+         (compile-compound-proc-appl target compiled-linkage))
         (append-instruction-sequences
          primitive-branch
          (end-with-linkage linkage
@@ -530,7 +529,7 @@
                                       (op apply-primitive-procedure)
                                       (reg proc)
                                       (reg argl)))))))
-        after-call))))
+       after-call))))
 
 ;; Applying compiled procedures
 
@@ -629,13 +628,20 @@
    (registers-modified seq)
    (append (statements seq) (statements body-seq))))
 
-(define (parallel-instruction-sequences seq1 seq2)
-  (make-instruction-sequence
-   (list-union (registers-needed seq1)
-               (registers-needed seq2))
-   (list-union (registers-modified seq1)
-               (registers-modified seq2))
-   (append (statements seq1) (statements seq2))))
+(define (parallel-instruction-sequences . seqs)
+  (define (parallelize-2-seqs seq1 seq2)
+    (make-instruction-sequence
+     (list-union (registers-needed seq1)
+                 (registers-needed seq2))
+     (list-union (registers-modified seq1)
+                 (registers-modified seq2))
+     (append (statements seq1) (statements seq2))))
+  (define (parallelize seqs)
+    (if (null? seqs)
+        (empty-instruction-sequence)
+        (parallelize-2-seqs (car seqs)
+                            (parallelize (cdr seqs)))))
+  (parallelize seqs))
 
 
 ;; 4.1.2  Representing Expressions
