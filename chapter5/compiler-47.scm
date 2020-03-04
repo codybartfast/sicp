@@ -7,50 +7,33 @@
 ;; Exercise 5.47
 ;; =============
 
-(define (compile-compound-proc-appl target linkage)
+(define (compile-compound-appl target linkage)
   (cond ((and (eq? target 'val) (not (eq? linkage 'return)))
          (make-instruction-sequence
           '(proc) all-regs
           `((assign continue (label ,linkage))
-
-;            (assign val (op compiled-procedure-entry)
-;                    (reg proc))
-;            (goto (reg val))
-            (save continue)
-            (goto (reg compapp))
-
-          )))
+            (save continue)               ;
+            (goto (reg compapp)))))       ;
         ((and (not (eq? target 'val))
               (not (eq? linkage 'return)))
          (let ((proc-return (make-label 'proc-return)))
            (make-instruction-sequence
             '(proc) all-regs
             `((assign continue (label ,proc-return))
-
-;              (assign val (op compiled-procedure-entry)
-;                      (reg proc))
-;              (goto (reg val))
-              (save continue)
-              (goto (reg compapp))
-
+              (save continue)             ;
+              (goto (reg compapp))        ;
               ,proc-return
               (assign ,target (reg val))
               (goto (label ,linkage))))))
         ((and (eq? target 'val) (eq? linkage 'return))
          (make-instruction-sequence
           '(proc continue) all-regs
-          '(
-
-;            (assign val (op compiled-procedure-entry)
-;                    (reg proc))
-;            (goto (reg val))
-            (save continue)
-            (goto (reg compapp))
-
-            )))
+          '((save continue)               ;
+            (goto (reg compapp)))))       ;
         ((and (not (eq? target 'val)) (eq? linkage 'return))
          (error "return linkage, target not val -- COMPILE"
                 target))))
+
 
 ;; Exercise 5.44
 ;; =============
@@ -510,30 +493,29 @@
         '(proc) '() `((test (op primitive-procedure?) (reg proc))
                       (branch (label ,primitive-branch))
                       (test (op compound-procedure?) (reg proc))
-                      (branch (label ,compound-branch))
-                      ))
+                      (branch (label ,compound-branch))))
        (parallel-instruction-sequences
         (append-instruction-sequences
          compiled-branch
-         (compile-compiled-proc-appl target compiled-linkage))
+         (compile-proc-appl target compiled-linkage))
         (append-instruction-sequences
          compound-branch
-         (compile-compound-proc-appl target compiled-linkage))
+         (compile-compound-appl target compiled-linkage))
         (append-instruction-sequences
          primitive-branch
-         (end-with-linkage linkage
-                           (make-instruction-sequence
-                            '(proc argl)
-                            (list target)
-                            `((assign ,target
-                                      (op apply-primitive-procedure)
-                                      (reg proc)
-                                      (reg argl)))))))
+         (end-with-linkage
+          linkage
+          (make-instruction-sequence
+           '(proc argl) (list target)
+           `((assign ,target
+                     (op apply-primitive-procedure)
+                     (reg proc)
+                     (reg argl)))))))
        after-call))))
 
 ;; Applying compiled procedures
 
-(define (compile-compiled-proc-appl target linkage)
+(define (compile-proc-appl target linkage)
   (cond ((and (eq? target 'val) (not (eq? linkage 'return)))
          (make-instruction-sequence
           '(proc) all-regs
@@ -562,6 +544,7 @@
         ((and (not (eq? target 'val)) (eq? linkage 'return))
          (error "return linkage, target not val -- COMPILE"
                 target))))
+
 
 ;; 5.5.4  Combining Instruction Sequences
 ;; ======================================
