@@ -350,9 +350,10 @@
    (list 'is-error? is-error?)
    (list 'display-error display-error)
    ; Ex 5.48
-   (list 'compile-and-go? (lambda (exp) (tagged-list? exp 'compile-and-go)))
-   (list 'compile-and-go compile-and-go)
-   (list 'cag-expression cadr)
+   (list 'compile-and-run?
+         (lambda (exp) (tagged-list? exp 'compile-and-run)))
+   (list 'statements-with-return statements-with-return)
+   (list 'compile-and-run-exp cadr)
    ))
 
 
@@ -471,10 +472,10 @@
     (branch (label ev-lambda))
     (test (op begin?) (reg exp))
     (branch (label ev-begin))
-    (test (op compile-and-go?) (reg exp))
-    (branch (label compile-and-go))
+    (test (op compile-and-run?) (reg exp))
+    (branch (label compile-and-run))
     (test (op application?) (reg exp))
-    (branch (label ev-begin))
+    (branch (label ev-application))
     (goto (label unknown-expression-type))
 
     ;; Evaluating Simple Expressions
@@ -762,14 +763,11 @@
 ;; Ex 5.48
 ;; =======
 
-  compile-and-go
-    (perform (op displayln) (const 'top))
-    (assign exp (op cag-expression) (reg exp))
-    ;(assign val (reg exp))
-    (perform (op displayln) (reg exp))
-    (assign val (op compile-and-go) (reg exp))
+  compile-and-run
+    (assign exp (op compile-and-run-exp) (reg exp))
+    (assign val (op statements-with-return) (reg exp))
     (assemble-val)
-    (goto (reg continue))
+    (goto (reg val))
 
 
 ;; The End =================================================================

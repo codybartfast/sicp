@@ -1,12 +1,12 @@
 #lang sicp
 
-;; Based on compiler-47 for ex 5.48.  Add support for compile-and-go
+;; Based on compiler-47 for ex 5.48.  Add support for compile-and-run
 
 
 ;; Exercise 5.48
 ;; =============
 
-(define (compile-and-go exp)
+(define (statements-with-return exp)
   (statements
     (compile exp empty-ctenv 'val 'return)))
 
@@ -769,4 +769,4 @@
  compile
  empty-ctenv
  statements
- compile-and-go)
+ statements-with-return)

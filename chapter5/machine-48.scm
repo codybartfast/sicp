@@ -3,9 +3,6 @@
 ;; Based on machine-19, for Ex 5.48, add assemble as a "register-machine"
 ;; operation.
 
-(define (println . bits)
-  (map display bits)
-  (newline))
 
 ;; 5.2.1 the Machine Model
 ;; =======================
@@ -324,6 +321,8 @@
          (make-restore inst machine stack pc))
         ((eq? (car inst) 'perform)
          (make-perform inst machine labels ops pc))
+        ((eq? (car inst) 'assemble-val)
+         (make-assemble-val inst machine labels ops pc))
         (else (error "Unknown instruction type -- ASSEMBLE"
                      inst))))
 
@@ -425,6 +424,17 @@
             (advance-pc pc)))
         (error "Bad PERFORM instruction -- ASSEMBLE" inst))))
 (define (perform-action inst) (cdr inst))
+
+;; Ex 5.48
+
+(define (make-assemble-val inst machine labels operations pc)
+  (lambda ()
+    (let* ((statements (get-register-contents machine 'val))
+           (instructions
+            (assemble-instructions
+             (assemble statements machine))))
+      (set-register-contents! machine 'val instructions)
+      (advance-pc pc))))
 
 ;; Execution Procedures for Subexpressions
 
