@@ -31,7 +31,50 @@
 
 (-start- "5.48")
 
+(define source
+  '(begin
+     'hello
+    )
+  )
 
+(define commands
+  '(begin
+     (compile-and-go
+      (define (factorial n)
+        (if (= n 1)
+            1
+            (* (factorial (- n 1)) n))))
+     ;(factorial 5)
+     ))
+
+(#%require "machine-48.scm")
+(#%require "compiler-48.scm")
+(#%require "ec-evaluator-48.scm")
+
+(define (print-reg reg before after)
+  (println "REG: " reg "  " before " ---> " after))
+
+(define (compile-and-go)
+  (let* ((eceval
+          (make-machine
+           eceval-operations
+           explicit-control-evaluator))
+         (instructions
+          (assemble-instructions
+           (assemble (statements
+                      (compile source empty-ctenv 'val 'return))
+                     eceval))))
+    (set-register-contents! eceval 'val instructions)
+    (set-register-contents! eceval 'exp commands)
+    ;(set-register-contents! eceval 'flag true)
+    ;(trace-on! eceval println)
+    ;(reg-trace-on! eceval 'exp print-reg)
+    ;(set-breakpoint eceval 'external-entry 1)
+    (start eceval)
+    ))
+
+(ignore (compile-and-go))
+;(compile-and-go '(define (factorial n) (if (= n 1) 1 (* (factorial (- n 1)) n))))
 
 (--end-- "5.48")
 

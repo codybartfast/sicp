@@ -1,10 +1,17 @@
 #lang sicp
 
-;; Based on compiler-45 for ex 5.47.  Addd support for compiled code to call
-;; interpreted (compound) proceduress.
+;; Based on compiler-47 for ex 5.48.  Add support for compile-and-go
 
 
-;; Exercise 5.47
+;; Exercise 5.48
+;; =============
+
+(define (compile-and-go exp)
+  (statements
+    (compile exp empty-ctenv 'val 'return)))
+
+
+; Exercise 5.47
 ;; =============
 
 (define (compile-compound-appl target linkage)
@@ -761,4 +768,5 @@
 (#%provide
  compile
  empty-ctenv
- statements)
+ statements
+ compile-and-go)

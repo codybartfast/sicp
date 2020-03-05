@@ -1,7 +1,9 @@
 #lang sicp
 
-;; Based on ec-evaluator-45, for Ex 5.47.  Addd support for compiled code to
-;; call interpreted (compound) proceduress.
+(#%require "compiler-48.scm")
+
+;; Based on ec-evaluator-47, for Ex 5.48.  Add support for compile-and-go
+
 
 ;; =========================================================================
 ;; Primitive Operations
@@ -237,8 +239,8 @@
         (list '< checked-<)
         (list '> checked->)
         (list '= checked-=)
-        (list 'eq? checked-eq?)
-        ))
+        (list 'eq? checked-eq?)))
+        
 (define (primitive-procedure-names)
   (map car
        primitive-procedures))
@@ -346,7 +348,12 @@
    ; Ex 5.30
    (list 'eq? eq?)
    (list 'is-error? is-error?)
-   (list 'display-error display-error)))
+   (list 'display-error display-error)
+   ; Ex 5.48
+   (list 'compile-and-go? (lambda (exp) (tagged-list? exp 'compile-and-go)))
+   (list 'compile-and-go compile-and-go)
+   (list 'cag-expression cadr)
+   ))
 
 
 ;; Primitive Operations to Support Compiled Code (Section 5.5)
@@ -464,8 +471,10 @@
     (branch (label ev-lambda))
     (test (op begin?) (reg exp))
     (branch (label ev-begin))
+    (test (op compile-and-go?) (reg exp))
+    (branch (label compile-and-go))
     (test (op application?) (reg exp))
-    (branch (label ev-application))
+    (branch (label ev-begin))
     (goto (label unknown-expression-type))
 
     ;; Evaluating Simple Expressions
@@ -748,6 +757,19 @@
   primitive-procedure-error
     (assign unev (const primitive-procedure-error))
     (goto (label signal-error))
+
+    
+;; Ex 5.48
+;; =======
+
+  compile-and-go
+    (perform (op displayln) (const 'top))
+    (assign exp (op cag-expression) (reg exp))
+    ;(assign val (reg exp))
+    (perform (op displayln) (reg exp))
+    (assign val (op compile-and-go) (reg exp))
+    (assemble-val)
+    (goto (reg continue))
 
 
 ;; The End =================================================================
