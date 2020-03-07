@@ -31,12 +31,29 @@
   * Test test-exp, make sure test expression (e.g. factorial) works in
     regular mc-evaluator bofore trying to get it working in the compiled
     expression.  Will need to add extra primitive (= * - for factorial)
-  
+
+  * Put Mc-evaluator into a big begin expression
+
+  * Add Ec-evaluator support.  Don't need the ec-evaluator, but do need its:
+      - primitive-operations, these are need by compiled statments.
+      - primitive-procedures.  Any procedure used by the Mc-evaluator goes
+        here.
+
+  * Remove checking from primitive-procedures (if present), so we fail in
+    the right place (rather than failing when the error-object is used).
+    The compiler could add checking code for objects, but I don't think that
+    is useful unless and until we use the REPL.
 
 |#
 
 (#%require "mc-evaluator-50.scm")
+(#%require "mc-evaluator-50-exp.scm")
+(#%require "compiler-48.scm")
 
+(println
+ "
+Using Orignal EC-Evaluator:
+===========================")
 (set-underlying-apply! apply)
 (try-eval)
 
@@ -48,6 +65,15 @@
           (* n (factorial (- n 1)))))
     (factorial 5)
     ))
+
+(println
+ "
+And now...
+")
+
+(define mc-statements (statements-with-return mc-evaluator-exp))
+
+mc-statements
 
 (--end-- "5.50")
 
