@@ -296,7 +296,12 @@
    (list (list 'car car)
          (list 'cdr cdr)
          (list 'cons cons)
-         (list 'null? null?)))
+         (list 'null? null?)
+         ;; Additional Primitives
+         (list '= =)
+         (list '* *)
+         (list '- -)
+         ))
          
 (define (primitive-procedure-names)
   (map car

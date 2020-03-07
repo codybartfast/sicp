@@ -19,7 +19,35 @@
 ;   ------------------------------------------------------------------------
 
 (-start- "5.50")
+#|
+  * Add Text, get it working (e.g. move prim-procs above prim-names and
+    prim-objts)
+      - set-underlying-apply!
 
+  * Add some helpers:
+      - try-eval test eval without having to pass any args
+      - mc-eval eval w/o getting and supplying the global env
+
+  * Test test-exp, make sure test expression (e.g. factorial) works in
+    regular mc-evaluator bofore trying to get it working in the compiled
+    expression.  Will need to add extra primitive (= * - for factorial)
+  
+
+|#
+
+(#%require "mc-evaluator-50.scm")
+
+(set-underlying-apply! apply)
+(try-eval)
+
+(mc-eval
+ '(begin
+    (define (factorial n)
+      (if (= n 1)
+          1
+          (* n (factorial (- n 1)))))
+    (factorial 5)
+    ))
 
 (--end-- "5.50")
 
