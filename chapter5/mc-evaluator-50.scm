@@ -9,23 +9,26 @@
 ;; Added
 ;; =====
 
+;; Just of testing the original ec-evaluator
+
 (define apply-in-underlying-scheme '*apply-unassigned*)
 
 (define (set-underlying-apply! apply)
   (set! apply-in-underlying-scheme apply))
 
-(define (mc-eval exp)
-  (eval exp the-global-environment))
-
-(define (try-eval)
-  (eval
-   '(cons (car '(Looks bad!!)) (cdr '(Not good!)))
-   the-global-environment))
-
 (#%provide
  set-underlying-apply!
  try-eval
  mc-eval)
+
+;; Just for convenience
+
+(define (mc-eval exp)
+  (eval exp the-global-environment))
+
+(define (try-eval)
+  (mc-eval
+   '(cons (car '(Looks bad!!)) (cdr '(Not good!)))))
 
 
 ;; 4.1.1  The Core of the Evaluator
@@ -193,16 +196,17 @@
 (define (expand-clauses clauses)
   (if (null? clauses)
       'false                          ; no else clause
-      (let ((first (car clauses))
-            (rest (cdr clauses)))
-        (if (cond-else-clause? first)
-            (if (null? rest)
-                (sequence->exp (cond-actions first))
-                (error "ELSE clause isn't last -- COND->IF"
-                       clauses))
-            (make-if (cond-predicate first)
-                     (sequence->exp (cond-actions first))
-                     (expand-clauses rest))))))
+      ((lambda (first rest)
+         (if (cond-else-clause? first)
+             (if (null? rest)
+                 (sequence->exp (cond-actions first))
+                 (error "ELSE clause isn't last -- COND->IF"
+                        clauses))
+             (make-if (cond-predicate first)
+                      (sequence->exp (cond-actions first))
+                      (expand-clauses rest))))
+       (car clauses) (cdr clauses))
+      ))
 
 
 ;; 4.1.3  Evaluator Data Structures
@@ -257,9 +261,10 @@
             (else (scan (cdr vars) (cdr vals)))))
     (if (eq? env the-empty-environment)
         (error "Unbound variable" var)
-        (let ((frame (first-frame env)))
-          (scan (frame-variables frame)
-                (frame-values frame)))))
+        ((lambda (frame)
+           (scan (frame-variables frame)
+                 (frame-values frame)))
+         (first-frame env))))
   (env-loop env))
 
 (define (set-variable-value! var val env)
@@ -272,36 +277,38 @@
             (else (scan (cdr vars) (cdr vals)))))
     (if (eq? env the-empty-environment)
         (error "Unbound variable -- SET!" var)
-        (let ((frame (first-frame env)))
-          (scan (frame-variables frame)
-                (frame-values frame)))))
+        ((lambda (frame)
+           (scan (frame-variables frame)
+                 (frame-values frame)))
+         (first-frame env))))
   (env-loop env))
 
 (define (define-variable! var val env)
-  (let ((frame (first-frame env)))
-    (define (scan vars vals)
-      (cond ((null? vars)
-             (add-binding-to-frame! var val frame))
-            ((eq? var (car vars))
-             (set-car! vals val))
-            (else (scan (cdr vars) (cdr vals)))))
-    (scan (frame-variables frame)
-          (frame-values frame))))
+  ((lambda (frame)
+     (define (scan vars vals)
+       (cond ((null? vars)
+              (add-binding-to-frame! var val frame))
+             ((eq? var (car vars))
+              (set-car! vals val))
+             (else (scan (cdr vars) (cdr vals)))))
+     (scan (frame-variables frame)
+           (frame-values frame)))
+   (first-frame env)))
 
 
 ;; 4.1.4  Running the Evaluator as a Program
 ;; =========================================
 
 (define primitive-procedures
-   (list (list 'car car)
-         (list 'cdr cdr)
-         (list 'cons cons)
-         (list 'null? null?)
-         ;; Additional Primitives
-         (list '= =)
-         (list '* *)
-         (list '- -)
-         ))
+  (list (list 'car car)
+        (list 'cdr cdr)
+        (list 'cons cons)
+        (list 'null? null?)
+        ;; Additional Primitives
+        (list '= =)
+        (list '* *)
+        (list '- -)
+        ))
          
 (define (primitive-procedure-names)
   (map car
@@ -312,13 +319,13 @@
        primitive-procedures))
 
 (define (setup-environment)
-  (let ((initial-env
-         (extend-environment (primitive-procedure-names)
-                             (primitive-procedure-objects)
-                             the-empty-environment)))
-    (define-variable! 'true true initial-env)
-    (define-variable! 'false false initial-env)
-    initial-env))
+  ((lambda (initial-env)
+     (define-variable! 'true true initial-env)
+     (define-variable! 'false false initial-env)
+     initial-env)
+   (extend-environment (primitive-procedure-names)
+                       (primitive-procedure-objects)
+                       the-empty-environment)))
 (define the-global-environment (setup-environment))
 
 (define (primitive-procedure? proc)
@@ -334,10 +341,12 @@
 (define output-prompt ";;; M-Eval value:")
 (define (driver-loop)
   (prompt-for-input input-prompt)
-  (let ((input (read)))
-    (let ((output (eval input the-global-environment)))
-      (announce-output output-prompt)
-      (user-print output)))
+  ((lambda (input)
+     ((lambda (output)
+        (announce-output output-prompt)
+        (user-print output))
+      (eval input the-global-environment)))
+   (read))
   (driver-loop))
 (define (prompt-for-input string)
   (newline) (newline) (display string) (newline))

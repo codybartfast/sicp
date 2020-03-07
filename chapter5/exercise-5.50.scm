@@ -20,9 +20,15 @@
 
 (-start- "5.50")
 #|
+  1 test, mc   code->exp->scan-out-let->code->test->exp
+  2 statements
+  3 compile
+
+
   * Add Text, get it working (e.g. move prim-procs above prim-names and
     prim-objts)
       - set-underlying-apply!
+      - Actually, this can just be provided as prim-proc
 
   * Add some helpers:
       - try-eval test eval without having to pass any args
@@ -43,12 +49,15 @@
     the right place (rather than failing when the error-object is used).
     The compiler could add checking code for objects, but I don't think that
     is useful unless and until we use the REPL.
+    ACTUALLY - only going to pick up error for compiling mc-ev
 
 |#
 
+(#%require "compiler-48.scm")
+(#%require "ec-evaluator-50.scm")
+(#%require "machine-48.scm")
 (#%require "mc-evaluator-50.scm")
 (#%require "mc-evaluator-50-exp.scm")
-(#%require "compiler-48.scm")
 
 (println
  "
@@ -71,9 +80,24 @@ Using Orignal EC-Evaluator:
 And now...
 ")
 
-(define mc-statements (statements-with-return mc-evaluator-exp))
-
-mc-statements
+;(define mc-statements (statements-with-return mc-evaluator-exp))
+;
+;(define head
+;  '(
+;    (assign env (op get-global-environment))
+;    ))
+;
+;(define statements
+;  (append head mc-statements))
+;
+;(define operations
+;  eceval-operations)
+;
+;(define machine (make-machine operations statements))
+;
+;(trace-on! machine println)
+;
+;(start machine)
 
 (--end-- "5.50")
 

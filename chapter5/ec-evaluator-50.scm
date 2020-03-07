@@ -78,7 +78,7 @@
              (car vals))
             (else (scan (cdr vars) (cdr vals)))))
     (if (eq? env the-empty-environment)
-        (make-error "unbound variable:" (list var))
+        (error "Unbound variable:" var)
         (let ((frame (first-frame env)))
           (scan (frame-variables frame)
                 (frame-values frame)))))
