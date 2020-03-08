@@ -163,6 +163,11 @@
         (list 'not not)
         (list 'caddr caddr)
         (list 'error error)
+        (list 'set-car! set-car!)
+        (list 'set-cdr! set-cdr!)
+        (list 'cadddr cadddr)
+        (list 'apply-in-underlying-scheme apply)
+        (list 'cdddr cdddr)
         ))
         
 (define (primitive-procedure-names)

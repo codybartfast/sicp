@@ -174,7 +174,7 @@
       (let ((vals (map (lambda (var) ''*unassigned*) vars)))
         (if (null? vars)
             exp
-            (make-call (make-lambda vars new-body) vals))))))
+            (list (make-call (make-lambda vars new-body) vals)))))))
 
 ;; =========================================
 ;; Exercise 5.38 (open-code primitive apply)
