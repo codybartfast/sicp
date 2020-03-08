@@ -53,7 +53,7 @@
 
 |#
 
-(#%require "compiler-48.scm")
+(#%require "compiler-50.scm")
 (#%require "ec-evaluator-50.scm")
 (#%require "machine-48.scm")
 (#%require "mc-evaluator-50.scm")
@@ -80,7 +80,7 @@ Using Orignal EC-Evaluator:
 And now...
 ")
 
-(define mc-statements (statements-with-return mc-evaluator-exp))
+(define mc-statements (statements-with-next mc-evaluator-exp))
 
 (define head
   '(

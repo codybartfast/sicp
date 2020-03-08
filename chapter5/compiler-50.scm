@@ -1,14 +1,24 @@
 #lang sicp
 
-;; Based on compiler-47 for ex 5.48.  Add support for compile-and-run
+;; Based on compiler-48 for ex 5.50.  Add support for statements-with-next
 
+
+;; Exercise 5.50
+;; =============
+
+(define (statements-with-next exp)
+  (statements-with exp 'next))
+
+(define (statements-with exp linkage)
+  (statements
+   (compile exp empty-ctenv 'val linkage)))
 
 ;; Exercise 5.48
 ;; =============
 
 (define (statements-with-return exp)
-  (statements
-    (compile exp empty-ctenv 'val 'return)))
+  (statements-with exp 'return))
+
 
 
 ; Exercise 5.47
@@ -769,4 +779,5 @@
  compile
  empty-ctenv
  statements
- statements-with-return)
+ statements-with-return
+ statements-with-next)

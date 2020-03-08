@@ -349,4 +349,6 @@
                           '<procedure-env>))
            (display object)))
 
+     (driver-loop)
+
      ))
