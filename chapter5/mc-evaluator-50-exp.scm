@@ -293,15 +293,17 @@
              (list '= =)
              (list '* *)
              (list '- -)
+             (list 'list list)
+             (list 'equal? equal?)
              ))
          
      (define (primitive-procedure-names)
-       '(car cdr cons null? = * -))
+       '(car cdr cons null? = * - list equal?))
 ;       (map car
 ;            primitive-procedures))
     
      (define (primitive-procedure-objects)
-       (list car cdr cons null? = * -))
+       (list car cdr cons null? = * - list equal?))
 ;       (map (lambda (proc) (list 'primitive (cadr proc)))
 ;             primitive-procedures))
 

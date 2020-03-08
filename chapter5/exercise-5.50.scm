@@ -114,5 +114,25 @@ And now...
 
 (start machine)
 
+#|
+(define (pick-fruit)
+  (define trace '())
+  (define (get-apple)
+    (set! trace (cons "'getting apple'" trace))
+    "apple")
+  (define (get-cherry)
+    (set! trace (cons "'getting cherry'" trace))
+    "cherry")
+  (define (first-or-second first second which)
+    (cond ((equal? which 'first) (first))
+          (else (second))))
+  (list
+   (list
+    (first-or-second get-apple get-cherry 'first)
+    (first-or-second get-apple get-cherry 'not-first))
+   trace))
+
+|#
+
 (--end-- "5.50")
 
