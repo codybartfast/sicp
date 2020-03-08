@@ -296,12 +296,14 @@
              ))
          
      (define (primitive-procedure-names)
-       (map car
-            primitive-procedures))
-
+       '(car cdr cons null? = * -))
+;       (map car
+;            primitive-procedures))
+    
      (define (primitive-procedure-objects)
-       (map (lambda (proc) (list 'primitive (cadr proc)))
-            primitive-procedures))
+       (list car cdr cons null? = * -))
+;       (map (lambda (proc) (list 'primitive (cadr proc)))
+;             primitive-procedures))
 
      (define (setup-environment)
        ((lambda (initial-env)

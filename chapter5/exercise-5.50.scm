@@ -80,24 +80,25 @@ Using Orignal EC-Evaluator:
 And now...
 ")
 
-;(define mc-statements (statements-with-return mc-evaluator-exp))
-;
-;(define head
-;  '(
-;    (assign env (op get-global-environment))
-;    ))
-;
-;(define statements
-;  (append head mc-statements))
-;
-;(define operations
-;  eceval-operations)
-;
-;(define machine (make-machine operations statements))
-;
-;(trace-on! machine println)
-;
-;(start machine)
+(define mc-statements (statements-with-return mc-evaluator-exp))
+
+(define head
+  '(
+    (assign env (op get-global-environment))
+    ))
+
+(define statements
+  (append head mc-statements))
+
+(define operations
+  eceval-operations)
+
+(define machine (make-machine operations statements))
+
+(trace-on! machine println)
+;(set-breakpoint machine 'primitive-branch1171 1)
+
+(start machine)
 
 (--end-- "5.50")
 

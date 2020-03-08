@@ -2,6 +2,10 @@
 
 (#%require "compiler-48.scm")
 
+(define (println . parts)
+  (map display parts)
+  (newline))
+
 ;; Based on ec-evaluator-48, for Ex 5.50.
 ;;   - Removed ec-evaluator, just need prim-ops and prim-procs
 ;;   - Removed checked versions of primitive-procedures, so errors are
@@ -134,14 +138,16 @@
         (list 'cons cons)
         (list 'null? null?)
         (list 'list list)
-        (list '+ +)
+;;        (list '+ +)
         (list '- -)
         (list '* *)
-        (list '/ /)
-        (list '< <)
-        (list '> >)
+;        (list '/ /)
+;        (list '< <)
+;        (list '> >)
         (list '= =)
-        (list 'eq? eq?)
+;        (list 'eq? eq?)
+        ;; Additional Primitives
+        (list 'length length)
         ))
         
 (define (primitive-procedure-names)
@@ -153,31 +159,12 @@
        primitive-procedures))
 
 (define (apply-primitive-procedure proc args)
+  (println "    proc: " proc " args: " args)
   (apply
    (primitive-implementation proc)
    (reverse args))) ;; <-- reverse arguments for eceval
 
 (define the-global-environment (setup-environment))
-
-
-;; Error handling for Ex 5.30
-;; ==========================
-
-(define error-obj
-  '(error-obj))
-(define (make-error message args)
-  (list error-obj message args))
-(define (is-error? val)
-  (and (pair? val)
-       (eq? (car val) error-obj)))
-(define (display-error error)
-  (display (cadr error))
-  (display ". Args:")
-  (map (lambda (arg)
-         (display " '")
-         (display arg)
-         (display "'"))
-       (caddr error)))
 
 
 ;; Primitive Operation for Evaluator (Section 5.4)
@@ -248,10 +235,6 @@
    (list 'cond-else-clause? (lambda (exp) (eq? (car exp) 'else)))
    (list 'cond-predicate car)
    (list 'cond-actions cdr)
-   ; Ex 5.30
-   (list 'eq? eq?)
-   (list 'is-error? is-error?)
-   (list 'display-error display-error)
    ; Ex 5.48
    (list 'compile-and-run?
          (lambda (exp) (tagged-list? exp 'compile-and-run)))
@@ -301,6 +284,7 @@
     (let ((value-head (skip (frame-values frame) (lex-displacement addr))))
       (set-car! value-head value))))
 
+   
 ;; Compiled Code Operations List
 
 (define compiled-code-operations
@@ -318,7 +302,8 @@
    (list 'false? (lambda (exp) (eq? exp #false)))
    (list 'get-global-environment (lambda () the-global-environment))
    (list 'list list)
-   (list 'cons cons)))
+   (list 'cons cons)
+   ))
 
 ;; Combined Primitive Operations
 ;; =============================
