@@ -107,25 +107,12 @@
 ;; =============
 
 (define (compile-variable exp ctenv target linkage)
-  (let ((lex-addr (find-variable exp ctenv)))
-    (let ((lookup-code
-           (if (eq? lex-addr 'not-found)
-               ;; put global-env into target to preserve env
-               `((assign ,target
-                         (op get-global-environment))
-                 (assign ,target
-                         (op lookup-variable-value)
-                         (const ,exp)
-                         (reg ,target)))
-               `((assign ,target
-                         (op lexical-address-lookup)
-                         (const ,lex-addr)
-                         (reg env))))))
-      (end-with-linkage
-       linkage
-       (make-instruction-sequence
-        '(env) (list target)
-        lookup-code)))))
+  (end-with-linkage linkage
+   (make-instruction-sequence '(env) (list target)
+    `((assign ,target
+              (op lookup-variable-value)
+              (const ,exp)
+              (reg env))))))
 
 (define (compile-assignment exp ctenv target linkage)
   (let ((var (assignment-variable exp))

@@ -51,6 +51,20 @@
     is useful unless and until we use the REPL.
     ACTUALLY - only going to pick up error for compiling mc-ev
 
+  * Fix let
+
+  * Fix map (apply)
+
+  * Add prims used by mc-eval and prims implemented by mc-eval
+
+  * Rremove lexical lookup
+
+  * statements-with-next
+
+  * remove-lexical-lookup
+
+  * scan-out-defs to support recursivce calls
+
 |#
 
 (#%require "compiler-50.scm")
@@ -95,7 +109,7 @@ And now...
 
 (define machine (make-machine operations statements))
 
-(trace-on! machine println)
+;(trace-on! machine println)
 ;(set-breakpoint machine 'primitive-branch1171 1)
 
 (start machine)

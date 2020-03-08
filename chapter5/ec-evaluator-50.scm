@@ -2,9 +2,9 @@
 
 (#%require "compiler-48.scm")
 
-(define (println . parts)
-  (map display parts)
-  (newline))
+;(define (println . parts)
+;  (map display parts)
+;  (newline))
 
 ;; Based on ec-evaluator-48, for Ex 5.50.
 ;;   - Removed ec-evaluator, just need prim-ops and prim-procs
@@ -148,6 +148,21 @@
 ;        (list 'eq? eq?)
         ;; Additional Primitives
         (list 'length length)
+        (list 'newline newline)
+        (list 'display display)
+        (list 'read read)
+        (list 'number? number?)
+        (list 'string? string?)
+        (list 'symbol? symbol?)
+        (list 'pair? pair?)
+        (list 'eq? eq?)
+        (list 'cadr cadr)
+        (list 'caadr caadr)
+        (list 'cdadr cdadr)
+        (list 'cddr cddr)
+        (list 'not not)
+        (list 'caddr caddr)
+        (list 'error error)
         ))
         
 (define (primitive-procedure-names)
@@ -159,7 +174,6 @@
        primitive-procedures))
 
 (define (apply-primitive-procedure proc args)
-  (println "    proc: " proc " args: " args)
   (apply
    (primitive-implementation proc)
    (reverse args))) ;; <-- reverse arguments for eceval
