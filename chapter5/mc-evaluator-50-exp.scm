@@ -278,10 +278,13 @@
                  (map proc (cdr items)))))
 
      (define primitive-procedures
-       (list (list 'car car)
-             (list 'cdr cdr)
+       (list (list '= =)
+             (list '* *)
+             (list '- -)
              (list 'cons cons)
-             (list 'null? null?)))
+             (list 'list list)
+             (list 'equal? equal?)
+             ))
          
      (define (primitive-procedure-names)
        (map car
