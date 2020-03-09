@@ -1,7 +1,6 @@
 #lang sicp
 
-;; Based on machine-19, for Ex 5.48, add assemble as a "register-machine"
-;; operation.
+;; Same as machine-48, just here to make the final version obvious
 
 
 ;; 5.2.1 the Machine Model

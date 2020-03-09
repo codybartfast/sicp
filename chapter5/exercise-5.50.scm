@@ -69,7 +69,7 @@
 
 (#%require "compiler-50.scm")
 (#%require "ec-evaluator-50.scm")
-(#%require "machine-48.scm")
+(#%require "machine-50.scm")
 (#%require "mc-evaluator-50.scm")
 (#%require "mc-evaluator-50-exp.scm")
 
