@@ -1,6 +1,6 @@
 #lang sicp
 
-;; Based on machine-48, for Ex 5.50
+;; Based on machine-48, for Ex 5.50.  No changes.
 
 
 ;; 5.2.1 the Machine Model
