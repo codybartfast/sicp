@@ -1,6 +1,6 @@
 #lang sicp
 
-(#%require "compiler-48.scm")
+(#%require "compiler-50.scm")
 
 ;(define (println . parts)
 ;  (map display parts)
@@ -137,20 +137,13 @@
     (apply primitive-procedure args)))
 
 (define primitive-procedures
+  ;; Primitives used by the metacirculator evaluator's implementation
   (list (list 'car car)
         (list 'cdr cdr)
         (list 'cons cons)
         (list 'null? null?)
         (list 'list list)
-;;        (list '+ +)
-        (list '- -)
-        (list '* *)
-;        (list '/ /)
-;        (list '< <)
-;        (list '> >)
         (list '= =)
-;        (list 'eq? eq?)
-        ;; Additional Primitives
         (list 'length length)
         (list 'newline newline)
         (list 'display display)
@@ -172,7 +165,9 @@
         (list 'cadddr cadddr)
         (list 'apply-in-underlying-scheme apply-in-underlying-scheme)
         (list 'cdddr cdddr)
-        
+        ;; Additional primitive procedures installed in the MC-evaluator
+        (list '- -)
+        (list '* *)
         (list 'equal? equal?)
         ))
         

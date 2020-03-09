@@ -8,13 +8,6 @@
 (define mc-evaluator-exp
   '(begin
 
-     (define (mc-eval exp)
-       (eval exp the-global-environment))
-
-     (define (try-eval)
-       (mc-eval
-        '(cons (car '(Looks bad!!)) (cdr '(Not good!)))))
-
 
      ;; 4.1.1  The Core of the Evaluator
      ;; ================================
@@ -280,43 +273,28 @@
      ;; 4.1.4  Running the Evaluator as a Program
      ;; =========================================
                          
-     (define (map1 proc items)
+     (define (map proc items)
        (if (null? items)
            '()
            (cons (proc (car items))
-                 (map1 proc (cdr items)))))
+                 (map proc (cdr items)))))
 
-     (define (map2 proc items)
-       (if (null? items)
-           '()
-           (cons (proc (car items))
-                 (map2 proc (cdr items)))))
-
-     (define primitive-procedures
-       (list (list 'car car)
-             (list 'cdr cdr)
-             (list 'cons cons)
-             (list 'null? null?)
-             ;; Additional Primitives
-             (list '= =)
-             (list '* *)
-             (list '- -)
-             (list 'list list)
-             (list 'equal? equal?)
-             ))
-         
      (define (primitive-procedure-names)
-       ;(display car)
-       ;'(car cdr cons null? = * - list equal?))
-       (map1 car
+       (map car
             primitive-procedures))
     
      (define (primitive-procedure-objects)
-       ;(list car cdr cons null? = * - list equal?))
-       (map2 (lambda (proc) (list 'primitive (cadr proc)))
-             primitive-procedures))
-;       (map2 (lambda (proc) (cadr proc))
-;             primitive-procedures))
+       (map (lambda (proc) (list 'primitive (cadr proc)))
+            primitive-procedures))
+
+     (define primitive-procedures
+       (list (list '= =)
+             (list '* *)
+             (list '- -)
+             (list 'cons cons)
+             (list 'list list)
+             (list 'equal? equal?)
+             ))
 
      (define (setup-environment)
        (let ((initial-env

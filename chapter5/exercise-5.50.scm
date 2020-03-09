@@ -116,6 +116,7 @@ And now...
 
 #|
 
+
 (define (pick-fruit)
   (define trace '())
   (define (get-apple)
@@ -132,7 +133,12 @@ And now...
     (first-or-second get-apple get-cherry 'first)
     (first-or-second get-apple get-cherry 'not-first))
    trace))
+    (define (factorial n)
+      (if (= n 1)
+          1
+          (* n (factorial (- n 1)))))
 (pick-fruit)
+    (factorial 5)
 
 |#
 
