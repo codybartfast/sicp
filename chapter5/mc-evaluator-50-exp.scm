@@ -1,14 +1,12 @@
 #lang sicp
 
-;; Code from mc-evaluator-50 in one big begin expression which can be passed
-;; the compiler.
-
-(#%provide mc-evaluator-exp)
+;; Everything from mc-evaluator-50, except provide, in one big begin 
+;; expression which can be passed the compiler.
 
 (define mc-evaluator-exp
   '(begin
 
-
+     
      ;; 4.1.1  The Core of the Evaluator
      ;; ================================
 
@@ -272,29 +270,20 @@
 
      ;; 4.1.4  Running the Evaluator as a Program
      ;; =========================================
-                         
-     (define (map proc items)
-       (if (null? items)
-           '()
-           (cons (proc (car items))
-                 (map proc (cdr items)))))
 
+     (define primitive-procedures
+       (list (list 'car car)
+             (list 'cdr cdr)
+             (list 'cons cons)
+             (list 'null? null?)))
+         
      (define (primitive-procedure-names)
        (map car
             primitive-procedures))
-    
+
      (define (primitive-procedure-objects)
        (map (lambda (proc) (list 'primitive (cadr proc)))
             primitive-procedures))
-
-     (define primitive-procedures
-       (list (list '= =)
-             (list '* *)
-             (list '- -)
-             (list 'cons cons)
-             (list 'list list)
-             (list 'equal? equal?)
-             ))
 
      (define (setup-environment)
        (let ((initial-env
@@ -337,7 +326,5 @@
                           (procedure-body object)
                           '<procedure-env>))
            (display object)))
-
-     (driver-loop)
-
+     
      ))

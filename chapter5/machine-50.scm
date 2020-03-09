@@ -1,6 +1,6 @@
 #lang sicp
 
-;; Same as machine-48, just here to make the final version obvious
+;; Based on machine-48, for Ex 5.50
 
 
 ;; 5.2.1 the Machine Model

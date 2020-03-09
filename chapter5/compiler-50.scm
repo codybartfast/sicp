@@ -1,19 +1,9 @@
 #lang sicp
 
-;; Based on compiler-48 for ex 5.50.  Added support for statements-with-next
-;; and moved code from exercise to bottom of file
+;; Based on compiler-48 for ex 5.50.
 
 
-(define (compiler-apply? exp)
-  (tagged-list? exp 'compiler-apply))
-
-(define (compile-compiler-apply exp ctenv target linkage)
-  (let ((exp (list (cadr exp) (caddr exp))))
-    (compile exp ctenv target linkage)))
-
-
-
-; Compiler from book text, Section 5.5
+;; Compiler from book text, Section 5.5
 ;; ====================================
 
 ;; 5.5.1  Structure of the Compiler
@@ -37,9 +27,6 @@
                            target
                            linkage))
         ((cond? exp) (compile (cond->if exp) ctenv target linkage))
-        ((let? exp) (compile (let->combination exp) ctenv target linkage))
-        ((compiler-apply? exp)
-         (compile-compiler-apply exp ctenv target linkage))
         ((primitive-name? exp ctenv)
          (compile-primitive-procedure exp ctenv target linkage))
         ((application? exp)
@@ -773,46 +760,8 @@
 ;; =============
 
 (define (statements-with-return exp)
-  (statements-with exp 'return))
-
-
-;; Exercise 5.50
-;; =============
-
-(define (statements-with-next exp)
-  (statements-with exp 'next))
-
-(define (statements-with exp linkage)
   (statements
-   (compile exp empty-ctenv 'val linkage)))
-
-;; let->combination
-
-(define (let-body exp)
-  (cddr exp))
-
-(define (let-pairs exp)
-  (cadr exp))
-
-(define let-pair-id car)
-
-(define let-pair-value cadr)
-
-(define (let-params exp)
-  (map let-pair-id
-       (let-pairs exp)))
-
-(define (let-values exp)
-  (map let-pair-value
-       (let-pairs exp)))
-
-(define (let? exp) (tagged-list? exp 'let))
-
-(define (let->combination exp)
-  (make-call
-   (make-lambda (let-params exp)
-                (let-body exp))
-   (let-values exp)))
+   (compile exp empty-ctenv 'val 'return)))
 
 
 ;; And Finally
@@ -822,5 +771,4 @@
  compile
  empty-ctenv
  statements
- statements-with-return
- statements-with-next)
+ statements-with-return)
