@@ -760,8 +760,18 @@
 ;; =============
 
 (define (statements-with-return exp)
+  (statements-with exp 'return))
+
+
+;; Exercise 5.50
+;; =============
+
+(define (statements-with-next exp)
+  (statements-with exp 'next))
+
+(define (statements-with exp linkage)
   (statements
-   (compile exp empty-ctenv 'val 'return)))
+   (compile exp empty-ctenv 'val linkage)))
 
 
 ;; And Finally
@@ -771,4 +781,5 @@
  compile
  empty-ctenv
  statements
- statements-with-return)
+ statements-with-return
+ statements-with-next)
