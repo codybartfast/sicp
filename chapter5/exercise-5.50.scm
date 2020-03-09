@@ -115,6 +115,7 @@ And now...
 (start machine)
 
 #|
+
 (define (pick-fruit)
   (define trace '())
   (define (get-apple)
@@ -131,6 +132,7 @@ And now...
     (first-or-second get-apple get-cherry 'first)
     (first-or-second get-apple get-cherry 'not-first))
    trace))
+(pick-fruit)
 
 |#
 

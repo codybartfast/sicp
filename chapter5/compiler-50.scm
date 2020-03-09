@@ -29,6 +29,7 @@
         ((cond? exp) (compile (cond->if exp) ctenv target linkage))
         ((primitive-name? exp ctenv)
          (compile-primitive-procedure exp ctenv target linkage))
+        ((let? exp) (compile (let->combination exp) ctenv target linkage))
         ((application? exp)
          (compile-application exp ctenv target linkage))
         (else
@@ -772,6 +773,34 @@
 (define (statements-with exp linkage)
   (statements
    (compile exp empty-ctenv 'val linkage)))
+
+;; let->combination
+
+(define (let-body exp)
+  (cddr exp))
+
+(define (let-pairs exp)
+  (cadr exp))
+
+(define let-pair-id car)
+
+(define let-pair-value cadr)
+
+(define (let-params exp)
+  (map let-pair-id
+       (let-pairs exp)))
+
+(define (let-values exp)
+  (map let-pair-value
+       (let-pairs exp)))
+
+(define (let? exp) (tagged-list? exp 'let))
+
+(define (let->combination exp)
+  (make-call
+   (make-lambda (let-params exp)
+                (let-body exp))
+   (let-values exp)))
 
 
 ;; And Finally
