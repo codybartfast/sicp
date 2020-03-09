@@ -74,7 +74,7 @@
              (car vals))
             (else (scan (cdr vars) (cdr vals)))))
     (if (eq? env the-empty-environment)
-        (make-error "unbound variable:" (list var))
+        (error "unbound variable" var)
         (let ((frame (first-frame env)))
           (scan (frame-variables frame)
                 (frame-values frame)))))
@@ -117,99 +117,8 @@
     (define-variable! 'false false initial-env)
     initial-env))
 
-;; Ex 5.30 helper methods for checking primitive procedures
 
-(define (arg-length-not args len proc-name)
-  (if (not (= (length args) len))
-      (make-error
-       (string-append
-        proc-name " expected " (number->string len)
-        " args, but got " (number->string (length args))) args)
-      #f))
-
-(define (arg-length-less-than args len proc-name)
-  (if (< (length args) len)
-      (make-error
-       (string-append
-        proc-name " expected at least " (number->string len)
-        " args, but got " (number->string (length args))) args)
-      #f))
-
-(define (not-all-args-satisfy all-args check check-desc proc-name)
-  (define (iter args)
-    (if (null? args)
-        #f
-        (if (check (car args))
-            (iter (cdr args))
-            (make-error
-             (string-append
-              proc-name " requires " check-desc)
-             all-args))))
-  (iter all-args))
-
-;; Ex 5.30 checked versions of primitive procedures
-
-(define (checked-car . args)
-  (cond ((arg-length-not args 1 "car") => values)
-        ((not-all-args-satisfy args pair? "a pair" "car"))
-        (else (apply car args))))
-
-(define (checked-cdr . args)
-  (cond ((arg-length-not args 1 "cdr") => values)
-        ((not-all-args-satisfy args pair? "a pair" "cdr"))
-        (else (apply cdr args))))
-
-(define (checked-cons . args)
-  (cond ((arg-length-not args 2 "cons") => values)
-        (else (apply cons args))))
-
-(define (checked-null? . args)
-  (cond ((arg-length-not args 1 "null?") => values)
-        (else (apply null? args))))
-
-(define (checked-+ . args)
-  (cond ((not-all-args-satisfy args number? "numbers" "+"))
-        (else (apply + args))))
-
-(define (checked-subtract . args)
-  (cond ((arg-length-less-than args 1 "-") => values)
-        ((not-all-args-satisfy args number? "numbers" "-") => values)
-        (else (apply - args))))
-
-(define (checked-* . args)
-  (cond ((not-all-args-satisfy args number? "numbers" "*"))
-        (else (apply * args))))
-
-(define (checked-/ . args)
-  (define (non-zero? n) (not (zero? n)))
-  (cond
-    ((arg-length-less-than args 1 "/"))
-    ((not-all-args-satisfy args number? "numbers" "/"))
-    ((not-all-args-satisfy (cdr args) non-zero? "non-zero divisors" "/"))
-    ((and (= (length args) 1)
-           (not-all-args-satisfy args non-zero? "non-zero divisors" "/")))
-     (else (apply / args))))
-
-(define (checked-< . args)
-  (cond ((arg-length-less-than args 1 "<"))
-        ((not-all-args-satisfy args real? "real numbers" "<"))
-        (else (apply < args))))
-
-(define (checked-> . args)
-  (cond ((arg-length-less-than args 1 ">"))
-        ((not-all-args-satisfy args real? "real numbers" ">"))
-        (else (apply > args))))
-
-(define (checked-= . args)
-  (cond ((arg-length-less-than args 1 "="))
-        ((not-all-args-satisfy args number? "numbers" "="))
-        (else (apply = args))))
-
-(define (checked-eq? . args)
-  (cond ((arg-length-not args 2 "eq?"))
-        (else (apply eq? args))))
-
-;; Ex 5.30 checked versions of methods installed
+;; Primitive procedures
 
 (define (primitive-procedure? proc)
   (tagged-list? proc 'primitive))
@@ -217,19 +126,19 @@
 (define (primitive-implementation proc) (cadr proc))
 
 (define primitive-procedures
-  (list (list 'car checked-car)
-        (list 'cdr checked-cdr)
-        (list 'cons checked-cons)
-        (list 'null? checked-null?)
+  (list (list 'car car)
+        (list 'cdr cdr)
+        (list 'cons cons)
+        (list 'null? null?)
         (list 'list list)
-        (list '+ checked-+)
-        (list '- checked-subtract)
-        (list '* checked-*)
-        (list '/ checked-/)
-        (list '< checked-<)
-        (list '> checked->)
-        (list '= checked-=)
-        (list 'eq? checked-eq?)))
+        (list '+ +)
+        (list '- -)
+        (list '* *)
+        (list '/ /)
+        (list '< <)
+        (list '> >)
+        (list '= =)
+        (list 'eq? eq?)))
         
 (define (primitive-procedure-names)
   (map car
@@ -245,26 +154,6 @@
    (reverse args))) ;; <-- reverse arguments for eceval
 
 (define the-global-environment (setup-environment))
-
-
-;; Error handling for Ex 5.30
-;; ==========================
-
-(define error-obj
-  '(error-obj))
-(define (make-error message args)
-  (list error-obj message args))
-(define (is-error? val)
-  (and (pair? val)
-       (eq? (car val) error-obj)))
-(define (display-error error)
-  (display (cadr error))
-  (display ". Args:")
-  (map (lambda (arg)
-         (display " '")
-         (display arg)
-         (display "'"))
-       (caddr error)))
 
 
 ;; Primitive Operation for Evaluator (Section 5.4)
@@ -335,10 +224,6 @@
    (list 'cond-else-clause? (lambda (exp) (eq? (car exp) 'else)))
    (list 'cond-predicate car)
    (list 'cond-actions cdr)
-   ; Ex 5.30
-   (list 'eq? eq?)
-   (list 'is-error? is-error?)
-   (list 'display-error display-error)
    ; Ex 5.48
    (list 'compile-and-run?
          (lambda (exp) (tagged-list? exp 'compile-and-run)))
