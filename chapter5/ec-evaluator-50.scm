@@ -125,6 +125,9 @@
 
 (define (primitive-implementation proc) (cadr proc))
 
+(define (apply-in-underlying-scheme proc args)
+  (apply (primitive-implementation proc) args))
+
 (define primitive-procedures
   ;; Primitives used by the metacirculator evaluator's implementation
   (list (list 'car car)
@@ -153,6 +156,7 @@
         (list 'set-cdr! set-cdr!)
         (list 'cadddr cadddr)
         (list 'cdddr cdddr)
+        (list 'apply-in-underlying-scheme apply-in-underlying-scheme)
         ;; Additional primitive procedures installed in the MC-evaluator
         (list '- -)
         (list '* *)
