@@ -3,6 +3,8 @@
 ;; Everything from mc-evaluator-50, except provide, in one big begin 
 ;; expression which can be passed the compiler.
 
+(#%provide mc-evaluator-exp)
+
 (define mc-evaluator-exp
   '(begin
 
@@ -335,5 +337,7 @@
                           (procedure-body object)
                           '<procedure-env>))
            (display object)))
+
+     (driver-loop)
      
      ))
