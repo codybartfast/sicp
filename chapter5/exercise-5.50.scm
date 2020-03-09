@@ -22,6 +22,7 @@
 
 (#%require "machine-50.scm")
 (#%require "compiler-50.scm")
+(#%require "ec-evaluator-50.scm")
 
 (--end-- "5.50")
 

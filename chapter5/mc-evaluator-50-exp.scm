@@ -271,6 +271,12 @@
      ;; 4.1.4  Running the Evaluator as a Program
      ;; =========================================
 
+     (define (map proc items)
+       (if (null? items)
+           '()
+           (cons (proc (car items))
+                 (map proc (cdr items)))))
+
      (define primitive-procedures
        (list (list 'car car)
              (list 'cdr cdr)
