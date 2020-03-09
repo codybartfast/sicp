@@ -30,18 +30,23 @@
 Metacircular Evaluator Expression
 =================================
 
-As the question implies, create an expression that contains a begin that
-contains the definitions of the m-evaluator.  With the following changes:
+In an attempt to keep things simple I used the most basic implementation of
+the metacircular evaluator from Section 4.1.  As the question says this
+needs to be put in one big begin statement, which is then quoted to provide
+an expression that can be compiled.
 
-  1. add a map procedure so that the mapping procedure is applied at the
-     right level (i.e., within the metacircular evaluator and not by a
-     primitive map in the explicit-control evaluator).  See Exercise 4.14.
+A few changes were needed to the content of the expression:
+
+  1. add a map procedure so that when map is called by the metacircular
+     evaluator its procedure calls are evaluated at the right level (i.e.,
+     within the metacircular evaluator and not by a primitive map in the
+     explicit-control procedures).  See Exercise 4.14.
 
   2. add any primitive-procedures that will be needed by the programs
      evaluated by the metacircular evaluator.
 
-  3. to make life easy, add (driver-loop) to the end of the metaciruclar
-     evaluator so that REPL is called automatically.
+  3. add (driver-loop) to the end of the metaciruclar evaluator so the REPL
+     starts automatically.
 
 
 Metaciruclar Evaluator Code:
@@ -83,32 +88,35 @@ Metaciruclar Evaluator Code:
 \"Explicit-Control\" Procedures
 =============================
 
-We don't need the Explicit Control Evaluator itself, but we do need its
+We don't need the Explicit Control Evaluator itself, but we do need its 
 primitive operations and primitive procedures.
 
-Started with the most recent ec-evaluator (ex 5.48) and made the folling
+I started with the most recent ec-evaluator (ex 5.48) and made the following
 changes:
 
-  1. Add primitive procedures.  The ec-evaluators table of primitive
+  1. Add primitive procedures.  The explict control's table of primitive
      procedures needs to include:
+
        a. all primitive procedures used by the metacircular evaluator's
           implementation, e.g., cadddr, cddr, set-car!, etc ...
-       b. any primitive procedures in the metacircular evalutors table of
-          primitive procedures, e.g., <, *, -, etc ...
 
-  2. Add apply-in-underlying-scheme to the 'ec-evaluator' and add it to the
-     ec-evalutor's table of primitive-procedures.  Primitive procedures in
-     the metacircular are double tagged. E.g., the cons procedures will be
-     of the form:
+       b. any primitive procedures in the metacircular evalutors table of
+          primitive procedures, e.g., =, *, -, etc ...
+
+  2. Add apply-in-underlying-scheme to the explicit-control procedures and
+     include it in the explicit-control's table of primitive-procedures.
+
+     Primitive procedures in the metacircular are double tagged. E.g., the
+     cons procedures will be:
 
          (primitive (primitive <underlying-cons>))
 
-     The outer tag is added by the metacircular evaluator, the innter tag is
+     The outer tag is added by the metacircular evaluator, the inner tag is
      added by the ec-evaluator's primitive-procedure-objects procedure.
 
      So the apply-in-underlying-scheme provided to the metacircular
      evaluator needs to remove this inner tag before passing it to
-     the scheme that the ec-evaluator's procedures are implemented on.
+     the scheme that the explicit-control procedures are implemented on.
 
   3. Removed checking around primitive procedures (Exercise 5.30).  This is
      not functionally necessary, but it helped debugging while getting the
@@ -116,8 +124,8 @@ changes:
      as soon a primitive-procedure encounters a problem.  With checking the
      machine doesn't crash until the result of the bad primitive procedure
      call is used.  (If we want primitive checking of the interpreted code
-     then we to implement that in the metacircular evaluator, not in the
-     compiled code).
+     then we need to implement that in the metacircular evaluator, not in
+     the compiled code).
 
 
 \"Explicit Control\" Procedure Code:
@@ -153,11 +161,11 @@ Started with the most recent compiler (Ex 5.48).  We do need internal
 definitions to work, and I think that requires having scan-out-defines
 installed in the compiler (Exercise 5.43).  Additional changes:
 
-  1. The metaciruclar evaluator's implementation uses let.  Therefor we need
-     to add support for let to the compiler (or rewrite the metacircular
-     evaluator replacing let statements with lambda calls).  Support for let
-     can be added to the compiler the same way it was added to the
-     metacircular evaluator (Exercise 4.6) as a derived expression.
+  1. The metaciruclar evaluator's implementation uses let.  Therefore we
+     need to add support for let to the compiler (or rewrite the
+     metacircular evaluator replacing let statements with lambda calls).
+     Support for let can be added to the compiler the same way it was added
+     to the metacircular evaluator (Exercise 4.6) as a derived expression.
 
   2. Added a convenience procedure, statements-with-next, that compiles an
      expression, (in this case mc-evaluator-exp), with the 'next linkage and
@@ -227,14 +235,14 @@ Running the Metacircular Evaluator
 
 To run the evaluator we just need to prepend an instruction to load the
 global environment.  Because there is a call to (driver-loop) at the end of
-the evaluator the REPL should start automatically:
+the evaluator the REPL starts automatically:
 
   (define mc-eval-code
     (statements-with-next mc-evaluator-exp))
 
   (define program
-    (append '((assign env (op get-global-environment)))
-            mc-eval-code))
+    (cons '(assign env (op get-global-environment))
+          mc-eval-code))
 
   (define machine (make-machine eceval-operations program))
 
@@ -270,8 +278,8 @@ Compiling metacircular-evaluator source ...")
   (statements-with-next mc-evaluator-exp))
 
 (define program
-  (append '((assign env (op get-global-environment)))
-          mc-eval-code))
+  (cons '(assign env (op get-global-environment))
+        mc-eval-code))
 
 (println "Making machine ...")
 (define machine (make-machine eceval-operations program))
@@ -284,6 +292,7 @@ Compiling metacircular-evaluator source ...")
 ============================================================================
 Snippets To Use In The REPL
 ----------------------------------------------------------------------------
+
 
 (define (pick-fruit)
   (define trace '())
