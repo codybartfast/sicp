@@ -132,6 +132,10 @@
 
 (define (primitive-implementation proc) (cadr proc))
 
+(define (apply-in-underlying-scheme proc args)
+  (let ((primitive-procedure (cadr proc)))
+    (apply primitive-procedure args)))
+
 (define primitive-procedures
   (list (list 'car car)
         (list 'cdr cdr)
@@ -166,7 +170,7 @@
         (list 'set-car! set-car!)
         (list 'set-cdr! set-cdr!)
         (list 'cadddr cadddr)
-        (list 'apply-in-underlying-scheme apply)
+        (list 'apply-in-underlying-scheme apply-in-underlying-scheme)
         (list 'cdddr cdddr)
         
         (list 'equal? equal?)

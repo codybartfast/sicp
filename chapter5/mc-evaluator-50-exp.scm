@@ -313,10 +313,10 @@
     
      (define (primitive-procedure-objects)
        ;(list car cdr cons null? = * - list equal?))
-       ;(map2 (lambda (proc) (list 'primitive (cadr proc)))
-       ;      primitive-procedures))
-       (map2 (lambda (proc) (cadr proc))
+       (map2 (lambda (proc) (list 'primitive (cadr proc)))
              primitive-procedures))
+;       (map2 (lambda (proc) (cadr proc))
+;             primitive-procedures))
 
      (define (setup-environment)
        (let ((initial-env
