@@ -279,29 +279,44 @@
 
      ;; 4.1.4  Running the Evaluator as a Program
      ;; =========================================
+                         
+     (define (map1 proc items)
+       (if (null? items)
+           '()
+           (cons (proc (car items))
+                 (map1 proc (cdr items)))))
 
-;     (define primitive-procedures
-;       (list (list 'car car)
-;             (list 'cdr cdr)
-;             (list 'cons cons)
-;             (list 'null? null?)
-;             ;; Additional Primitives
-;             (list '= =)
-;             (list '* *)
-;             (list '- -)
-;             (list 'list list)
-;             (list 'equal? equal?)
-;             ))
+     (define (map2 proc items)
+       (if (null? items)
+           '()
+           (cons (proc (car items))
+                 (map2 proc (cdr items)))))
+
+     (define primitive-procedures
+       (list (list 'car car)
+             (list 'cdr cdr)
+             (list 'cons cons)
+             (list 'null? null?)
+             ;; Additional Primitives
+             (list '= =)
+             (list '* *)
+             (list '- -)
+             (list 'list list)
+             (list 'equal? equal?)
+             ))
          
      (define (primitive-procedure-names)
-       '(car cdr cons null? = * - list equal?))
-;       (map car
-;            primitive-procedures))
+       ;(display car)
+       ;'(car cdr cons null? = * - list equal?))
+       (map1 car
+            primitive-procedures))
     
      (define (primitive-procedure-objects)
-       (list car cdr cons null? = * - list equal?))
-;       (map (lambda (proc) (list 'primitive (cadr proc)))
-;             primitive-procedures))
+       ;(list car cdr cons null? = * - list equal?))
+       ;(map2 (lambda (proc) (list 'primitive (cadr proc)))
+       ;      primitive-procedures))
+       (map2 (lambda (proc) (cadr proc))
+             primitive-procedures))
 
      (define (setup-environment)
        (let ((initial-env

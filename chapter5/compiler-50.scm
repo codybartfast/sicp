@@ -3,7 +3,17 @@
 ;; Based on compiler-48 for ex 5.50.  Added support for statements-with-next
 ;; and moved code from exercise to bottom of file
 
-;; Compiler from book text, Section 5.5
+
+(define (compiler-apply? exp)
+  (tagged-list? exp 'compiler-apply))
+
+(define (compile-compiler-apply exp ctenv target linkage)
+  (let ((exp (list (cadr exp) (caddr exp))))
+    (compile exp ctenv target linkage)))
+
+
+
+; Compiler from book text, Section 5.5
 ;; ====================================
 
 ;; 5.5.1  Structure of the Compiler
@@ -27,9 +37,11 @@
                            target
                            linkage))
         ((cond? exp) (compile (cond->if exp) ctenv target linkage))
+        ((let? exp) (compile (let->combination exp) ctenv target linkage))
+        ((compiler-apply? exp)
+         (compile-compiler-apply exp ctenv target linkage))
         ((primitive-name? exp ctenv)
          (compile-primitive-procedure exp ctenv target linkage))
-        ((let? exp) (compile (let->combination exp) ctenv target linkage))
         ((application? exp)
          (compile-application exp ctenv target linkage))
         (else
