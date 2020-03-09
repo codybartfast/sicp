@@ -153,6 +153,10 @@
         (list 'set-cdr! set-cdr!)
         (list 'cadddr cadddr)
         (list 'cdddr cdddr)
+        ;; Additional primitive procedures installed in the MC-evaluator
+        (list '- -)
+        (list '* *)
+        (list 'equal? equal?)
         ))
         
 (define (primitive-procedure-names)
