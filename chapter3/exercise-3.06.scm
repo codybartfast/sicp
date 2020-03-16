@@ -32,46 +32,60 @@
        (+ (* x a) b)
        m))))
 
-(define (rand)
-  (define x 0)
-  (lambda (method)
-    (cond
-      ((eq? method 'generate)
-       (set! x (rand-update x))
-       x)
-      ((eq? method 'reset)
-       (lambda (seed) (set! x seed)))
-      (else ((error "Unknown Method - " method))))))
+;(define (make-rand)
+;  (define x 0)
+;  (define (set-x! new-x)
+;    (set! x new-x))
+;  (define (dispatch message)
+;    (cond
+;      ((eq? message 'generate)
+;       (set! x (rand-update x))
+;       x)
+;      ((eq? message 'reset)
+;       set-x!)
+;      (else ((error "Unknown Message - " message)))))
+;  dispatch) ; 'dispatch' returned and assigned to my-rand
 
-(define r (rand))
+(define (make-rand)
+  (let ((x 0))
+    (lambda (message) ; lambda returned and assigned to my-rand
+      (cond
+        ((eq? message 'generate)
+         (set! x (rand-update x))
+         x)
+        ((eq? message 'reset)
+         (lambda (new-x) (set! x new-x)))
+        (else ((error "Unknown Message - " message)))))))
+
+(define my-rand (make-rand))
 
 (prn "Expect default output with default seed zero:
     (1013904223, 1196435762, 3519870697)")
-(r 'generate)
-(r 'generate)
-(r 'generate)
+(my-rand 'generate)
+(my-rand 'generate)
+(my-rand 'generate)
 
 (prn "
 Expect new sequence with new seed 351181:
     (1447905992, 3081727879, 1526097722)")
-((r 'reset) 351181)
-(r 'generate)
-(r 'generate)
-(r 'generate)
+((my-rand 'reset) 351181)
+(my-rand 'generate)
+(my-rand 'generate)
+(my-rand 'generate)
 
 (prn "
 Expect sequence to continue with different values:
     (482168145, 2881693308, 2026459051)")
-(r 'generate)
-(r 'generate)
-(r 'generate)
+(my-rand 'generate)
+(my-rand 'generate)
+(my-rand 'generate)
 
 (prn "
 Expect repeat of (second) sequence after resetting to 351181:
     (1447905992, 3081727879, 1526097722)")
-((r 'reset) 351181)
-(r 'generate)
-(r 'generate)
-(r 'generate)
+((my-rand 'reset) 351181)
+(my-rand 'generate)
+(my-rand 'generate)
+(my-rand 'generate)
 
 (--end-- "3.6")
