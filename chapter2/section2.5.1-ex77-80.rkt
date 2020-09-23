@@ -151,18 +151,21 @@ abstraction.
 
 (-start- "2.80")
 
-(prn
-"(define (install-zero-predicate-package) 
+(prn "
+(define (install-zero-predicate-package)
+  (define (numer x) (car x))
   (put '=zero? '(scheme-number)
        (lambda (x) (= 0 x)))
   (put '=zero? '(rational)
-       (lambda (x)         
-         (= 0 (number x))))
+       (lambda (x)
+         (= 0 (numer x))))
   (put '=zero? '(complex)
        (lambda (x)
          (= 0 (magnitude x)))))
 
-(define (=zero? x y) (apply-generic '=zero? x y))    ")
+(define (=zero? x) (apply-generic '=zero? x))
+
+(install-zero-predicate-package)    ")
 
 (--end-- "2.80")
 
