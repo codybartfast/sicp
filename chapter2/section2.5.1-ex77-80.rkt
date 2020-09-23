@@ -115,21 +115,23 @@ abstraction.
 
 (-start- "2.79")
 
-(prn 
-"(define (install-equality-predicate-package) 
-  (put 'equ '(scheme-number scheme-number)
+(prn "
+(define (install-equality-predicate-package)
+  (put 'equ? '(scheme-number scheme-number)
        (lambda (x y) (= x y)))
-  (put 'equ '(rational rational)
+  (define (numer x) (car x))
+  (define (denom x) (cdr x))
+  (put 'equ? '(rational rational)
        (lambda (x y)
          (=
           (* (numer x) (denom y))
           (* (denom x) (numer y)))))
-  (put 'equ '(complex complex)
-       (and
-        (= (real-part x) (real-part y))
-        (= (imag-part x) (imag-part y)))))
-
-(define (equ? x y) (apply-generic 'equ? x y))   ")
+  (put 'equ? '(complex complex)
+       (lambda (x y)
+         (and
+          (= (real-part x) (real-part y))
+          (= (imag-part x) (imag-part y))))))
+(define (equ? x y) (apply-generic 'equ? x y)) ")
 
 (--end-- "2.79")
 
