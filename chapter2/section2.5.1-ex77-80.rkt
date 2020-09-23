@@ -80,7 +80,7 @@ abstraction.
 (-start- "2.78")
 (prn 
 "(define (attach-tag type-tag contents)
-  (if (= 'scheme-number type-tag)
+  (if (eq? 'scheme-number type-tag)
       contents
       (cons type-tag contents)))
 
