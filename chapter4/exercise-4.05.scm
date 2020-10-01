@@ -76,7 +76,7 @@
 (define expression
   '(cond
     (false "FALSE")
-    (square => (lambda (f) (f 3)))
+    ((begin (println "working...") square) => (lambda (f) (f 3)))
     (else "ELSE")))
 
 (println "
