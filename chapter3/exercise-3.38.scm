@@ -47,7 +47,7 @@ Part B
 
 In this simple case interleving could have the effect of 'skipping' one or
 two commands so additional results are:
-
+     
 Peter -> Paul -> 90
 Paul -> Peter -> 90
 Peter -> Mary -> 55
@@ -114,6 +114,37 @@ Read  100
             Read 100
             Write 80
 Write 110
+     
+Addendum 1:
+==========
+mary -> peter -> mary -> paul -> 25
+
+To get 25:
+==========
+Peter        Paul         Mary
+                        Read  100
+Read  100
+Write 110
+                        Read  110
+                        Write  45
+            Read  45
+            Write 25
+   
+Addendum 2:
+===========
+mary -> paul -> mary -> peter -> 70
+     
+To get 70:     
+==========
+Peter        Paul         Mary
+                        Read  100
+            Read  100
+            Write 80
+                        Read   80
+                        Write  60
+Read  60
+Write 70
+   
 ")
 (--end-- "3.38")
 
