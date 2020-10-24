@@ -19,7 +19,8 @@
 
 (-start- "5.51")
 
-
+(println
+ "See separate repository - https://github.com/codybartfast/sicp-ex5.51")
 
 (--end-- "5.51")
 
